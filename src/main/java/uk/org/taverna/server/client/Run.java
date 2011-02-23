@@ -50,9 +50,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
+ * The Run class represents a workflow run on a Taverna Server instance. It is
+ * created by supplying a Server instance on which to create it and a workflow
+ * to be run.
  * 
  * @author Robert Haines
- * 
  */
 public final class Run {
 
@@ -80,6 +82,15 @@ public final class Run {
 		// }
 	}
 
+	/**
+	 * Create a new Run instance on the specified server with the supplied
+	 * workflow.
+	 * 
+	 * @param server
+	 *            The server to create the Run on.
+	 * @param workflow
+	 *            The workflow associated with the Run.
+	 */
 	public Run(Server server, String workflow) {
 		this(server, workflow, server.initializeRun(workflow));
 	}
@@ -88,6 +99,14 @@ public final class Run {
 		this(server, null, uuid);
 	}
 
+	/**
+	 * Set a workflow input value.
+	 * 
+	 * @param input
+	 *            The input port to set.
+	 * @param value
+	 *            The value to set the port to.
+	 */
 	public void setInput(String input, String value) {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
@@ -97,6 +116,21 @@ public final class Run {
 		}
 	}
 
+	/**
+	 * Use an already uploaded file as input to a workflow input port. The file
+	 * to be used must already have been uploaded to the server with
+	 * {@link #uploadFile(File)} or {@link #uploadFile(File, String, String)}
+	 * before it can be used by this method and the filename returned by either
+	 * of those methods is what should be passed into this one.
+	 * {@link #uploadInputFile(String, File, String, String)} can be used to do
+	 * these two steps in one call.
+	 * 
+	 * @param input
+	 *            The input port to set.
+	 * @param filename
+	 *            The filename of the file (on the server) to use as input.
+	 * @see #uploadInputFile(String, File, String, String)
+	 */
 	public void setInputFile(String input, String filename) {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
@@ -106,6 +140,18 @@ public final class Run {
 		}
 	}
 
+	/**
+	 * Upload a file to this Run instance's workspace on the server.
+	 * 
+	 * @param file
+	 *            The file to upload.
+	 * @param remoteDirectory
+	 *            The directory within the workspace to upload the file to.
+	 * @param rename
+	 *            The name to use for the file when saving it in the workspace.
+	 * @return the name of the file as used on the server.
+	 * @throws IOException
+	 */
 	public String uploadFile(File file, String remoteDirectory, String rename)
 			throws IOException {
 		String uploadLocation = links.get("wdir");
@@ -113,10 +159,32 @@ public final class Run {
 		return server.uploadRunFile(this, file, uploadLocation, rename);
 	}
 
+	/**
+	 * Upload a file to this Run instance's workspace on the server.
+	 * 
+	 * @param file
+	 *            The file to upload.
+	 * @return the name of the file as used on the server.
+	 * @throws IOException
+	 */
 	public String uploadFile(File file) throws IOException {
 		return uploadFile(file, null, null);
 	}
 
+	/**
+	 * Upload a file to the Run's workspace on the server and then use it as
+	 * input to an input port.
+	 * 
+	 * @param input
+	 *            The input port to set.
+	 * @param file
+	 *            The file to upload and use as input.
+	 * @param remoteDirectory
+	 *            The directory within the workspace to upload the file to.
+	 * @param rename
+	 *            The name to use for the file when saving it in the workspace.
+	 * @throws IOException
+	 */
 	public void uploadInputFile(String input, File file,
 			String remoteDirectory, String rename) throws IOException {
 		RunStatus rs = getStatus();
@@ -128,6 +196,13 @@ public final class Run {
 		}
 	}
 
+	/**
+	 * Upload a baclava file to specify all input port values.
+	 * 
+	 * @param file
+	 *            The file to upload.
+	 * @throws IOException
+	 */
 	public void uploadBaclavaFile(File file) throws IOException {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
@@ -138,6 +213,13 @@ public final class Run {
 		}
 	}
 
+	/**
+	 * Set the server to return outputs for this Run in baclava format. This
+	 * must be set before the Run is started.
+	 * 
+	 * @param name
+	 *            the name of the baclava file to use
+	 */
 	public void setBaclavaOutput(String name) {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
@@ -148,10 +230,22 @@ public final class Run {
 		}
 	}
 
+	/**
+	 * Set the server to return outputs for this Run in baclava format. This
+	 * must be set before the Run is started.
+	 */
 	public void setBaclavaOutput() {
 		setBaclavaOutput("out.xml");
 	}
 
+	/**
+	 * Get the outputs of this Run as a baclava formatted document. The Run must
+	 * have been set to output in baclava format before it is started.
+	 * 
+	 * @return The baclava formatted document contents as a String.
+	 * @see #setBaclavaOutput()
+	 * @see #setBaclavaOutput(String)
+	 */
 	public String getBaclavaOutput() {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.FINISHED) {
@@ -167,27 +261,56 @@ public final class Run {
 		}
 	}
 
+	/**
+	 * Get the UUID of this run.
+	 * 
+	 * @return the UUID of this run.
+	 */
 	public UUID getUUID() {
 		return uuid;
 	}
 
+	/**
+	 * Get the status of this Run.
+	 * 
+	 * @return the status of this Run.
+	 */
 	public RunStatus getStatus() {
 		return RunStatus
 				.state(server.getRunAttribute(this, links.get("status")));
 	}
 
+	/**
+	 * Is this Run initialized?
+	 * 
+	 * @return true if the Run is initialized, false otherwise.
+	 */
 	public boolean isInitialized() {
 		return getStatus() == RunStatus.INITIALIZED;
 	}
 
+	/**
+	 * Is this Run running?
+	 * 
+	 * @return true if the Run is running, false otherwise.
+	 */
 	public boolean isRunning() {
 		return getStatus() == RunStatus.RUNNING;
 	}
 
+	/**
+	 * Is this Run finished?
+	 * 
+	 * @return true if the Run is finished, false otherwise.
+	 */
 	public boolean isFinished() {
 		return getStatus() == RunStatus.FINISHED;
 	}
 
+	/**
+	 * Start this Run running on the server. The Run must not be already
+	 * running, or finished.
+	 */
 	public void start() {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
@@ -198,6 +321,11 @@ public final class Run {
 		}
 	}
 
+	/**
+	 * Get the workflow of this Run as a String.
+	 * 
+	 * @return the workflow of this Run as a String.
+	 */
 	public String getWorkflow() {
 		if (workflow == null) {
 			workflow = server.getRunAttribute(this, links.get("workflow"));
@@ -206,14 +334,28 @@ public final class Run {
 		return workflow;
 	}
 
+	/**
+	 * Get the expiry time of this Run as a Date object.
+	 * 
+	 * @return the expiry time of this Run as a Date object.
+	 */
 	public Date getExpiry() {
 		return getTime("expiry");
 	}
 
+	/**
+	 * Set the expiry time of this Run.
+	 * 
+	 * @param time
+	 *            the newexpiry time of this Run.
+	 */
 	public void setExpiry(Date time) {
 		System.out.println(XmlUtil.formatXsdDatetime(time));
 	}
 
+	/**
+	 * Delete this Run.
+	 */
 	public void delete() {
 		server.deleteRun(this);
 	}
@@ -222,6 +364,15 @@ public final class Run {
 		return links.get("inputs");
 	}
 
+	/**
+	 * Get a list of the output ports that have been written to so far. Note
+	 * that this list will be in flux until the workflow has finished running so
+	 * if you wish to simply gather results at the end of a run you should test
+	 * its status first.
+	 * 
+	 * @return the list of the output ports that have been written to so far.
+	 * @see #isFinished()
+	 */
 	public List<String> getOutputPorts() {
 		List<String> lists = new ArrayList<String>();
 		List<String> items = new ArrayList<String>();
@@ -233,26 +384,57 @@ public final class Run {
 		return items;
 	}
 
+	/**
+	 * Get the return code of the underlying Taverna Server process. A zero
+	 * value indicates success.
+	 * 
+	 * @return the return code of the underlying Taverna Server process.
+	 */
 	public int getExitCode() {
 		return new Integer(server.getRunAttribute(this, links.get("exitcode")));
 	}
 
+	/**
+	 * Get the console output of the underlying Taverna Server process.
+	 * 
+	 * @return the console output of the underlying Taverna Server process.
+	 */
 	public String getConsoleOutput() {
 		return server.getRunAttribute(this, links.get("stdout"));
 	}
 
+	/**
+	 * Get the console errors of the underlying Taverna Server process.
+	 * 
+	 * @return the console errors of the underlying Taverna Server process.
+	 */
 	public String getConsoleError() {
 		return server.getRunAttribute(this, links.get("stderr"));
 	}
 
+	/**
+	 * Get the time that this Run was created as a Date object.
+	 * 
+	 * @return the time that this Run was created.
+	 */
 	public Date getCreateTime() {
 		return getTime("createtime");
 	}
 
+	/**
+	 * Get the time that this Run was started as a Date object.
+	 * 
+	 * @return the time that this Run was started.
+	 */
 	public Date getStartTime() {
 		return getTime("starttime");
 	}
 
+	/**
+	 * Get the time that this Run finished as a Date object.
+	 * 
+	 * @return the time that this Run finished.
+	 */
 	public Date getFinishTime() {
 		return getTime("finishtime");
 	}
@@ -263,6 +445,13 @@ public final class Run {
 
 	}
 
+	/**
+	 * Create a directory in the workspace of this Run.
+	 * 
+	 * @param dir
+	 *            the name of the directory to create.
+	 * @throws IOException
+	 */
 	public void mkdir(String dir) throws IOException {
 		if (dir.contains("/")) {
 			int lastSlash = dir.lastIndexOf("/");
@@ -440,14 +629,47 @@ public final class Run {
 		return result;
 	}
 
+	/**
+	 * Get the contents of the specified output port. Note that the contents of
+	 * an output port will be in flux until the workflow has finished running so
+	 * if you wish to simply gather results at the end of a run you should test
+	 * its status first.
+	 * 
+	 * @param port
+	 *            the output port to get.
+	 * @param refs
+	 *            true to return references to the data, false to return the
+	 *            actual data.
+	 * @return a data structure containing the data in the output port.
+	 */
 	public RunOutput<?> getOutput(String port, boolean refs) {
 		return getOutput(port, refs, true);
 	}
 
+	/**
+	 * Get the contents of the specified output port. Note that the contents of
+	 * an output port will be in flux until the workflow has finished running so
+	 * if you wish to simply gather results at the end of a run you should test
+	 * its status first.
+	 * 
+	 * @param port
+	 *            the output port to get.
+	 * @return a data structure containing the data in the output port.
+	 */
 	public RunOutput<?> getOutput(String port) {
 		return getOutput(port, false, true);
 	}
 
+	/**
+	 * Get references to the contents of the specified output port. Note that
+	 * the contents of an output port will be in flux until the workflow has
+	 * finished running so if you wish to simply gather results at the end of a
+	 * run you should test its status first.
+	 * 
+	 * @param port
+	 *            the output port to get.
+	 * @return a data structure containing the data in the output port.
+	 */
 	public RunOutput<?> getOutputRefs(String port) {
 		return getOutput(port, true, true);
 	}
