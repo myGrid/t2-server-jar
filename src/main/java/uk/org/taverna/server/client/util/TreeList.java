@@ -37,10 +37,13 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
+ * The TreeList class represents an arbitrary depth list structure where each
+ * node, including the root, can be either a single value, or a list of child
+ * nodes.
+ * 
+ * The list of child node, should it exist, acts like a {@link java.util.List}.
  * 
  * @author Robert Haines
- * 
- * @param <E>
  */
 public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 
@@ -64,6 +67,7 @@ public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 	 * Create a new node with no initial value.
 	 * 
 	 * @param composite
+	 *            true for this node to be composite, false otherwise.
 	 */
 	public TreeList(boolean composite) {
 		this.composite = composite;
@@ -75,6 +79,7 @@ public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 	 * Create a new leaf node with an initial value.
 	 * 
 	 * @param value
+	 *            the initial value.
 	 */
 	public TreeList(E value) {
 		this(false, value);
@@ -84,7 +89,9 @@ public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 	 * Create a new node with an initial value.
 	 * 
 	 * @param composite
+	 *            true for this node to be composite, false otherwise.
 	 * @param value
+	 *            the initial value.
 	 */
 	public TreeList(boolean composite, E value) {
 		this.composite = composite;
@@ -93,9 +100,12 @@ public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 	}
 
 	/**
+	 * Create a new node with an initial branch of child nodes.
 	 * 
 	 * @param composite
+	 *            true for this node to be composite, false otherwise.
 	 * @param list
+	 *            the initial branch of child nodes.
 	 */
 	protected TreeList(boolean composite, List<TreeList<E>> list) {
 		this.composite = composite;
@@ -104,17 +114,22 @@ public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 	}
 
 	/**
+	 * Create a new node with an initial branch of child nodes.
 	 * 
 	 * @param list
+	 *            the initial branch of child nodes.
 	 */
 	protected TreeList(List<TreeList<E>> list) {
 		this(false, list);
 	}
 
 	/**
+	 * Create a new node with an initial value and branch of child nodes.
 	 * 
 	 * @param value
+	 *            the initial value.
 	 * @param list
+	 *            the initial branch of child nodes.
 	 */
 	protected TreeList(E value, List<TreeList<E>> list) {
 		composite = true;
@@ -150,6 +165,7 @@ public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 	}
 
 	/**
+	 * Get the value stored in this node.
 	 * 
 	 * @return the value stored in this node.
 	 * @throws TreeListTypeMismatchException
@@ -164,9 +180,11 @@ public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 	}
 
 	/**
+	 * Set the value stored in this node.
 	 * 
 	 * @param data
-	 * @return
+	 *            the new value of this node.
+	 * @return the old value of this node.
 	 * @throws TreeListTypeMismatchException
 	 *             if this is not a leaf node.
 	 */
@@ -181,9 +199,11 @@ public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 	}
 
 	/**
+	 * Get a node from the child branch of this node.
 	 * 
 	 * @param index
-	 * @return
+	 *            the index of the node in the child branch to return.
+	 * @return the node from the child branch of this node.
 	 * @throws TreeListTypeMismatchException
 	 *             if this is not a branch node.
 	 */
@@ -196,10 +216,13 @@ public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 	}
 
 	/**
+	 * Set a node in the child branch of this node.
 	 * 
 	 * @param index
+	 *            the index of the node in the child branch to change.
 	 * @param node
-	 * @return
+	 *            the new node.
+	 * @return the old node.
 	 * @throws TreeListTypeMismatchException
 	 *             if this is not a branch node.
 	 */
@@ -215,9 +238,11 @@ public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 	}
 
 	/**
+	 * Add a node to the end of this node's child branch.
 	 * 
 	 * @param node
-	 * @return
+	 *            the node to add.
+	 * @return true
 	 * @throws TreeListTypeMismatchException
 	 *             if this is not a branch node.
 	 */
@@ -231,9 +256,14 @@ public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 	}
 
 	/**
+	 * Insert a node at the specified position in the child branch. Shifts the
+	 * node currently at that position (if any) and any subsequent nodes to the
+	 * right (adds one to their indices).
 	 * 
 	 * @param index
+	 *            index at which the specified node is to be inserted.
 	 * @param node
+	 *            node to be inserted.
 	 * @throws TreeListTypeMismatchException
 	 *             if this is not a branch node.
 	 */
@@ -247,9 +277,13 @@ public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 	}
 
 	/**
+	 * Removes the node at the specified position in this list. Shifts any
+	 * subsequent nodes to the left (subtracts one from their indices). Returns
+	 * the node that was removed from the list.
 	 * 
 	 * @param index
-	 * @return
+	 *            the index of the node to be removed.
+	 * @return the node previously at the specified position.
 	 * @throws TreeListTypeMismatchException
 	 *             if this is not a branch node.
 	 */
@@ -263,9 +297,13 @@ public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 	}
 
 	/**
+	 * Removes the first occurrence of the specified node from this list, if it
+	 * is present (optional operation). If this list does not contain the node,
+	 * it is unchanged.
 	 * 
 	 * @param o
-	 * @return
+	 *            node to be removed from this list, if present.
+	 * @return true if this list contained the specified element.
 	 * @throws TreeListTypeMismatchException
 	 *             if this is not a branch node.
 	 */
@@ -278,9 +316,13 @@ public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 	}
 
 	/**
+	 * Returns true if this list contains the specified node. More formally,
+	 * returns true if and only if the child branch of this node contains at
+	 * least one node e such that (o==null ? e==null : o.equals(e)).
 	 * 
 	 * @param o
-	 * @return
+	 *            node whose presence in this list is to be tested.
+	 * @return true if this list contains the specified element.
 	 * @throws TreeListTypeMismatchException
 	 *             if this is not a branch node.
 	 */
@@ -313,6 +355,13 @@ public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 		return isBranch() ? branch.size() : 0;
 	}
 
+	/**
+	 * Returns a string representation of this TreeList. If this node is a leaf
+	 * it simply returns a representation of its value. If it is a branch then
+	 * it recursively calls toString() on each child.
+	 * 
+	 * @return a string representation of this TreeList.
+	 */
 	@Override
 	public String toString() {
 		String result = "";
@@ -359,6 +408,11 @@ public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 		}
 	}
 
+	/**
+	 * Returns an iterator over the child nodes of this node, if it has any.
+	 * 
+	 * @return an iterator.
+	 */
 	@Override
 	public Iterator<TreeList<E>> iterator()
 			throws TreeListTypeMismatchException {
