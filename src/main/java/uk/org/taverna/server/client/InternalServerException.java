@@ -33,14 +33,15 @@
 package uk.org.taverna.server.client;
 
 /**
+ * This exception is thrown if the server returns an internal error code (50x).
  * 
  * @author Robert Haines
- * 
  */
 public final class InternalServerException extends ServerException {
 	private static final long serialVersionUID = 1L;
 
 	/**
+	 * Construct the exception with the message from the server passed in.
 	 * 
 	 * @param message
 	 */

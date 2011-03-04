@@ -33,14 +33,16 @@
 package uk.org.taverna.server.client.util;
 
 /**
+ * An exception to be thrown if a branch only operation is performed on a leaf
+ * and vice-versa.
  * 
  * @author Robert Haines
- * 
  */
 public final class TreeListTypeMismatchException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 
 	/**
+	 * Create an exception with the type of node that can be operated on.
 	 * 
 	 * @param need
 	 */

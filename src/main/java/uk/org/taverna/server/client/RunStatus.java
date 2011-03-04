@@ -33,9 +33,9 @@
 package uk.org.taverna.server.client;
 
 /**
+ * An enum to represent the status of a Run on a Taverna Server.
  * 
  * @author Robert Haines
- * 
  */
 public enum RunStatus {
 	INITIALIZED("Initialized"), RUNNING("Operating"), FINISHED("Finished"), STOPPED(
@@ -48,17 +48,20 @@ public enum RunStatus {
 	}
 
 	/**
+	 * Get the String representation of this instance.
 	 * 
-	 * @return
+	 * @return the String representation of this instance.
 	 */
 	public String status() {
 		return this.status;
 	}
 
 	/**
+	 * Convert a String representation of a status to its RunStatus equivalent.
 	 * 
 	 * @param status
-	 * @return
+	 *            the status to convert.
+	 * @return the converted status.
 	 */
 	public static RunStatus state(String status) {
 		for (RunStatus rs : RunStatus.values()) {

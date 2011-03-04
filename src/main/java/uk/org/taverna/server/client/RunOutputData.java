@@ -33,8 +33,9 @@
 package uk.org.taverna.server.client;
 
 /**
- * @author Robert Haines
+ * The RunOutputData class holds the raw byte data from an output port.
  * 
+ * @author Robert Haines
  */
 public final class RunOutputData extends RunOutput<byte[]> {
 
@@ -59,6 +60,14 @@ public final class RunOutputData extends RunOutput<byte[]> {
 	// super(data.getBytes());
 	// }
 
+	/**
+	 * Returns a string representation of this RunOutputData. If this node is a
+	 * leaf it simply returns a representation of its value. If it is a branch
+	 * then it recursively calls toString() on each child. The byte data stored
+	 * at each leaf is converted to a String.
+	 * 
+	 * @return a string representation of this RunOutputData.
+	 */
 	@Override
 	public String toString() {
 		String result = "";

@@ -65,9 +65,16 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
+ * The Server class represents a connection to a Taverna Server instance
+ * somewhere on the Internet. Only one instance of this class is created for
+ * each Taverna Server instance.
+ * 
+ * To make a connection to a server call {@link Server.connect(String)} with it
+ * full URL as the parameter. If there already exists a Server instance that is
+ * connected to this Taverna Server then it will be returned, otherwise a new
+ * Server instance is created and returned.
  * 
  * @author Robert Haines
- * 
  */
 public final class Server {
 	private final static Map<String, Server> servers = new HashMap<String, Server>();
@@ -109,25 +116,30 @@ public final class Server {
 	}
 
 	/**
+	 * Get the Run instance hosted by this Server by its UUID.
 	 * 
 	 * @param uuid
-	 * @return
+	 *            The UUID of the Run instance to get.
+	 * @return the Run instance.
 	 */
 	public Run getRun(UUID uuid) {
 		return getRunsFromServer().get(uuid);
 	}
 
 	/**
+	 * Get all the Run instances hosted on this server.
 	 * 
-	 * @return
+	 * @return all the Run instances hosted on this server.
 	 */
 	public Collection<Run> getRuns() {
 		return getRunsFromServer().values();
 	}
 
 	/**
+	 * Delete a Run from the server.
 	 * 
 	 * @param uuid
+	 *            The UUID of the run to delete.
 	 */
 	public void deleteRun(UUID uuid) {
 		HttpDelete request = new HttpDelete(links.get("runs") + "/" + uuid);
@@ -152,8 +164,10 @@ public final class Server {
 	}
 
 	/**
+	 * Delete a Run from the server.
 	 * 
 	 * @param run
+	 *            The Run instance to delete.
 	 */
 	public void deleteRun(Run run) {
 		deleteRun(run.getUUID());
@@ -380,18 +394,59 @@ public final class Server {
 		}
 	}
 
-	public byte[] getRunData(Run run, String path, String type) {
-		return getRunData(run.getUUID(), path, type);
+	/**
+	 * Read attribute data from a run.
+	 * 
+	 * @param run
+	 *            the Run instance
+	 * @param uri
+	 *            the full URI of the attribute to get.
+	 * @param type
+	 *            the mime type of the attribute being retrieved.
+	 * @return the data associated with the attribute.
+	 */
+	public byte[] getRunData(Run run, String uri, String type) {
+		return getRunData(run.getUUID(), uri, type);
 	}
 
-	public String getRunAttribute(Run run, String path, String type) {
-		return new String(getRunData(run.getUUID(), path, type));
+	/**
+	 * Read an attribute, of a specific type, of a run.
+	 * 
+	 * @param run
+	 *            the Run instance
+	 * @param uri
+	 *            the full URI of the attribute to get.
+	 * @param type
+	 *            the mime type of the attribute being retrieved.
+	 * @return the attribute as a String.
+	 */
+	public String getRunAttribute(Run run, String uri, String type) {
+		return new String(getRunData(run.getUUID(), uri, type));
 	}
 
-	public String getRunAttribute(Run run, String path) {
-		return new String(getRunData(run.getUUID(), path, null));
+	/**
+	 * Read an attribute of a run.
+	 * 
+	 * @param run
+	 *            the Run instance
+	 * @param uri
+	 *            the full URI of the attribute to get.
+	 * @return the attribute as a String.
+	 */
+	public String getRunAttribute(Run run, String uri) {
+		return new String(getRunData(run.getUUID(), uri, null));
 	}
 
+	/**
+	 * Set a run's attribute to a new value.
+	 * 
+	 * @param uuid
+	 *            the UUID of the run.
+	 * @param uri
+	 *            the full URI of the attribute to set.
+	 * @param value
+	 *            the new value of the attribute.
+	 */
 	public void setRunAttribute(UUID uuid, String uri, String value) {
 		try {
 			setAttribute(uri, value, "text/plain");
@@ -404,6 +459,16 @@ public final class Server {
 		}
 	}
 
+	/**
+	 * Set a run's attribute to a new value.
+	 * 
+	 * @param run
+	 *            the Run instance.
+	 * @param uri
+	 *            the full URI of the attribute to set.
+	 * @param value
+	 *            the new value of the attribute.
+	 */
 	public void setRunAttribute(Run run, String uri, String value) {
 		setRunAttribute(run.getUUID(), uri, value);
 	}
@@ -528,7 +593,9 @@ public final class Server {
 	 * @return the name of the file on the remote server. This will be unchanged
 	 *         unless rename was used.
 	 * @throws IOException
-	 * @see {@link #uploadRunFile(UUID, File, String)}
+	 * @see #uploadRunFile(UUID, File, String)
+	 * @see #uploadRunFile(Run, File, String, String)
+	 * @see #uploadRunFile(Run, File, String)
 	 */
 	public String uploadRunFile(UUID uuid, File file, String uploadLocation,
 			String rename) throws IOException {
@@ -552,16 +619,67 @@ public final class Server {
 		return rename;
 	}
 
+	/**
+	 * Upload a file to the server for use by a run.
+	 * 
+	 * @param uuid
+	 *            the UUID of the run to upload to.
+	 * @param file
+	 *            the file to upload.
+	 * @param uploadLocation
+	 *            the location to upload to. This should be the full URI.
+	 * @return the name of the file on the remote server. This will be unchanged
+	 *         unless rename was used.
+	 * @throws IOException
+	 * @see #uploadRunFile(UUID, File, String, String)
+	 * @see #uploadRunFile(Run, File, String, String)
+	 * @see #uploadRunFile(Run, File, String)
+	 */
 	public String uploadRunFile(UUID uuid, File file, String uploadLocation)
 			throws IOException {
 		return uploadRunFile(uuid, file, uploadLocation, null);
 	}
 
+	/**
+	 * Upload a file to the server for use by a run.
+	 * 
+	 * @param run
+	 *            the Run instance to upload to.
+	 * @param file
+	 *            the file to upload.
+	 * @param uploadLocation
+	 *            the location to upload to. This should be the full URI.
+	 * @param rename
+	 *            optionally rename the file at the remote location. Pass null
+	 *            or the empty string to ignore.
+	 * @return the name of the file on the remote server. This will be unchanged
+	 *         unless rename was used.
+	 * @throws IOException
+	 * @see #uploadRunFile(Run, File, String)
+	 * @see #uploadRunFile(UUID, File, String)
+	 * @see #uploadRunFile(UUID, File, String, String)
+	 */
 	public String uploadRunFile(Run run, File file, String uploadLocation,
 			String rename) throws IOException {
 		return uploadRunFile(run.getUUID(), file, uploadLocation, rename);
 	}
 
+	/**
+	 * Upload a file to the server for use by a run.
+	 * 
+	 * @param run
+	 *            the Run instance to upload to.
+	 * @param file
+	 *            the file to upload.
+	 * @param uploadLocation
+	 *            the location to upload to. This should be the full URI.
+	 * @return the name of the file on the remote server. This will be unchanged
+	 *         unless rename was used.
+	 * @throws IOException
+	 * @see #uploadRunFile(Run, File, String, String)
+	 * @see #uploadRunFile(UUID, File, String)
+	 * @see #uploadRunFile(UUID, File, String, String)
+	 */
 	public String uploadRunFile(Run run, File file, String uploadLocation)
 			throws IOException {
 		return uploadRunFile(run.getUUID(), file, uploadLocation, null);

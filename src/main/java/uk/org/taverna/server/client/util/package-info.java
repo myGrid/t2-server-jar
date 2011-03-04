@@ -30,22 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package uk.org.taverna.server.client;
-
 /**
- * This exception is thrown if the server returns a not found error code (404).
+ * Provides basic utility classes for use by the parent package.
  * 
  * @author Robert Haines
+ * @since 0.0.1
  */
-public final class AttributeNotFoundException extends ServerException {
-	private static final long serialVersionUID = 1L;
-
-	/**
-	 * Construct the exception with the specified attribute path.
-	 * 
-	 * @param path
-	 */
-	public AttributeNotFoundException(String path) {
-		super("Could not find attribute at " + path);
-	}
-}
+package uk.org.taverna.server.client.util;

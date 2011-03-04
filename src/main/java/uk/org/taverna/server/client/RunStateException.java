@@ -33,14 +33,17 @@
 package uk.org.taverna.server.client;
 
 /**
+ * This exception is thrown if a Run is in an incorrect state to be manipulated
+ * in the way that has been requested.
  * 
  * @author Robert Haines
- * 
  */
 public final class RunStateException extends ServerException {
 	private static final long serialVersionUID = 1L;
 
 	/**
+	 * Construct the exception with the current state and the required state for
+	 * performing the requested operation passed in.
 	 * 
 	 * @param current
 	 * @param need
