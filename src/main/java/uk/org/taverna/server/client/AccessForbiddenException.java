@@ -33,14 +33,15 @@
 package uk.org.taverna.server.client;
 
 /**
+ * This exception is thrown if the server returns a forbidden error code (403).
  * 
  * @author Robert Haines
- * 
  */
 public class AccessForbiddenException extends ServerException {
 	private static final long serialVersionUID = 1L;
 
 	/**
+	 * Construct the exception with the specified attribute path.
 	 * 
 	 * @param path
 	 */

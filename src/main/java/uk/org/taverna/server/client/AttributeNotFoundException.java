@@ -33,14 +33,15 @@
 package uk.org.taverna.server.client;
 
 /**
+ * This exception is thrown if the server returns a not found error code (404).
  * 
  * @author Robert Haines
- * 
  */
 public final class AttributeNotFoundException extends ServerException {
 	private static final long serialVersionUID = 1L;
 
 	/**
+	 * Construct the exception with the specified attribute path.
 	 * 
 	 * @param path
 	 */

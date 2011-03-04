@@ -35,14 +35,16 @@ package uk.org.taverna.server.client;
 import java.util.UUID;
 
 /**
+ * This exception is thrown if the server cannot find the run that has been
+ * requested or operated on.
  * 
  * @author Robert Haines
- * 
  */
 public final class RunNotFoundException extends ServerException {
 	private static final long serialVersionUID = 1L;
 
 	/**
+	 * Construct the exception with the UUID of the run that cannot be found.
 	 * 
 	 * @param uuid
 	 */
