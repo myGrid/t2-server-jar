@@ -42,9 +42,12 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
+ * This class is for internal use only.
+ * 
+ * It contains methods for caching the repetitive XML/XPath operations used by
+ * the Run and Server classes.
  * 
  * @author Robert Haines
- * 
  */
 final class XmlUtils {
 	private static final XmlUtils instance = new XmlUtils();
