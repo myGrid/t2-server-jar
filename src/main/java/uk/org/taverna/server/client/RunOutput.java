@@ -35,9 +35,9 @@ package uk.org.taverna.server.client;
 import uk.org.taverna.server.client.util.TreeList;
 
 /**
+ * This class is the abstract superclass of RunOutput types.
  * 
  * @author Robert Haines
- * 
  */
 public abstract class RunOutput<E> extends TreeList<E> {
 

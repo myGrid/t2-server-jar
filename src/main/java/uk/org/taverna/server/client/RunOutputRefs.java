@@ -35,8 +35,10 @@ package uk.org.taverna.server.client;
 import java.net.URI;
 
 /**
- * @author Robert Haines
+ * The RunOutputRefs class holds references to the raw output data from an
+ * output port.
  * 
+ * @author Robert Haines
  */
 public final class RunOutputRefs extends RunOutput<URI> {
 
