@@ -23,3 +23,10 @@ project as well.
 
 It is available from the following maven repository:
 http://www.mygrid.org.uk/maven/repository
+
+Disclaimer
+----------
+
+This API is to be considered in flux until version 1.0. Until then methods
+may be deprecated at short notice, although this will be kept to an absolute
+minimum as far as possible.
