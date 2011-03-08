@@ -69,7 +69,7 @@ import org.w3c.dom.Element;
  * somewhere on the Internet. Only one instance of this class is created for
  * each Taverna Server instance.
  * 
- * To make a connection to a server call {@link Server.connect(String)} with it
+ * To make a connection to a server call {@link Server#connect(URI)} with it
  * full URL as the parameter. If there already exists a Server instance that is
  * connected to this Taverna Server then it will be returned, otherwise a new
  * Server instance is created and returned.

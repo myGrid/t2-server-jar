@@ -40,7 +40,7 @@ package uk.org.taverna.server.client;
 public final class RunOutputData extends RunOutput<byte[]> {
 
 	/**
-	 * Create a new list of URIs.
+	 * Create a new list of data.
 	 */
 	public RunOutputData() {
 		super();
@@ -49,16 +49,12 @@ public final class RunOutputData extends RunOutput<byte[]> {
 	/**
 	 * Create a new list item with specified URI.
 	 * 
-	 * @param uri
-	 *            the URI
+	 * @param data
+	 *            the data.
 	 */
 	public RunOutputData(byte[] data) {
 		super(data);
 	}
-
-	// public RunOutputData(String data) {
-	// super(data.getBytes());
-	// }
 
 	/**
 	 * Returns a string representation of this RunOutputData. If this node is a
