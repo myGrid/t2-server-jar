@@ -77,12 +77,12 @@ import org.w3c.dom.Element;
  * @author Robert Haines
  */
 public final class Server {
-	private final static Map<String, Server> servers = new HashMap<String, Server>();
+	private final static Map<URI, Server> servers = new HashMap<URI, Server>();
 
 	private final HttpClient httpClient;
 	private final HttpContext httpContext;
 
-	private final String uri;
+	private final URI uri;
 	private final int runLimit;
 	private final Map<UUID, Run> runs;
 
@@ -93,14 +93,13 @@ public final class Server {
 
 	private final XmlUtils xmlUtils;
 
-	private Server(String uri) throws URISyntaxException {
+	private Server(URI uri) {
 		this.uri = uri;
 
 		httpClient = new DefaultHttpClient(new BasicHttpParams());
 		httpContext = new BasicHttpContext();
 
-		URI tmp = new URI(this.uri);
-		basePath = tmp.toASCIIString();
+		basePath = this.uri.toASCIIString();
 		restPath = basePath + "/rest";
 
 		xmlUtils = XmlUtils.getInstance();
@@ -244,6 +243,18 @@ public final class Server {
 	 *             if the provided URI is badly formed.
 	 */
 	public static Server connect(String uri) throws URISyntaxException {
+		return Server.connect(new URI(uri));
+	}
+
+	/**
+	 * Connect to a Taverna Server.
+	 * 
+	 * @param uri
+	 *            The URI of the server to connect to.
+	 * @return a Server instance representing the connection to the specified
+	 *         Taverna Server.
+	 */
+	public static Server connect(URI uri) {
 		Server server = servers.get(uri);
 
 		if (server == null) {
@@ -259,8 +270,17 @@ public final class Server {
 	 * 
 	 * @return the URI of this server instance.
 	 */
-	public String getUri() {
+	public URI getUri() {
 		return uri;
+	}
+
+	/**
+	 * Get the URI of this server instance as a String.
+	 * 
+	 * @return the URI of this server instance as a String.
+	 */
+	public String getStringUri() {
+		return uri.toASCIIString();
 	}
 
 	/**
