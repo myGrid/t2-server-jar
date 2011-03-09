@@ -573,8 +573,11 @@ public final class Run {
 				if (top) {
 					lists.set(0, name);
 				} else {
-					int index = (Integer.parseInt(xmlUtils.getServerAttribute(
-							e, "name")) - 1);
+					String n = xmlUtils.getServerAttribute(e, "name");
+					if (n.endsWith(".error")) {
+						n = n.replaceAll(".error", "");
+					}
+					int index = (Integer.parseInt(n) - 1);
 					lists.set(index, name);
 				}
 			}
@@ -596,8 +599,11 @@ public final class Run {
 				if (top) {
 					values.set(0, name);
 				} else {
-					int index = (Integer.parseInt(xmlUtils.getServerAttribute(
-							e, "name")) - 1);
+					String n = xmlUtils.getServerAttribute(e, "name");
+					if (n.endsWith(".error")) {
+						n = n.replaceAll(".error", "");
+					}
+					int index = (Integer.parseInt(n) - 1);
 					values.set(index, name);
 				}
 			}
