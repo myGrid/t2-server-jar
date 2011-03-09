@@ -8,11 +8,19 @@ Building
 --------
 
 Simply use maven from the root directory:
-$ mvn install
+$ mvn compile
+
+To run tests you will need to provide a running Taverna Server instance to
+test against. Define the T2SERVER system property on the command line as
+follows:
+$ mvn -DT2SERVER=http://example.com:8080/taverna test
+
+To install into your local repository use the same technique:
+$ mvn -DT2SERVER=http://example.com:8080/taverna install
 
 To build documentation:
 $ mvn javadoc:javadoc
-or add 'javadoc:javadoc' to the 'install' line above.
+or add 'javadoc:javadoc' to one of the other 'mvn' lines above.
 
 Usage
 -----
