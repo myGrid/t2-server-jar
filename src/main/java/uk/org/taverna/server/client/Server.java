@@ -327,13 +327,24 @@ public final class Server {
 	}
 
 	/**
-	 * Create a new Run on this server.
+	 * Create a new Run on this server with the supplied workflow.
 	 * 
 	 * @param workflow
 	 *            the workflow to be run.
 	 * @return a new Run instance.
 	 */
 	public Run createRun(String workflow) {
+		return new Run(this, workflow);
+	}
+
+	/**
+	 * Create a new Run on this server with the supplied workflow file.
+	 * 
+	 * @param workflow
+	 *            the workflow file to be run.
+	 * @return a new Run instance.
+	 */
+	public Run createRun(File workflow) throws IOException {
 		return new Run(this, workflow);
 	}
 

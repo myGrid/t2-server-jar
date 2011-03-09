@@ -46,6 +46,7 @@ import java.util.UUID;
 import net.sf.practicalxml.ParseUtil;
 import net.sf.practicalxml.XmlUtil;
 
+import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -67,21 +68,6 @@ public final class Run {
 
 	private final XmlUtils xmlUtils;
 
-	private Run(Server server, String workflow, UUID uuid) {
-		this.server = server;
-		this.uuid = uuid;
-		this.workflow = workflow;
-		this.baclavaOut = null;
-
-		xmlUtils = XmlUtils.getInstance();
-
-		links = getRunDescription();
-
-		// for (String s : links.values()) {
-		// System.out.println(s);
-		// }
-	}
-
 	/**
 	 * Create a new Run instance on the specified server with the supplied
 	 * workflow.
@@ -92,11 +78,49 @@ public final class Run {
 	 *            The workflow associated with the Run.
 	 */
 	public Run(Server server, String workflow) {
-		this(server, workflow, server.initializeRun(workflow));
+		this.server = server;
+		this.uuid = server.initializeRun(workflow);
+		this.workflow = workflow;
+		this.baclavaOut = null;
+
+		xmlUtils = XmlUtils.getInstance();
+
+		links = getRunDescription();
 	}
 
+	/**
+	 * Create a new Run instance on the specified server with the supplied
+	 * workflow file.
+	 * 
+	 * @param server
+	 *            The server to create the Run on.
+	 * @param workflow
+	 *            The file containing the workflow to be associated with the
+	 *            Run.
+	 */
+	public Run(Server server, File workflow) throws IOException {
+		this(server, FileUtils.readFileToString(workflow));
+	}
+
+	/**
+	 * Create a new Run instance to represent a run that is already on the
+	 * specified server. This constructor is provided for internal use when
+	 * lists of runs are being built up in a Server instance.
+	 * 
+	 * @param server
+	 *            The server the Run is already on.
+	 * @param uuid
+	 *            The UUID of the Run.
+	 */
 	Run(Server server, UUID uuid) {
-		this(server, null, uuid);
+		this.server = server;
+		this.uuid = uuid;
+		this.workflow = null;
+		this.baclavaOut = null;
+
+		xmlUtils = XmlUtils.getInstance();
+
+		links = getRunDescription();
 	}
 
 	/**
