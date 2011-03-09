@@ -221,6 +221,20 @@ public final class Run {
 	}
 
 	/**
+	 * Upload a file to the Run's workspace on the server and then use it as
+	 * input to an input port.
+	 * 
+	 * @param input
+	 *            The input port to set.
+	 * @param file
+	 *            The file to upload and use as input.
+	 * @throws IOException
+	 */
+	public void uploadInputFile(String input, File file) throws IOException {
+		uploadInputFile(input, file, null, null);
+	}
+
+	/**
 	 * Upload a baclava file to specify all input port values.
 	 * 
 	 * @param file
