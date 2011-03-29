@@ -34,7 +34,6 @@ package uk.org.taverna.server.client;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -47,22 +46,11 @@ import net.sf.practicalxml.ParseUtil;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.EntityUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import uk.org.taverna.server.client.connection.Connection;
+import uk.org.taverna.server.client.connection.ConnectionFactory;
 
 /**
  * The Server class represents a connection to a Taverna Server instance
@@ -77,36 +65,26 @@ import org.w3c.dom.Element;
  * @author Robert Haines
  */
 public final class Server {
-	private final static Map<URI, Server> servers = new HashMap<URI, Server>();
-
-	private final HttpClient httpClient;
-	private final HttpContext httpContext;
+	private final Connection connection;
 
 	private final URI uri;
 	private final int runLimit;
 	private final Map<UUID, Run> runs;
 
-	private final String basePath;
-	private final String restPath;
-
 	private final Map<String, String> links;
 
 	private final XmlUtils xmlUtils;
 
-	private Server(URI uri) {
+	public Server(URI uri) {
+
 		this.uri = uri;
-
-		httpClient = new DefaultHttpClient(new BasicHttpParams());
-		httpContext = new BasicHttpContext();
-
-		basePath = this.uri.toASCIIString();
-		restPath = basePath + "/rest";
-
+		connection = ConnectionFactory.getConnection(this.uri);
 		xmlUtils = XmlUtils.getInstance();
 
-		links = getServerDescription();
+		String restPath = this.uri.toASCIIString() + "/rest";
+		links = getServerDescription(restPath);
 
-		runLimit = Integer.parseInt(new String(getAttribute(links
+		runLimit = Integer.parseInt(new String(connection.getAttribute(links
 				.get("runlimit"))).trim());
 
 		// initialise run list
@@ -141,24 +119,14 @@ public final class Server {
 	 *            The UUID of the run to delete.
 	 */
 	public void deleteRun(UUID uuid) {
-		HttpDelete request = new HttpDelete(links.get("runs") + "/" + uuid);
-
 		try {
-			HttpResponse response = httpClient.execute(request, httpContext);
-			processResponse(response, HttpURLConnection.HTTP_NO_CONTENT, "run "
-					+ uuid);
+			connection.delete(links.get("runs") + "/" + uuid);
 		} catch (AccessForbiddenException e) {
 			if (getRunsFromServer().containsKey(uuid)) {
 				throw e;
 			} else {
 				throw new RunNotFoundException(uuid);
 			}
-		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 
@@ -182,7 +150,7 @@ public final class Server {
 	}
 
 	private Map<UUID, Run> getRunsFromServer() {
-		String runList = new String(getAttribute(links.get("runs")));
+		String runList = new String(connection.getAttribute(links.get("runs")));
 		Document doc = ParseUtil.parse(runList);
 
 		// add new runs, but keep a list of the new
@@ -212,12 +180,12 @@ public final class Server {
 		return runs;
 	}
 
-	private Map<String, String> getServerDescription() {
+	private Map<String, String> getServerDescription(String path) {
 		HashMap<String, String> links = new HashMap<String, String>();
 
 		// add a slash to the end of this address to work around this bug:
 		// http://www.mygrid.org.uk/dev/issues/browse/TAVSERV-113
-		String description = new String(getAttribute(restPath + "/"));
+		String description = new String(connection.getAttribute(path + "/"));
 		Document doc = ParseUtil.parse(description);
 
 		links.put("runs", xmlUtils.evalXPath(doc, "//nsr:runs", "xlink:href"));
@@ -243,7 +211,7 @@ public final class Server {
 	 *             if the provided URI is badly formed.
 	 */
 	public static Server connect(String uri) throws URISyntaxException {
-		return Server.connect(new URI(uri));
+		return new Server(new URI(uri));
 	}
 
 	/**
@@ -255,14 +223,7 @@ public final class Server {
 	 *         Taverna Server.
 	 */
 	public static Server connect(URI uri) {
-		Server server = servers.get(uri);
-
-		if (server == null) {
-			server = new Server(uri);
-			servers.put(uri, server);
-		}
-
-		return server;
+		return new Server(uri);
 	}
 
 	/**
@@ -301,26 +262,12 @@ public final class Server {
 	 */
 	UUID initializeRun(String workflow) {
 		UUID uuid = null;
-		HttpPost request = new HttpPost(links.get("runs"));
+		String location = connection.upload(links.get("runs"),
+				xmlUtils.buildXMLFragment("workflow", workflow));
 
-		try {
-			StringEntity content = new StringEntity(xmlUtils.buildXMLFragment(
-					"workflow", workflow), "UTF-8");
-			content.setContentType("application/xml");
-			request.setEntity(content);
-
-			HttpResponse response = httpClient.execute(request, httpContext);
-
-			processResponse(response, HttpURLConnection.HTTP_CREATED, "");
-			String location = response.getHeaders("location")[0].getValue();
+		if (location != null) {
 			uuid = UUID
 					.fromString(location.substring(location.lastIndexOf("/") + 1));
-		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 
 		return uuid;
@@ -361,7 +308,8 @@ public final class Server {
 	public void setRunInput(Run run, String input, String value) {
 		String path = run.getInputsPath() + "/input/" + input;
 		try {
-			setAttribute(path, xmlUtils.buildXMLFragment("inputvalue", value),
+			connection.setAttribute(path,
+					xmlUtils.buildXMLFragment("inputvalue", value),
 					"application/xml");
 		} catch (AttributeNotFoundException e) {
 			UUID uuid = run.getUUID();
@@ -389,7 +337,7 @@ public final class Server {
 	public void setRunInputFile(Run run, String input, String filename) {
 		String path = run.getInputsPath() + "/input/" + input;
 		try {
-			setAttribute(path,
+			connection.setAttribute(path,
 					xmlUtils.buildXMLFragment("inputfile", filename),
 					"application/xml");
 		} catch (AttributeNotFoundException e) {
@@ -415,7 +363,7 @@ public final class Server {
 	 */
 	public byte[] getRunData(UUID uuid, String uri, String type) {
 		try {
-			return getAttribute(uri, type);
+			return connection.getAttribute(uri, type);
 		} catch (AttributeNotFoundException e) {
 			if (getRunsFromServer().containsKey(uuid)) {
 				throw e;
@@ -480,7 +428,7 @@ public final class Server {
 	 */
 	public void setRunAttribute(UUID uuid, String uri, String value) {
 		try {
-			setAttribute(uri, value, "text/plain");
+			connection.setAttribute(uri, value, "text/plain");
 		} catch (AttributeNotFoundException e) {
 			if (getRunsFromServer().containsKey(uuid)) {
 				throw e;
@@ -508,107 +456,6 @@ public final class Server {
 		return getRunAttribute(run, links.get("runs") + "/" + run.getUUID());
 	}
 
-	private byte[] getAttribute(String uri, String type) {
-		HttpGet request = new HttpGet(uri);
-		if (type != null) {
-			request.addHeader("Accept", type);
-		}
-
-		HttpResponse response;
-		try {
-			response = httpClient.execute(request, httpContext);
-
-			return processResponse(response, HttpURLConnection.HTTP_OK, uri);
-		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return null;
-	}
-
-	private byte[] getAttribute(String uri) {
-		return getAttribute(uri, null);
-	}
-
-	private void setAttribute(String uri, String value, String type) {
-		HttpPut request = new HttpPut(uri);
-
-		try {
-			StringEntity content = new StringEntity(value, "UTF-8");
-			content.setContentType(type);
-			request.setEntity(content);
-
-			HttpResponse response = httpClient.execute(request, httpContext);
-			processResponse(response, HttpURLConnection.HTTP_OK, uri);
-		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	private byte[] processResponse(HttpResponse response, int success,
-			String message) throws IOException {
-		int status = response.getStatusLine().getStatusCode();
-
-		// get the entity from the response.
-		HttpEntity entity = response.getEntity();
-
-		// if the response is successful, return the pay-load.
-		if (status == success) {
-			if (entity == null) {
-				return null;
-			}
-			return EntityUtils.toByteArray(entity);
-		}
-
-		// if we get here we need to consume the entity. This
-		// has the side effect of resetting the HTTP connection
-		// so it MUST be done every time.
-		if (entity != null) {
-			EntityUtils.consume(entity);
-		}
-
-		switch (status) {
-		case HttpURLConnection.HTTP_NOT_FOUND:
-			throw new AttributeNotFoundException(message);
-		case HttpURLConnection.HTTP_FORBIDDEN:
-			throw new AccessForbiddenException(message);
-			// case HttpURLConnection.HTTP_UNAUTHORIZED:
-			// throw new AuthorizationException();
-		case HttpURLConnection.HTTP_INTERNAL_ERROR:
-			message = (entity != null) ? EntityUtils.toString(entity)
-					: "<not specified>";
-			throw new InternalServerException(message);
-		default:
-			String error = status + " ("
-					+ response.getStatusLine().getReasonPhrase() + ")";
-			error += (entity != null) ? " - " + EntityUtils.toString(entity)
-					: " - <not specified>";
-
-			throw new UnexpectedResponseException(error);
-		}
-	}
-
-	private byte[] processResponse(HttpResponse response, int success,
-			UUID uuid, String message) throws IOException {
-		try {
-			return processResponse(response, success, message);
-		} catch (AttributeNotFoundException e) {
-			if (getRunsFromServer().containsKey(uuid)) {
-				throw e;
-			} else {
-				throw new RunNotFoundException(uuid);
-			}
-		}
-	}
-
 	/**
 	 * Upload a file to the server for use by a run.
 	 * 
@@ -630,7 +477,6 @@ public final class Server {
 	 */
 	public String uploadRunFile(UUID uuid, File file, String uploadLocation,
 			String rename) throws IOException {
-		HttpPost request = new HttpPost(uploadLocation);
 
 		if (rename == null || rename.equals("")) {
 			rename = file.getName();
@@ -639,13 +485,8 @@ public final class Server {
 		byte[] data = FileUtils.readFileToByteArray(file);
 		String contents = Base64.encodeBase64String(data);
 
-		StringEntity entity = new StringEntity(xmlUtils.buildXMLFragment(
-				"upload", rename, contents));
-		entity.setContentType("application/xml");
-		request.setEntity(entity);
-
-		HttpResponse response = httpClient.execute(request, httpContext);
-		processResponse(response, HttpURLConnection.HTTP_CREATED, "run " + uuid);
+		connection.upload(uploadLocation,
+				xmlUtils.buildXMLFragment("upload", rename, contents));
 
 		return rename;
 	}
@@ -722,16 +563,15 @@ public final class Server {
 					"creation of subdirectories directly (" + name + ")");
 		}
 
-		HttpPost request = new HttpPost(root);
-
-		StringEntity entity = new StringEntity(xmlUtils.buildXMLFragment(
-				"mkdir", name));
-		entity.setContentType("application/xml");
-		request.setEntity(entity);
-
-		HttpResponse response = httpClient.execute(request, httpContext);
-
-		processResponse(response, HttpURLConnection.HTTP_CREATED, uuid, "mkdir");
+		try {
+			connection.upload(root, xmlUtils.buildXMLFragment("mkdir", name));
+		} catch (AttributeNotFoundException e) {
+			if (getRunsFromServer().containsKey(uuid)) {
+				throw e;
+			} else {
+				throw new RunNotFoundException(uuid);
+			}
+		}
 	}
 
 	void makeRunDir(Run run, String root, String name) throws IOException {
