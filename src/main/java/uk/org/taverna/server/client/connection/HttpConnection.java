@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -53,8 +53,10 @@ import org.apache.http.util.EntityUtils;
 
 import uk.org.taverna.server.client.AccessForbiddenException;
 import uk.org.taverna.server.client.AttributeNotFoundException;
+import uk.org.taverna.server.client.AuthorizationException;
 import uk.org.taverna.server.client.InternalServerException;
 import uk.org.taverna.server.client.UnexpectedResponseException;
+import uk.org.taverna.server.client.connection.params.ConnectionParams;
 
 /**
  * 
@@ -64,19 +66,26 @@ public class HttpConnection implements Connection {
 
 	protected final URI uri;
 
+	protected final ConnectionParams params;
+
 	protected final HttpClient httpClient;
 	protected final HttpContext httpContext;
 
-	public HttpConnection(URI uri) {
+	HttpConnection(URI uri, ConnectionParams params) {
 		this.uri = uri;
+		this.params = params;
 		httpClient = new DefaultHttpClient(new BasicHttpParams());
 		httpContext = new BasicHttpContext();
 	}
 
 	@Override
-	public String upload(String uri, String content) {
+	public String upload(String uri, String content, UserCredentials credentials) {
 		HttpPost request = new HttpPost(uri);
 		String location = null;
+
+		if (credentials != null) {
+			credentials.authenticate(request, httpContext);
+		}
 
 		try {
 			StringEntity entity = new StringEntity(content, "UTF-8");
@@ -99,15 +108,20 @@ public class HttpConnection implements Connection {
 	}
 
 	@Override
-	public byte[] getAttribute(String uri) {
-		return getAttribute(uri, null);
+	public byte[] getAttribute(String uri, UserCredentials credentials) {
+		return getAttribute(uri, null, credentials);
 	}
 
 	@Override
-	public byte[] getAttribute(String uri, String type) {
+	public byte[] getAttribute(String uri, String type,
+			UserCredentials credentials) {
 		HttpGet request = new HttpGet(uri);
 		if (type != null) {
 			request.addHeader("Accept", type);
+		}
+
+		if (credentials != null) {
+			credentials.authenticate(request, httpContext);
 		}
 
 		HttpResponse response;
@@ -127,8 +141,13 @@ public class HttpConnection implements Connection {
 	}
 
 	@Override
-	public void setAttribute(String uri, String value, String type) {
+	public void setAttribute(String uri, String value, String type,
+			UserCredentials credentials) {
 		HttpPut request = new HttpPut(uri);
+
+		if (credentials != null) {
+			credentials.authenticate(request, httpContext);
+		}
 
 		try {
 			StringEntity content = new StringEntity(value, "UTF-8");
@@ -147,8 +166,12 @@ public class HttpConnection implements Connection {
 	}
 
 	@Override
-	public void delete(String uri) {
+	public void delete(String uri, UserCredentials credentials) {
 		HttpDelete request = new HttpDelete(uri);
+
+		if (credentials != null) {
+			credentials.authenticate(request, httpContext);
+		}
 
 		try {
 			HttpResponse response = httpClient.execute(request, httpContext);
@@ -192,8 +215,8 @@ public class HttpConnection implements Connection {
 			throw new AttributeNotFoundException(message);
 		case HttpURLConnection.HTTP_FORBIDDEN:
 			throw new AccessForbiddenException(message);
-			// case HttpURLConnection.HTTP_UNAUTHORIZED:
-			// throw new AuthorizationException();
+		case HttpURLConnection.HTTP_UNAUTHORIZED:
+			throw new AuthorizationException();
 		case HttpURLConnection.HTTP_INTERNAL_ERROR:
 			message = (content != null) ? content : "<not specified>";
 			throw new InternalServerException(message);

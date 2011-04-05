@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -50,6 +50,8 @@ import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import uk.org.taverna.server.client.connection.UserCredentials;
+
 /**
  * The Run class represents a workflow run on a Taverna Server instance. It is
  * created by supplying a Server instance on which to create it and a workflow
@@ -68,6 +70,8 @@ public final class Run {
 
 	private final XmlUtils xmlUtils;
 
+	private final UserCredentials credentials;
+
 	/**
 	 * Create a new Run instance on the specified server with the supplied
 	 * workflow.
@@ -76,16 +80,18 @@ public final class Run {
 	 *            The server to create the Run on.
 	 * @param workflow
 	 *            The workflow associated with the Run.
+	 * @param credentials
 	 */
-	public Run(Server server, String workflow) {
+	public Run(Server server, String workflow, UserCredentials credentials) {
 		this.server = server;
-		this.uuid = server.initializeRun(workflow);
+		this.uuid = server.initializeRun(workflow, credentials);
 		this.workflow = workflow;
 		this.baclavaOut = null;
 
 		xmlUtils = XmlUtils.getInstance();
 
-		links = getRunDescription();
+		this.credentials = credentials;
+		links = getRunDescription(this.credentials);
 	}
 
 	/**
@@ -97,9 +103,11 @@ public final class Run {
 	 * @param workflow
 	 *            The file containing the workflow to be associated with the
 	 *            Run.
+	 * @param credentials
 	 */
-	public Run(Server server, File workflow) throws IOException {
-		this(server, FileUtils.readFileToString(workflow));
+	public Run(Server server, File workflow, UserCredentials credentials)
+			throws IOException {
+		this(server, FileUtils.readFileToString(workflow), credentials);
 	}
 
 	/**
@@ -111,8 +119,9 @@ public final class Run {
 	 *            The server the Run is already on.
 	 * @param uuid
 	 *            The UUID of the Run.
+	 * @param credentials
 	 */
-	Run(Server server, UUID uuid) {
+	Run(Server server, UUID uuid, UserCredentials credentials) {
 		this.server = server;
 		this.uuid = uuid;
 		this.workflow = null;
@@ -120,7 +129,8 @@ public final class Run {
 
 		xmlUtils = XmlUtils.getInstance();
 
-		links = getRunDescription();
+		this.credentials = credentials;
+		links = getRunDescription(this.credentials);
 	}
 
 	/**
@@ -134,7 +144,7 @@ public final class Run {
 	public void setInput(String input, String value) {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
-			server.setRunInput(this, input, value);
+			server.setRunInput(this, input, value, credentials);
 		} else {
 			throw new RunStateException(rs, RunStatus.INITIALIZED);
 		}
@@ -158,7 +168,7 @@ public final class Run {
 	public void setInputFile(String input, String filename) {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
-			server.setRunInputFile(this, input, filename);
+			server.setRunInputFile(this, input, filename, credentials);
 		} else {
 			throw new RunStateException(rs, RunStatus.INITIALIZED);
 		}
@@ -180,7 +190,8 @@ public final class Run {
 			throws IOException {
 		String uploadLocation = links.get("wdir");
 		uploadLocation += remoteDirectory != null ? "/" + remoteDirectory : "";
-		return server.uploadRunFile(this, file, uploadLocation, rename);
+		return server.uploadRunFile(this, file, uploadLocation, rename,
+				credentials);
 	}
 
 	/**
@@ -245,7 +256,8 @@ public final class Run {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
 			String filename = uploadFile(file);
-			server.setRunAttribute(this, links.get("baclava"), filename);
+			server.setRunAttribute(this, links.get("baclava"), filename,
+					credentials);
 		} else {
 			throw new RunStateException(rs, RunStatus.INITIALIZED);
 		}
@@ -262,7 +274,8 @@ public final class Run {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
 			this.baclavaOut = name;
-			server.setRunAttribute(this, links.get("output"), baclavaOut);
+			server.setRunAttribute(this, links.get("output"), baclavaOut,
+					credentials);
 		} else {
 			throw new RunStateException(rs, RunStatus.INITIALIZED);
 		}
@@ -293,7 +306,7 @@ public final class Run {
 			}
 
 			return server.getRunAttribute(this, baclavaLink,
-					"application/octet-stream");
+					"application/octet-stream", credentials);
 		} else {
 			throw new RunStateException(rs, RunStatus.FINISHED);
 		}
@@ -314,8 +327,8 @@ public final class Run {
 	 * @return the status of this Run.
 	 */
 	public RunStatus getStatus() {
-		return RunStatus
-				.state(server.getRunAttribute(this, links.get("status")));
+		return RunStatus.state(server.getRunAttribute(this,
+				links.get("status"), credentials));
 	}
 
 	/**
@@ -353,7 +366,7 @@ public final class Run {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
 			server.setRunAttribute(this, links.get("status"),
-					RunStatus.RUNNING.status());
+					RunStatus.RUNNING.status(), credentials);
 		} else {
 			throw new RunStateException(rs, RunStatus.INITIALIZED);
 		}
@@ -366,7 +379,8 @@ public final class Run {
 	 */
 	public String getWorkflow() {
 		if (workflow == null) {
-			workflow = server.getRunAttribute(this, links.get("workflow"));
+			workflow = server.getRunAttribute(this, links.get("workflow"),
+					credentials);
 		}
 
 		return workflow;
@@ -395,7 +409,7 @@ public final class Run {
 	 * Delete this Run.
 	 */
 	public void delete() {
-		server.deleteRun(this);
+		server.deleteRun(this, credentials);
 	}
 
 	String getInputsPath() {
@@ -429,7 +443,8 @@ public final class Run {
 	 * @return the return code of the underlying Taverna Server process.
 	 */
 	public int getExitCode() {
-		return new Integer(server.getRunAttribute(this, links.get("exitcode")));
+		return new Integer(server.getRunAttribute(this, links.get("exitcode"),
+				credentials));
 	}
 
 	/**
@@ -438,7 +453,7 @@ public final class Run {
 	 * @return the console output of the underlying Taverna Server process.
 	 */
 	public String getConsoleOutput() {
-		return server.getRunAttribute(this, links.get("stdout"));
+		return server.getRunAttribute(this, links.get("stdout"), credentials);
 	}
 
 	/**
@@ -447,7 +462,7 @@ public final class Run {
 	 * @return the console errors of the underlying Taverna Server process.
 	 */
 	public String getConsoleError() {
-		return server.getRunAttribute(this, links.get("stderr"));
+		return server.getRunAttribute(this, links.get("stderr"), credentials);
 	}
 
 	/**
@@ -479,7 +494,7 @@ public final class Run {
 
 	private Date getTime(String time) {
 		return XmlUtil.parseXsdDatetime(server.getRunAttribute(this,
-				links.get(time)));
+				links.get(time), credentials));
 
 	}
 
@@ -495,17 +510,18 @@ public final class Run {
 			int lastSlash = dir.lastIndexOf("/");
 			String leaf = dir.substring(lastSlash + 1, dir.length());
 			String path = dir.substring(0, lastSlash);
-			server.makeRunDir(this, links.get("wdir") + "/" + path, leaf);
+			server.makeRunDir(this, links.get("wdir") + "/" + path, leaf,
+					credentials);
 		} else {
-			server.makeRunDir(this, links.get("wdir"), dir);
+			server.makeRunDir(this, links.get("wdir"), dir, credentials);
 		}
 	}
 
-	private Map<String, String> getRunDescription() {
+	private Map<String, String> getRunDescription(UserCredentials credentials) {
 		HashMap<String, String> links = new HashMap<String, String>();
 
 		// parse out the simple stuff
-		String description = server.getRunDescription(this);
+		String description = server.getRunDescription(this, credentials);
 		Document doc = ParseUtil.parse(description);
 
 		links.put("expiry",
@@ -532,7 +548,8 @@ public final class Run {
 				xmlUtils.evalXPath(doc, "//nsr:listeners", "xlink:href"));
 
 		// get the inputs
-		String inputs = server.getRunAttribute(this, links.get("inputs"));
+		String inputs = server.getRunAttribute(this, links.get("inputs"),
+				credentials);
 		doc = ParseUtil.parse(inputs);
 		links.put("baclava",
 				xmlUtils.evalXPath(doc, "//nsr:baclava", "xlink:href"));
@@ -554,7 +571,7 @@ public final class Run {
 		}
 
 		String dirList = server.getRunAttribute(this, links.get("wdir") + "/"
-				+ dir, "application/xml");
+				+ dir, "application/xml", credentials);
 		Document doc = ParseUtil.parse(dirList);
 
 		if (lists != null) {
@@ -634,7 +651,7 @@ public final class Run {
 				} else {
 					return new RunOutputData(server.getRunData(this,
 							links.get("wdir") + "/out/" + port,
-							"application/octet-stream"));
+							"application/octet-stream", credentials));
 				}
 			}
 		}
@@ -666,7 +683,7 @@ public final class Run {
 			} else {
 				result.addNode(new RunOutputData(server.getRunData(this,
 						links.get("wdir") + "/out/" + port + "/" + item,
-						"application/octet-stream")));
+						"application/octet-stream", credentials)));
 			}
 		}
 

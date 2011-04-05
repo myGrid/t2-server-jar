@@ -32,21 +32,38 @@
 
 package uk.org.taverna.server.client.connection;
 
+import org.apache.http.HttpRequest;
+import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.Credentials;
+import org.apache.http.impl.auth.AuthSchemeBase;
+import org.apache.http.protocol.HttpContext;
+
+import uk.org.taverna.server.client.AuthorizationException;
+
 /**
  * 
  * @author Robert Haines
  */
-public interface Connection {
-	public byte[] getAttribute(String uri, String type,
-			UserCredentials credentials);
+public abstract class UserCredentials {
 
-	public byte[] getAttribute(String uri, UserCredentials credentials);
+	protected final AuthSchemeBase authenticator;
+	protected final Credentials credentials;
 
-	public void setAttribute(String uri, String value, String type,
-			UserCredentials credentials);
+	protected UserCredentials(AuthSchemeBase scheme, Credentials credentials) {
+		authenticator = scheme;
+		this.credentials = credentials;
+	}
 
-	public void delete(String uri, UserCredentials credentials);
+	public void authenticate(HttpRequest request, HttpContext context) {
+		try {
+			request.addHeader(authenticator.authenticate(credentials, request,
+					context));
+		} catch (AuthenticationException e) {
+			throw new AuthorizationException(getUsername());
+		}
+	}
 
-	public String upload(String uri, String content,
- UserCredentials credentials);
+	public String getUsername() {
+		return credentials.getUserPrincipal().getName();
+	}
 }

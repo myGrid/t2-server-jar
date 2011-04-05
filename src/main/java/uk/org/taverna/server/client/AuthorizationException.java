@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012 The University of Manchester, UK.
+ * Copyright (c) 2010, 2011 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission.
+ *   software without specific prior written permission. 
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,23 +30,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package uk.org.taverna.server.client.connection;
+package uk.org.taverna.server.client;
 
 /**
- * 
  * @author Robert Haines
  */
-public interface Connection {
-	public byte[] getAttribute(String uri, String type,
-			UserCredentials credentials);
+public class AuthorizationException extends ServerException {
+	private static final long serialVersionUID = 1L;
 
-	public byte[] getAttribute(String uri, UserCredentials credentials);
+	/**
+	 * @param message
+	 */
+	public AuthorizationException() {
+		super("User is not authorized to perform that operation.");
+	}
 
-	public void setAttribute(String uri, String value, String type,
-			UserCredentials credentials);
-
-	public void delete(String uri, UserCredentials credentials);
-
-	public String upload(String uri, String content,
- UserCredentials credentials);
+	public AuthorizationException(String user) {
+		super("User '" + user + "'is not authorized to perform that operation.");
+	}
 }

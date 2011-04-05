@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012 The University of Manchester, UK.
+ * Copyright (c) 2010, 2011 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission.
+ *   software without specific prior written permission. 
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,23 +30,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package uk.org.taverna.server.client.connection;
+package uk.org.taverna.server.client.connection.params;
 
 /**
  * 
  * @author Robert Haines
  */
-public interface Connection {
-	public byte[] getAttribute(String uri, String type,
-			UserCredentials credentials);
+public interface ConnectionParams extends ConnectionPNames {
+	public Object getParameter(String id);
 
-	public byte[] getAttribute(String uri, UserCredentials credentials);
+	public Object removeParameter(String id);
 
-	public void setAttribute(String uri, String value, String type,
-			UserCredentials credentials);
+	public ConnectionParams setParameter(String id, Object value);
 
-	public void delete(String uri, UserCredentials credentials);
+	public boolean getBooleanParameter(String id, boolean defaultValue);
 
-	public String upload(String uri, String content,
- UserCredentials credentials);
+	public ConnectionParams setBooleanParameter(String id, boolean value);
+
+	public boolean isParameterTrue(String id);
+
+	public boolean isParameterFalse(String id);
 }

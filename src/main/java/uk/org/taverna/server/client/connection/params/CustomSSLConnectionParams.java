@@ -30,61 +30,58 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package uk.org.taverna.server.client.connection;
+package uk.org.taverna.server.client.connection.params;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
-
-import uk.org.taverna.server.client.connection.params.ConnectionParams;
-import uk.org.taverna.server.client.connection.params.NullConnectionParams;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 
 /**
  * 
  * @author Robert Haines
  */
-public class ConnectionFactory {
-	private static Map<URI, Connection> connections = new HashMap<URI, Connection>();
+public final class CustomSSLConnectionParams extends AbstractConnectionParams {
 
-	private ConnectionFactory() {
-	}
+	public CustomSSLConnectionParams(File certificate, boolean noVerify) {
+		super();
 
-	public static Connection getConnection(URI uri, ConnectionParams params) {
-		if (params == null) {
-			params = new NullConnectionParams();
-		}
+		if (certificate != null) {
+			try {
+				FileInputStream fis = new FileInputStream(certificate);
 
-		Connection c = connections.get(uri);
+				CertificateFactory cf = CertificateFactory.getInstance("X.509");
+				Certificate cert = cf.generateCertificate(fis);
 
-		if (c == null) {
-			String scheme = uri.getScheme();
-			if (scheme.equalsIgnoreCase("http")) {
-				c = new HttpConnection(uri, params);
-			} else if (scheme.equalsIgnoreCase("https")) {
-				c = new HttpsConnection(uri, params);
-			} else {
-				throw new IllegalArgumentException(
-						"Must specify a scheme, e.g. http or https");
+				params.put(SSL_CLIENT_CERT, cert);
+				fis.close();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (CertificateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// Ignore. This only triggers if we can't close the stream.
 			}
-
-			connections.put(uri, c);
 		}
 
-		return c;
+		setBooleanParameter(SSL_NO_VERIFY_HOST, noVerify);
 	}
 
-	public static Connection getConnection(URI uri) {
-		return getConnection(uri, null);
+	public CustomSSLConnectionParams(File certificate) {
+		this(certificate, false);
 	}
 
-	public static Connection getConnection(String uri, ConnectionParams params)
-			throws URISyntaxException {
-		return getConnection(new URI(uri), params);
+	public CustomSSLConnectionParams(Certificate certificate, boolean noVerify) {
+		params.put(SSL_CLIENT_CERT, certificate);
+		setBooleanParameter(SSL_NO_VERIFY_HOST, noVerify);
 	}
 
-	public static Connection getConnection(String uri)
-			throws URISyntaxException {
-		return getConnection(uri, null);
+	public CustomSSLConnectionParams(Certificate certificate) {
+		this(certificate, false);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -49,8 +49,10 @@ import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.connection.Connection;
 import uk.org.taverna.server.client.connection.ConnectionFactory;
+import uk.org.taverna.server.client.connection.params.ConnectionParams;
 
 /**
  * The Server class represents a connection to a Taverna Server instance
@@ -68,28 +70,69 @@ public final class Server {
 	private final Connection connection;
 
 	private final URI uri;
-	private final int runLimit;
+	private final float version;
 	private final Map<UUID, Run> runs;
 
 	private final Map<String, String> links;
 
 	private final XmlUtils xmlUtils;
 
-	public Server(URI uri) {
+	/**
+	 * 
+	 * @param uri
+	 * @param params
+	 */
+	public Server(URI uri, ConnectionParams params) {
+		// strip out username and password if present in server URI
+		String userInfo = uri.getUserInfo();
+		if (userInfo != null) {
+			try {
+				this.uri = new URI(uri.getScheme(), null, uri.getHost(),
+						uri.getPort(), uri.getPath(), null, null);
+			} catch (URISyntaxException e) {
+				throw new IllegalArgumentException("Bad URI passed in: " + uri);
+			}
+		} else {
+			this.uri = uri;
+		}
 
-		this.uri = uri;
-		connection = ConnectionFactory.getConnection(this.uri);
+		connection = ConnectionFactory.getConnection(this.uri, params);
 		xmlUtils = XmlUtils.getInstance();
 
-		String restPath = this.uri.toASCIIString() + "/rest";
-		links = getServerDescription(restPath);
+		// add a slash to the end of this address to work around this bug:
+		// http://www.mygrid.org.uk/dev/issues/browse/TAVSERV-113
+		String restPath = this.uri.toASCIIString() + "/rest/";
+		Document doc = ParseUtil.parse(new String(connection.getAttribute(
+				restPath, null)));
+		version = getServerVersion(doc);
+		links = getServerDescription(doc);
 
-		runLimit = Integer.parseInt(new String(connection.getAttribute(links
-				.get("runlimit"))).trim());
+		// System.out.println("u: " + this.uri);
+		// System.out.println("v: " + version);
+		// for (String s : links.keySet()) {
+		// System.out.println(s + ": " + links.get(s));
+		// }
 
 		// initialise run list
-		runs = new HashMap<UUID, Run>(runLimit);
-		getRunsFromServer();
+		runs = new HashMap<UUID, Run>();
+		// getRunsFromServer();
+	}
+
+	/**
+	 * 
+	 * @param uri
+	 */
+	public Server(URI uri) {
+		this(uri, null);
+	}
+
+	/**
+	 * Get the version of the remote Taverna Server instance.
+	 * 
+	 * @return the Taverna Server version.
+	 */
+	public float getVersion() {
+		return version;
 	}
 
 	/**
@@ -99,8 +142,8 @@ public final class Server {
 	 *            The UUID of the Run instance to get.
 	 * @return the Run instance.
 	 */
-	public Run getRun(UUID uuid) {
-		return getRunsFromServer().get(uuid);
+	public Run getRun(UUID uuid, UserCredentials credentials) {
+		return getRunsFromServer(credentials).get(uuid);
 	}
 
 	/**
@@ -108,8 +151,8 @@ public final class Server {
 	 * 
 	 * @return all the Run instances hosted on this server.
 	 */
-	public Collection<Run> getRuns() {
-		return getRunsFromServer().values();
+	public Collection<Run> getRuns(UserCredentials credentials) {
+		return getRunsFromServer(credentials).values();
 	}
 
 	/**
@@ -118,11 +161,11 @@ public final class Server {
 	 * @param uuid
 	 *            The UUID of the run to delete.
 	 */
-	public void deleteRun(UUID uuid) {
+	public void deleteRun(UUID uuid, UserCredentials credentials) {
 		try {
-			connection.delete(links.get("runs") + "/" + uuid);
+			connection.delete(links.get("runs") + "/" + uuid, credentials);
 		} catch (AccessForbiddenException e) {
-			if (getRunsFromServer().containsKey(uuid)) {
+			if (getRunsFromServer(credentials).containsKey(uuid)) {
 				throw e;
 			} else {
 				throw new RunNotFoundException(uuid);
@@ -136,21 +179,22 @@ public final class Server {
 	 * @param run
 	 *            The Run instance to delete.
 	 */
-	public void deleteRun(Run run) {
-		deleteRun(run.getUUID());
+	public void deleteRun(Run run, UserCredentials credentials) {
+		deleteRun(run.getUUID(), credentials);
 	}
 
 	/**
 	 * Delete all runs on this server instance.
 	 */
-	public void deleteAllRuns() {
-		for (Run run : getRuns()) {
+	public void deleteAllRuns(UserCredentials credentials) {
+		for (Run run : getRuns(credentials)) {
 			run.delete();
 		}
 	}
 
-	private Map<UUID, Run> getRunsFromServer() {
-		String runList = new String(connection.getAttribute(links.get("runs")));
+	private Map<UUID, Run> getRunsFromServer(UserCredentials credentials) {
+		String runList = new String(connection.getAttribute(links.get("runs"),
+				credentials));
 		Document doc = ParseUtil.parse(runList);
 
 		// add new runs, but keep a list of the new
@@ -161,7 +205,7 @@ public final class Server {
 			uuid = UUID.fromString(e.getTextContent());
 			uuids.add(uuid);
 			if (!runs.containsKey(uuid)) {
-				runs.put(uuid, new Run(this, uuid));
+				runs.put(uuid, new Run(this, uuid, credentials));
 			}
 		}
 
@@ -180,21 +224,44 @@ public final class Server {
 		return runs;
 	}
 
-	private Map<String, String> getServerDescription(String path) {
+	private float getServerVersion(Document doc) {
+		String version = xmlUtils.evalXPath(doc, "/nsr:serverDescription",
+				"nss:serverVersion");
+
+		if (version.equalsIgnoreCase("")) {
+			return 1.0f;
+		} else {
+			return Float.parseFloat(version.substring(0, 3));
+		}
+	}
+
+	private Map<String, String> getServerDescription(Document doc) {
 		HashMap<String, String> links = new HashMap<String, String>();
 
-		// add a slash to the end of this address to work around this bug:
-		// http://www.mygrid.org.uk/dev/issues/browse/TAVSERV-113
-		String description = new String(connection.getAttribute(path + "/"));
-		Document doc = ParseUtil.parse(description);
-
 		links.put("runs", xmlUtils.evalXPath(doc, "//nsr:runs", "xlink:href"));
+
+		if (version > 1.0) {
+			String policy = xmlUtils.evalXPath(doc, "//nsr:policy",
+					"xlink:href");
+
+			links.put("policy", policy);
+			doc = ParseUtil.parse(new String(connection.getAttribute(policy,
+					null)));
+
+			links.put("permlisteners", xmlUtils.evalXPath(doc,
+					"//nsr:permittedListenerTypes", "xlink:href"));
+
+			links.put("notifications", xmlUtils.evalXPath(doc,
+					"//nsr:enabledNotificationFabrics", "xlink:href"));
+		} else {
+			links.put("permlisteners", xmlUtils.evalXPath(doc,
+					"//nsr:permittedListeners", "xlink:href"));
+		}
+
 		links.put("runlimit",
 				xmlUtils.evalXPath(doc, "//nsr:runLimit", "xlink:href"));
 		links.put("permworkflows", xmlUtils.evalXPath(doc,
 				"//nsr:permittedWorkflows", "xlink:href"));
-		links.put("permlisteners", xmlUtils.evalXPath(doc,
-				"//nsr:permittedListeners", "xlink:href"));
 
 		return links;
 	}
@@ -249,8 +316,9 @@ public final class Server {
 	 * 
 	 * @return the maximum number of run that this server can host concurrently.
 	 */
-	public int getRunLimit() {
-		return runLimit;
+	public int getRunLimit(UserCredentials credentials) {
+		return Integer.parseInt(new String(connection.getAttribute(
+				links.get("runlimit"), credentials)).trim());
 	}
 
 	/**
@@ -260,10 +328,10 @@ public final class Server {
 	 *            the workflow to be run.
 	 * @return the UUID of the new run as returned by the server.
 	 */
-	UUID initializeRun(String workflow) {
+	UUID initializeRun(String workflow, UserCredentials credentials) {
 		UUID uuid = null;
 		String location = connection.upload(links.get("runs"),
-				xmlUtils.buildXMLFragment("workflow", workflow));
+				xmlUtils.buildXMLFragment("workflow", workflow), credentials);
 
 		if (location != null) {
 			uuid = UUID
@@ -280,8 +348,8 @@ public final class Server {
 	 *            the workflow to be run.
 	 * @return a new Run instance.
 	 */
-	public Run createRun(String workflow) {
-		return new Run(this, workflow);
+	public Run createRun(String workflow, UserCredentials credentials) {
+		return new Run(this, workflow, credentials);
 	}
 
 	/**
@@ -291,8 +359,9 @@ public final class Server {
 	 *            the workflow file to be run.
 	 * @return a new Run instance.
 	 */
-	public Run createRun(File workflow) throws IOException {
-		return new Run(this, workflow);
+	public Run createRun(File workflow, UserCredentials credentials)
+			throws IOException {
+		return new Run(this, workflow, credentials);
 	}
 
 	/**
@@ -305,15 +374,16 @@ public final class Server {
 	 * @param value
 	 *            the value to set the input port to be.
 	 */
-	public void setRunInput(Run run, String input, String value) {
+	public void setRunInput(Run run, String input, String value,
+			UserCredentials credentials) {
 		String path = run.getInputsPath() + "/input/" + input;
 		try {
 			connection.setAttribute(path,
 					xmlUtils.buildXMLFragment("inputvalue", value),
-					"application/xml");
+					"application/xml", credentials);
 		} catch (AttributeNotFoundException e) {
 			UUID uuid = run.getUUID();
-			if (getRunsFromServer().containsKey(uuid)) {
+			if (getRunsFromServer(credentials).containsKey(uuid)) {
 				throw e;
 			} else {
 				throw new RunNotFoundException(uuid);
@@ -334,15 +404,16 @@ public final class Server {
 	 * @see #uploadRunFile(Run, File, String)
 	 * @see #uploadRunFile(UUID, File, String)
 	 */
-	public void setRunInputFile(Run run, String input, String filename) {
+	public void setRunInputFile(Run run, String input, String filename,
+			UserCredentials credentials) {
 		String path = run.getInputsPath() + "/input/" + input;
 		try {
 			connection.setAttribute(path,
 					xmlUtils.buildXMLFragment("inputfile", filename),
-					"application/xml");
+					"application/xml", credentials);
 		} catch (AttributeNotFoundException e) {
 			UUID uuid = run.getUUID();
-			if (getRunsFromServer().containsKey(uuid)) {
+			if (getRunsFromServer(credentials).containsKey(uuid)) {
 				throw e;
 			} else {
 				throw new RunNotFoundException(uuid);
@@ -361,11 +432,12 @@ public final class Server {
 	 *            the mime type of the attribute being retrieved.
 	 * @return the data associated with the attribute.
 	 */
-	public byte[] getRunData(UUID uuid, String uri, String type) {
+	public byte[] getRunData(UUID uuid, String uri, String type,
+			UserCredentials credentials) {
 		try {
-			return connection.getAttribute(uri, type);
+			return connection.getAttribute(uri, type, credentials);
 		} catch (AttributeNotFoundException e) {
-			if (getRunsFromServer().containsKey(uuid)) {
+			if (getRunsFromServer(credentials).containsKey(uuid)) {
 				throw e;
 			} else {
 				throw new RunNotFoundException(uuid);
@@ -384,8 +456,9 @@ public final class Server {
 	 *            the mime type of the attribute being retrieved.
 	 * @return the data associated with the attribute.
 	 */
-	public byte[] getRunData(Run run, String uri, String type) {
-		return getRunData(run.getUUID(), uri, type);
+	public byte[] getRunData(Run run, String uri, String type,
+			UserCredentials credentials) {
+		return getRunData(run.getUUID(), uri, type, credentials);
 	}
 
 	/**
@@ -399,8 +472,9 @@ public final class Server {
 	 *            the mime type of the attribute being retrieved.
 	 * @return the attribute as a String.
 	 */
-	public String getRunAttribute(Run run, String uri, String type) {
-		return new String(getRunData(run.getUUID(), uri, type));
+	public String getRunAttribute(Run run, String uri, String type,
+			UserCredentials credentials) {
+		return new String(getRunData(run.getUUID(), uri, type, credentials));
 	}
 
 	/**
@@ -412,8 +486,9 @@ public final class Server {
 	 *            the full URI of the attribute to get.
 	 * @return the attribute as a String.
 	 */
-	public String getRunAttribute(Run run, String uri) {
-		return new String(getRunData(run.getUUID(), uri, null));
+	public String getRunAttribute(Run run, String uri,
+			UserCredentials credentials) {
+		return new String(getRunData(run.getUUID(), uri, null, credentials));
 	}
 
 	/**
@@ -426,11 +501,12 @@ public final class Server {
 	 * @param value
 	 *            the new value of the attribute.
 	 */
-	public void setRunAttribute(UUID uuid, String uri, String value) {
+	public void setRunAttribute(UUID uuid, String uri, String value,
+			UserCredentials credentials) {
 		try {
-			connection.setAttribute(uri, value, "text/plain");
+			connection.setAttribute(uri, value, "text/plain", credentials);
 		} catch (AttributeNotFoundException e) {
-			if (getRunsFromServer().containsKey(uuid)) {
+			if (getRunsFromServer(credentials).containsKey(uuid)) {
 				throw e;
 			} else {
 				throw new RunNotFoundException(uuid);
@@ -448,12 +524,14 @@ public final class Server {
 	 * @param value
 	 *            the new value of the attribute.
 	 */
-	public void setRunAttribute(Run run, String uri, String value) {
-		setRunAttribute(run.getUUID(), uri, value);
+	public void setRunAttribute(Run run, String uri, String value,
+			UserCredentials credentials) {
+		setRunAttribute(run.getUUID(), uri, value, credentials);
 	}
 
-	String getRunDescription(Run run) {
-		return getRunAttribute(run, links.get("runs") + "/" + run.getUUID());
+	String getRunDescription(Run run, UserCredentials credentials) {
+		return getRunAttribute(run, links.get("runs") + "/" + run.getUUID(),
+ credentials);
 	}
 
 	/**
@@ -476,7 +554,7 @@ public final class Server {
 	 * @see #uploadRunFile(Run, File, String)
 	 */
 	public String uploadRunFile(UUID uuid, File file, String uploadLocation,
-			String rename) throws IOException {
+			String rename, UserCredentials credentials) throws IOException {
 
 		if (rename == null || rename.equals("")) {
 			rename = file.getName();
@@ -486,7 +564,8 @@ public final class Server {
 		String contents = Base64.encodeBase64String(data);
 
 		connection.upload(uploadLocation,
-				xmlUtils.buildXMLFragment("upload", rename, contents));
+				xmlUtils.buildXMLFragment("upload", rename, contents),
+				credentials);
 
 		return rename;
 	}
@@ -507,9 +586,9 @@ public final class Server {
 	 * @see #uploadRunFile(Run, File, String, String)
 	 * @see #uploadRunFile(Run, File, String)
 	 */
-	public String uploadRunFile(UUID uuid, File file, String uploadLocation)
-			throws IOException {
-		return uploadRunFile(uuid, file, uploadLocation, null);
+	public String uploadRunFile(UUID uuid, File file, String uploadLocation,
+			UserCredentials credentials) throws IOException {
+		return uploadRunFile(uuid, file, uploadLocation, null, credentials);
 	}
 
 	/**
@@ -532,8 +611,9 @@ public final class Server {
 	 * @see #uploadRunFile(UUID, File, String, String)
 	 */
 	public String uploadRunFile(Run run, File file, String uploadLocation,
-			String rename) throws IOException {
-		return uploadRunFile(run.getUUID(), file, uploadLocation, rename);
+			String rename, UserCredentials credentials) throws IOException {
+		return uploadRunFile(run.getUUID(), file, uploadLocation, rename,
+				credentials);
 	}
 
 	/**
@@ -552,21 +632,24 @@ public final class Server {
 	 * @see #uploadRunFile(UUID, File, String)
 	 * @see #uploadRunFile(UUID, File, String, String)
 	 */
-	public String uploadRunFile(Run run, File file, String uploadLocation)
-			throws IOException {
-		return uploadRunFile(run.getUUID(), file, uploadLocation, null);
+	public String uploadRunFile(Run run, File file, String uploadLocation,
+			UserCredentials credentials) throws IOException {
+		return uploadRunFile(run.getUUID(), file, uploadLocation, null,
+				credentials);
 	}
 
-	void makeRunDir(UUID uuid, String root, String name) throws IOException {
+	void makeRunDir(UUID uuid, String root, String name,
+			UserCredentials credentials) throws IOException {
 		if (name.contains("/")) {
 			throw new AccessForbiddenException(
 					"creation of subdirectories directly (" + name + ")");
 		}
 
 		try {
-			connection.upload(root, xmlUtils.buildXMLFragment("mkdir", name));
+			connection.upload(root, xmlUtils.buildXMLFragment("mkdir", name),
+					credentials);
 		} catch (AttributeNotFoundException e) {
-			if (getRunsFromServer().containsKey(uuid)) {
+			if (getRunsFromServer(credentials).containsKey(uuid)) {
 				throw e;
 			} else {
 				throw new RunNotFoundException(uuid);
@@ -574,7 +657,8 @@ public final class Server {
 		}
 	}
 
-	void makeRunDir(Run run, String root, String name) throws IOException {
-		makeRunDir(run.getUUID(), root, name);
+	void makeRunDir(Run run, String root, String name,
+			UserCredentials credentials) throws IOException {
+		makeRunDir(run.getUUID(), root, name, credentials);
 	}
 }

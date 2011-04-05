@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012 The University of Manchester, UK.
+ * Copyright (c) 2010, 2011 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission.
+ *   software without specific prior written permission. 
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,23 +30,63 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package uk.org.taverna.server.client.connection;
+package uk.org.taverna.server.client.connection.params;
+
+import java.util.HashMap;
 
 /**
  * 
  * @author Robert Haines
  */
-public interface Connection {
-	public byte[] getAttribute(String uri, String type,
-			UserCredentials credentials);
+public abstract class AbstractConnectionParams implements ConnectionParams {
+	protected final HashMap<String, Object> params;
 
-	public byte[] getAttribute(String uri, UserCredentials credentials);
+	public AbstractConnectionParams() {
+		this.params = new HashMap<String, Object>();
+		params.put(NULL_CONNECTION, false);
+	}
 
-	public void setAttribute(String uri, String value, String type,
-			UserCredentials credentials);
+	@Override
+	public Object getParameter(String id) {
+		return params.get(id);
+	}
 
-	public void delete(String uri, UserCredentials credentials);
+	@Override
+	public Object removeParameter(String id) {
+		return params.remove(id);
+	}
 
-	public String upload(String uri, String content,
- UserCredentials credentials);
+	@Override
+	public ConnectionParams setParameter(String id, Object value) {
+		params.put(id, value);
+
+		return this;
+	}
+
+	@Override
+	public boolean getBooleanParameter(String id, boolean defaultValue) {
+		Boolean bool = (Boolean) params.get(id);
+		if (bool == null) {
+			bool = defaultValue;
+		}
+
+		return bool;
+	}
+
+	@Override
+	public ConnectionParams setBooleanParameter(String id, boolean value) {
+		params.put(id, value);
+
+		return this;
+	}
+
+	@Override
+	public boolean isParameterTrue(String id) {
+		return getBooleanParameter(id, false) == true;
+	}
+
+	@Override
+	public boolean isParameterFalse(String id) {
+		return getBooleanParameter(id, false) == false;
+	}
 }

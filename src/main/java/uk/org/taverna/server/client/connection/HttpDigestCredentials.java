@@ -32,21 +32,20 @@
 
 package uk.org.taverna.server.client.connection;
 
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.impl.auth.DigestScheme;
+
 /**
  * 
  * @author Robert Haines
  */
-public interface Connection {
-	public byte[] getAttribute(String uri, String type,
-			UserCredentials credentials);
+public final class HttpDigestCredentials extends UserCredentials {
+	public HttpDigestCredentials(String username, String password) {
+		super(new DigestScheme(), new UsernamePasswordCredentials(username,
+				password));
+	}
 
-	public byte[] getAttribute(String uri, UserCredentials credentials);
-
-	public void setAttribute(String uri, String value, String type,
-			UserCredentials credentials);
-
-	public void delete(String uri, UserCredentials credentials);
-
-	public String upload(String uri, String content,
- UserCredentials credentials);
+	public HttpDigestCredentials(String userinfo) {
+		super(new DigestScheme(), new UsernamePasswordCredentials(userinfo));
+	}
 }

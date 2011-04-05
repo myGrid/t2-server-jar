@@ -32,21 +32,20 @@
 
 package uk.org.taverna.server.client.connection;
 
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.impl.auth.BasicScheme;
+
 /**
  * 
  * @author Robert Haines
  */
-public interface Connection {
-	public byte[] getAttribute(String uri, String type,
-			UserCredentials credentials);
+public final class HttpBasicCredentials extends UserCredentials {
+	public HttpBasicCredentials(String username, String password) {
+		super(new BasicScheme(), new UsernamePasswordCredentials(username,
+				password));
+	}
 
-	public byte[] getAttribute(String uri, UserCredentials credentials);
-
-	public void setAttribute(String uri, String value, String type,
-			UserCredentials credentials);
-
-	public void delete(String uri, UserCredentials credentials);
-
-	public String upload(String uri, String content,
- UserCredentials credentials);
+	public HttpBasicCredentials(String userinfo) {
+		super(new BasicScheme(), new UsernamePasswordCredentials(userinfo));
+	}
 }
