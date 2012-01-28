@@ -39,7 +39,6 @@ import java.util.Collection;
 import org.jruby.Ruby;
 import org.jruby.RubyClass;
 import org.jruby.javasupport.JavaUtil;
-import org.jruby.javasupport.util.RuntimeHelpers;
 import org.jruby.runtime.Block;
 import org.jruby.runtime.builtin.IRubyObject;
 
@@ -77,42 +76,47 @@ public final class Server extends JRubyBase {
 	}
 
 	public String getStringUri() {
-		IRubyObject result = RuntimeHelpers.invoke(runtime.getCurrentContext(),
-				this, "uri");
-		return result.toString();
+		Object o = callRubyMethod(this, "uri", Object.class);
+
+		return o.toString();
 	}
 
 	public float getVersion() {
-		IRubyObject result = RuntimeHelpers.invoke(runtime.getCurrentContext(),
-				this, "version");
-		return (Float) result.toJava(float.class);
+		return (Float) callRubyMethod(this, "version", float.class);
 	}
 
 	public int getRunLimit(Credentials credentials) {
-		IRubyObject rCreds = JavaUtil.convertJavaToRuby(runtime, credentials);
-		IRubyObject result = RuntimeHelpers.invoke(runtime.getCurrentContext(),
-				this, "run_limit", rCreds);
-		return (Integer) result.toJava(int.class);
+		return (Integer) callRubyMethod(this, "run_limit", int.class,
+				credentials);
 	}
 
 	public Collection<Run> getRuns(Credentials credentials) {
-		IRubyObject rCreds = JavaUtil.convertJavaToRuby(runtime, credentials);
-		IRubyObject result = RuntimeHelpers.invoke(runtime.getCurrentContext(),
-				this, "runs", rCreds);
+		Run[] runs = (Run[]) callRubyMethod(this, "runs", Run[].class,
+				credentials);
 
-		return Arrays.asList((Run[]) result.toJava(Run[].class));
+		return Arrays.asList(runs);
 	}
 
 	public Run getRun(String identifier, Credentials credentials) {
-		IRubyObject rId = JavaUtil.convertJavaToRuby(runtime, identifier);
-		IRubyObject rCreds = JavaUtil.convertJavaToRuby(runtime, credentials);
-		IRubyObject result = RuntimeHelpers.invoke(runtime.getCurrentContext(),
-				this, "run", rId, rCreds);
+		Run run = (Run) callRubyMethod(this, "run", Run.class, identifier,
+				credentials);
 
-		return (Run) result.toJava(Run.class);
+		if (run == null) {
+			throw new RunNotFoundException(identifier);
+		}
+
+		return run;
 	}
 
 	public Run createRun(String workflow, Credentials credentials) {
 		return Run.create(this, workflow, credentials);
+	}
+
+	public void deleteRun(String identifier, Credentials credentials) {
+		callRubyMethod(this, "delete_run", identifier, credentials);
+	}
+
+	public void deleteRun(Run run, Credentials credentials) {
+		deleteRun(run.getIdentifier(), credentials);
 	}
 }

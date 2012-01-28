@@ -32,12 +32,17 @@
 
 package uk.org.taverna.server.client;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.jruby.Ruby;
 import org.jruby.RubyClass;
 import org.jruby.RubyObject;
+import org.jruby.javasupport.JavaUtil;
+import org.jruby.javasupport.util.RuntimeHelpers;
+import org.jruby.runtime.builtin.IRubyObject;
 
 class JRubyBase extends RubyObject implements Constants {
 
@@ -57,11 +62,67 @@ class JRubyBase extends RubyObject implements Constants {
 		}
 	}
 
+	protected JRubyBase(Ruby runtime, RubyClass metaclass) {
+		super(runtime, metaclass);
+	}
+
 	protected static RubyClass getMetaClass(String name) {
 		return metaclasses.get(name);
 	}
 
-	protected JRubyBase(Ruby runtime, RubyClass metaclass) {
-		super(runtime, metaclass);
+	protected void callRubyMethod(IRubyObject self, String method) {
+		RuntimeHelpers.invoke(runtime.getCurrentContext(), self, method);
+	}
+
+	protected void callRubyMethod(String method) {
+		callRubyMethod(this, method);
+	}
+
+	protected Object callRubyMethod(IRubyObject self, String method,
+			Class<?> returnType) {
+		IRubyObject result = RuntimeHelpers.invoke(runtime.getCurrentContext(),
+				this, method);
+		return result.toJava(returnType);
+	}
+
+	protected Object callRubyMethod(String method, Class<?> returnType) {
+		return callRubyMethod(this, method, returnType);
+	}
+
+	protected void callRubyMethod(IRubyObject self, String method,
+			Object... args) {
+
+		List<IRubyObject> rArgs = new ArrayList<IRubyObject>();
+		for(Object o : args) {
+			IRubyObject arg = JavaUtil.convertJavaToRuby(runtime, o);
+			rArgs.add(arg);
+		}
+
+		RuntimeHelpers.invoke(runtime.getCurrentContext(), this, method,
+				rArgs.toArray(new IRubyObject[0]));
+	}
+
+	protected void callRubyMethod(String method, Object... args) {
+		callRubyMethod(this, method, args);
+	}
+
+	protected Object callRubyMethod(IRubyObject self, String method,
+			Class<?> returnType, Object... args) {
+
+		List<IRubyObject> rArgs = new ArrayList<IRubyObject>();
+		for (Object o : args) {
+			IRubyObject arg = JavaUtil.convertJavaToRuby(runtime, o);
+			rArgs.add(arg);
+		}
+
+		IRubyObject result = RuntimeHelpers.invoke(runtime.getCurrentContext(),
+				this, method, rArgs.toArray(new IRubyObject[0]));
+
+		return result.toJava(returnType);
+	}
+
+	protected void callRubyMethod(String method, Class<?> returnType,
+			Object... args) {
+		callRubyMethod(this, method, returnType, args);
 	}
 }

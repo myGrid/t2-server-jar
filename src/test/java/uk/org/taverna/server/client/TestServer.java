@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -32,15 +32,11 @@
 
 package uk.org.taverna.server.client;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
 
 public class TestServer {
 
@@ -68,22 +64,5 @@ public class TestServer {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-
-	@Test
-	public void testConnect() {
-		server = Server.connect(uri1);
-		Server other = Server.connect(uri2);
-		Server third = null;
-		try {
-			third = Server.connect(address);
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		assertNotNull(server);
-		assertSame(server, other);
-		assertSame(server, third);
 	}
 }

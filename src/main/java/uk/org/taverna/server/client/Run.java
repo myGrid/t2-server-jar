@@ -33,11 +33,12 @@
 package uk.org.taverna.server.client;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jruby.Ruby;
 import org.jruby.RubyClass;
 import org.jruby.RubyHash;
-import org.jruby.RubySymbol;
 import org.jruby.javasupport.JavaUtil;
 import org.jruby.javasupport.util.RuntimeHelpers;
 import org.jruby.runtime.builtin.IRubyObject;
@@ -101,78 +102,92 @@ public final class Run extends JRubyBase {
 		return Run.create(new Server(server), workflow, credentials);
 	}
 
-	// static Run create(Server server, Credentials credentials, String id) {
-	// return Run.create(server, "", id, credentials);
-	// }
-
 	public void delete() {
-		RuntimeHelpers.invoke(runtime.getCurrentContext(), this, "delete");
+		callRubyMethod("delete");
 	}
 
 	public String getIdentifier() {
-		IRubyObject result = RuntimeHelpers.invoke(runtime.getCurrentContext(),
-				this, "uuid");
-		return (String) result.toJava(String.class);
+		return (String) callRubyMethod(this, "uuid", String.class);
 	}
 
 	public Date getCreateTime() {
-		IRubyObject result = RuntimeHelpers.invoke(runtime.getCurrentContext(),
-				this, "create_time");
-		return (Date) result.toJava(Date.class);
+		return (Date) callRubyMethod("create_time", Date.class);
 	}
 
 	public Date getStartTime() {
-		IRubyObject result = RuntimeHelpers.invoke(runtime.getCurrentContext(),
-				this, "start_time");
-		return (Date) result.toJava(Date.class);
+		return (Date) callRubyMethod("start_time", Date.class);
+
 	}
 
 	public Date getFinishTime() {
-		IRubyObject result = RuntimeHelpers.invoke(runtime.getCurrentContext(),
-				this, "finish_time");
-		return (Date) result.toJava(Date.class);
+		return (Date) callRubyMethod("finish_time", Date.class);
+
 	}
 
 	public void start() {
-		RuntimeHelpers.invoke(runtime.getCurrentContext(), this, "start");
-	}
-
-	public void wait(boolean progress) {
-		IRubyObject rProgress = JavaUtil.convertJavaToRuby(runtime, progress);
-		RubySymbol progLabel = RubySymbol.newSymbol(runtime, "progress");
-		RubyHash args = RuntimeHelpers.constructHash(runtime, progLabel,
-				rProgress);
-
-		RuntimeHelpers.invoke(runtime.getCurrentContext(), this, "wait", args);
+		callMethod("start");
 	}
 
 	public String getConsoleOutput() {
-		IRubyObject result = RuntimeHelpers.invoke(runtime.getCurrentContext(),
-				this, "stdout");
-		return (String) result.toJava(String.class);
+		return (String) callRubyMethod("stdout", String.class);
 	}
 
 	public String getConsoleError() {
-		IRubyObject result = RuntimeHelpers.invoke(runtime.getCurrentContext(),
-				this, "stderr");
-		return (String) result.toJava(String.class);
+		return (String) callRubyMethod("stderr", String.class);
+
 	}
 
 	public int getExitCode() {
-		IRubyObject result = RuntimeHelpers.invoke(runtime.getCurrentContext(),
-				this, "exitcode");
-		return (Integer) result.toJava(int.class);
+		return (Integer) callRubyMethod("exitcode", int.class);
 	}
 
 	public String getWorkflow() {
-		IRubyObject result = RuntimeHelpers.invoke(runtime.getCurrentContext(),
-				this, "workflow");
-		return (String) result.toJava(String.class);
+		return (String) callRubyMethod("workflow", String.class);
 	}
 
 	public Date getExpiryTime() {
-		IRubyObject result = RuntimeHelpers.invoke(runtime.getCurrentContext(),
-				this, "expiry");
-		return (Date) result.toJava(Date.class);
+		return (Date) callRubyMethod("expiry", Date.class);
+	}
+
+	public void setExpiryTime(Date expiry) {
+		callRubyMethod("expiry=", expiry.toString());
+	}
+
+	public RunStatus getStatus() {
+		String status = (String) callRubyMethod("status", String.class);
+
+		return RunStatus.state(status);
+	}
+
+	public boolean isInitialized() {
+		return getStatus() == RunStatus.INITIALIZED;
+	}
+
+	public boolean isRunning() {
+		return getStatus() == RunStatus.RUNNING;
+	}
+
+	public boolean isFinished() {
+		return getStatus() == RunStatus.FINISHED;
+	}
+
+	public Map<String, String> getInputPorts() {
+		RubyHash rh = (RubyHash) callRubyMethod("input_ports", RubyHash.class);
+		if (rh.isNil() || rh.isEmpty()) {
+			return null;
+		} else {
+			Map<String, String> ports = new HashMap<String, String>();
+			String[] keys = (String[]) rh.keys().toJava(String.class);
+			for (String key : keys) {
+				// TODO: FIXME!
+				ports.put(key, "port");
+			}
+
+			return ports;
+		}
+	}
+
+	public void setInput(String input, Object value) {
+		callRubyMethod("set_input", input, value.toString());
 	}
 }
