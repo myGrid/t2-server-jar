@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012 The University of Manchester, UK.
+ * Copyright (c) 2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -121,8 +121,8 @@ class JRubyBase extends RubyObject implements Constants {
 		return result.toJava(returnType);
 	}
 
-	protected void callRubyMethod(String method, Class<?> returnType,
+	protected Object callRubyMethod(String method, Class<?> returnType,
 			Object... args) {
-		callRubyMethod(this, method, returnType, args);
+		return callRubyMethod(this, method, returnType, args);
 	}
 }

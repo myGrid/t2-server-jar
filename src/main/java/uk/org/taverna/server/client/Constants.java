@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012 The University of Manchester, UK.
+ * Copyright (c) 2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -38,5 +38,5 @@ interface Constants {
 	final static String MODULE = "T2Server";
 
 	final static Class<?>[] CLASSES = { Server.class, Run.class,
-		HttpBasic.class };
+			HttpBasic.class, InputPort.class, OutputPort.class, PortValue.class };
 }

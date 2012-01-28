@@ -32,6 +32,7 @@
 
 package uk.org.taverna.server.client;
 
+import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -171,16 +172,17 @@ public final class Run extends JRubyBase {
 		return getStatus() == RunStatus.FINISHED;
 	}
 
-	public Map<String, String> getInputPorts() {
+	public Map<String, InputPort> getInputPorts() {
 		RubyHash rh = (RubyHash) callRubyMethod("input_ports", RubyHash.class);
 		if (rh.isNil() || rh.isEmpty()) {
 			return null;
 		} else {
-			Map<String, String> ports = new HashMap<String, String>();
-			String[] keys = (String[]) rh.keys().toJava(String.class);
+			Map<String, InputPort> ports = new HashMap<String, InputPort>();
+			String[] keys = (String[]) rh.keys().toArray(new String[0]);
 			for (String key : keys) {
-				// TODO: FIXME!
-				ports.put(key, "port");
+				IRubyObject p = (IRubyObject) rh.get(key);
+				InputPort port = (InputPort) p.toJava(InputPort.class);
+				ports.put(key, port);
 			}
 
 			return ports;
@@ -189,5 +191,27 @@ public final class Run extends JRubyBase {
 
 	public void setInput(String input, Object value) {
 		callRubyMethod("set_input", input, value.toString());
+	}
+
+	public void setBaclavaInput(File baclavaFile) {
+		String filename = baclavaFile.getPath();
+		callRubyMethod("upload_baclava_input", filename);
+	}
+
+	public Map<String, OutputPort> getOutputPorts() {
+		RubyHash rh = (RubyHash) callRubyMethod("output_ports", RubyHash.class);
+		if (rh.isNil() || rh.isEmpty()) {
+			return null;
+		} else {
+			Map<String, OutputPort> ports = new HashMap<String, OutputPort>();
+			String[] keys = (String[]) rh.keys().toArray(new String[0]);
+			for (String key : keys) {
+				IRubyObject p = (IRubyObject) rh.get(key);
+				OutputPort port = (OutputPort) p.toJava(OutputPort.class);
+				ports.put(key, port);
+			}
+
+			return ports;
+		}
 	}
 }
