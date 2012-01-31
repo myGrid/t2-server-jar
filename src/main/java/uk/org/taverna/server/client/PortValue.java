@@ -6,6 +6,8 @@ import org.jruby.runtime.builtin.IRubyObject;
 
 public class PortValue extends JRubyBase {
 
+	private static final long serialVersionUID = 1L;
+
 	private PortValue(Ruby runtime, RubyClass metaclass) {
 		super(runtime, metaclass);
 	}
@@ -16,5 +18,11 @@ public class PortValue extends JRubyBase {
 
 	public int getDataSize() {
 		return (Integer) callRubyMethod("size", int.class);
+	}
+
+	public byte[] getValue() {
+		String value = (String) callRubyMethod("value", String.class);
+
+		return value.getBytes();
 	}
 }

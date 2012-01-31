@@ -40,6 +40,8 @@ import org.jruby.runtime.builtin.IRubyObject;
 
 public final class HttpBasic extends Credentials {
 
+	private static final long serialVersionUID = 1L;
+
 	public HttpBasic(String username, String password) {
 		super(runtime, getMetaClass("HttpBasic"));
 		IRubyObject rUsername = JavaUtil.convertJavaToRuby(runtime, username);

@@ -1,12 +1,17 @@
 package uk.org.taverna.server.client;
 
+import java.net.URI;
+
 import org.jruby.Ruby;
+import org.jruby.RubyArray;
 import org.jruby.RubyClass;
 import org.jruby.RubyRange;
 import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.builtin.IRubyObject;
 
 public final class OutputPort extends Port {
+
+	private static final long serialVersionUID = 1L;
 
 	private OutputPort(Ruby runtime, RubyClass metaclass) {
 		super(runtime, metaclass);
@@ -37,17 +42,34 @@ public final class OutputPort extends Port {
 		return value.getBytes();
 	}
 
-	public PortValue getValue(int... coords) {
-		String method = "[";
-		int dims = coords.length;
-		for (int c : coords) {
-			method += c + "]";
-			if (dims > 1) {
-				method += "[";
-				dims--;
-			}
-		}
+	public void getValue(int... coords) {
+		// String method = "[";
+		// int dims = coords.length;
+		// for (int c : coords) {
+		// method += c + "]";
+		// if (dims > 1) {
+		// method += "[";
+		// dims--;
+		// }
+		// }
 
-		return (PortValue) callRubyMethod(method, PortValue.class);
+		// Maybe should grab and parse out from @structure into
+		// TreeList<PortValue> ?
+
+		RubyArray ra = (RubyArray) callRubyMethod("get_structure",
+				RubyArray.class);
+
+		System.out.println(ra.toString());
+
+		// PortValue value = (PortValue) callRubyMethod(method,
+		// PortValue.class);
+		//
+		// return value.getValue();
+	}
+
+	public URI getReference() {
+		String ref = (String) callRubyMethod("ref", String.class);
+
+		return URI.create(ref);
 	}
 }

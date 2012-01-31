@@ -56,11 +56,17 @@ import org.jruby.runtime.builtin.IRubyObject;
  */
 public final class Server extends JRubyBase {
 
+	private static final long serialVersionUID = 1L;
+
 	public Server(String uri) {
 		super(runtime, getMetaClass("Server"));
 		IRubyObject rUri = JavaUtil.convertJavaToRuby(runtime, uri);
 
 		callInit(rUri, Block.NULL_BLOCK);
+	}
+
+	public Server(URI uri) {
+		this(uri.toASCIIString());
 	}
 
 	private Server(Ruby runtime, RubyClass metaclass) {
@@ -76,29 +82,29 @@ public final class Server extends JRubyBase {
 	}
 
 	public String getStringUri() {
-		Object o = callRubyMethod(this, "uri", Object.class);
+		Object o = callRubyMethod("uri", Object.class);
 
 		return o.toString();
 	}
 
 	public float getVersion() {
-		return (Float) callRubyMethod(this, "version", float.class);
+		return (Float) callRubyMethod("version", float.class);
 	}
 
 	public int getRunLimit(Credentials credentials) {
-		return (Integer) callRubyMethod(this, "run_limit", int.class,
+		return (Integer) callRubyMethod("run_limit", int.class,
 				credentials);
 	}
 
 	public Collection<Run> getRuns(Credentials credentials) {
-		Run[] runs = (Run[]) callRubyMethod(this, "runs", Run[].class,
+		Run[] runs = (Run[]) callRubyMethod("runs", Run[].class,
 				credentials);
 
 		return Arrays.asList(runs);
 	}
 
 	public Run getRun(String identifier, Credentials credentials) {
-		Run run = (Run) callRubyMethod(this, "run", Run.class, identifier,
+		Run run = (Run) callRubyMethod("run", Run.class, identifier,
 				credentials);
 
 		if (run == null) {
@@ -113,10 +119,14 @@ public final class Server extends JRubyBase {
 	}
 
 	public void deleteRun(String identifier, Credentials credentials) {
-		callRubyMethod(this, "delete_run", identifier, credentials);
+		callRubyMethod("delete_run", identifier, credentials);
 	}
 
 	public void deleteRun(Run run, Credentials credentials) {
 		deleteRun(run.getIdentifier(), credentials);
+	}
+
+	public void deleteAllRuns(Credentials credentials) {
+		callRubyMethod("delete_all_runs", credentials);
 	}
 }

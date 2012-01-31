@@ -46,6 +46,8 @@ import org.jruby.runtime.builtin.IRubyObject;
 
 class JRubyBase extends RubyObject implements Constants {
 
+	private static final long serialVersionUID = 1L;
+
 	protected static final Ruby runtime = Ruby.getGlobalRuntime();
 	private static final Map<String, RubyClass> metaclasses = new HashMap<String, RubyClass>();
 

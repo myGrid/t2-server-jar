@@ -37,6 +37,8 @@ import org.jruby.RubyClass;
 
 public class Credentials extends JRubyBase {
 
+	private static final long serialVersionUID = 1L;
+
 	protected Credentials(Ruby runtime, RubyClass metaclass) {
 		super(runtime, metaclass);
 	}

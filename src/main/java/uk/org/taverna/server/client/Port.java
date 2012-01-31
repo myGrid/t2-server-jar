@@ -37,6 +37,8 @@ import org.jruby.RubyClass;
 
 public class Port extends JRubyBase {
 
+	private static final long serialVersionUID = 1L;
+
 	protected Port(Ruby runtime, RubyClass metaclass) {
 		super(runtime, metaclass);
 	}

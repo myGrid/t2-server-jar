@@ -6,6 +6,8 @@ import org.jruby.runtime.builtin.IRubyObject;
 
 public final class InputPort extends Port {
 
+	private static final long serialVersionUID = 1L;
+
 	private InputPort(Ruby runtime, RubyClass metaclass) {
 		super(runtime, metaclass);
 	}

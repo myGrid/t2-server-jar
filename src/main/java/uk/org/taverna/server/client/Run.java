@@ -53,6 +53,8 @@ import org.jruby.runtime.builtin.IRubyObject;
  */
 public final class Run extends JRubyBase {
 
+	private static final long serialVersionUID = 1L;
+
 	private Run(Ruby runtime, RubyClass metaclass) {
 		super(runtime, metaclass);
 	}
@@ -193,9 +195,35 @@ public final class Run extends JRubyBase {
 		callRubyMethod("set_input", input, value.toString());
 	}
 
+	public void setInputFile(String input, File file) {
+		String filename = file.getAbsolutePath();
+		callRubyMethod("", filename);
+	}
+
+	public void setInputFile(String input, String remoteFile) {
+		callRubyMethod("set_input_file", remoteFile);
+	}
+
 	public void setBaclavaInput(File baclavaFile) {
-		String filename = baclavaFile.getPath();
+		String filename = baclavaFile.getAbsolutePath();
 		callRubyMethod("upload_baclava_input", filename);
+	}
+
+	public void setBaclavaOutput() {
+		callRubyMethod("request_baclava_output");
+	}
+
+	public boolean isBaclavaOutput() {
+		return (Boolean) callRubyMethod("baclava_output?", boolean.class);
+	}
+
+	public String getBaclavaOutput() {
+		return (String) callRubyMethod("baclava_output", String.class);
+	}
+
+	public byte[] getZipOutput() {
+		String zip = (String) callRubyMethod("zip_output", String.class);
+		return zip.getBytes();
 	}
 
 	public Map<String, OutputPort> getOutputPorts() {
@@ -213,5 +241,14 @@ public final class Run extends JRubyBase {
 
 			return ports;
 		}
+	}
+
+	public void uploadFile(File file, String remoteDirectory, String remoteName) {
+
+	}
+
+	public void uploadFile(File file) {
+		String filename = file.getAbsolutePath();
+		callRubyMethod("upload_file", filename);
 	}
 }
