@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -33,6 +33,7 @@
 package uk.org.taverna.server.client.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -177,6 +178,21 @@ public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 		}
 
 		return leaf;
+	}
+
+	public E getValue(int... coords) throws TreeListTypeMismatchException {
+		if (!isBranch()) {
+			throw new TreeListTypeMismatchException("branch");
+		}
+
+		int coord = coords[0];
+
+		if (coords.length == 1) {
+			return getNode(coord).getValue();
+		} else {
+			int[] newCoords = Arrays.copyOfRange(coords, 1, coords.length);
+			return getNode(coord).getValue(newCoords);
+		}
 	}
 
 	/**
