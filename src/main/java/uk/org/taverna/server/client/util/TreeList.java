@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -33,6 +33,7 @@
 package uk.org.taverna.server.client.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -167,16 +168,31 @@ public class TreeList<E> implements Cloneable, Iterable<TreeList<E>> {
 	/**
 	 * Get the value stored in this node.
 	 * 
+	 * @param coords
+	 *            the coordinates of the deep value to retrieve. For a leaf node
+	 *            this parameter is not used.
 	 * @return the value stored in this node.
 	 * @throws TreeListTypeMismatchException
-	 *             if this is not a leaf node.
+	 *             if the dimensions of the coordinates do not match the node
+	 *             type.
 	 */
-	public E getValue() throws TreeListTypeMismatchException {
-		if (!isLeaf()) {
-			throw new TreeListTypeMismatchException("leaf");
+	public E getValue(int... coords) throws TreeListTypeMismatchException {
+		// If called without any coords then we are expecting a leaf node.
+		if (coords.length == 0) {
+			if (!isLeaf()) {
+				throw new TreeListTypeMismatchException("leaf");
+			}
+
+			return leaf;
 		}
 
-		return leaf;
+		// Otherwise we are expecting a branch node.
+		if (!isBranch()) {
+			throw new TreeListTypeMismatchException("branch");
+		}
+
+		int[] newCoords = Arrays.copyOfRange(coords, 1, coords.length);
+		return getNode(coords[0]).getValue(newCoords);
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -97,6 +97,13 @@ public class TestTreeList {
 	public void testGetValue() {
 		assertEquals((Integer) 10, il10.getValue());
 		ib.getValue();
+	}
+
+	@Test(expected = TreeListTypeMismatchException.class)
+	public void testGetValueDeep() {
+		assertEquals((Integer) 10, ib.getValue(0));
+		assertEquals((Integer) 20, ic.getValue(1, 1));
+		il10.getValue(0);
 	}
 
 	@Test(expected = TreeListTypeMismatchException.class)
