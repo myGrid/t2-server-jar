@@ -5,13 +5,15 @@ import java.net.URI;
 import org.jruby.Ruby;
 import org.jruby.RubyArray;
 import org.jruby.RubyClass;
-import org.jruby.RubyRange;
-import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.builtin.IRubyObject;
+
+import uk.org.taverna.server.client.util.TreeList;
 
 public final class OutputPort extends Port {
 
 	private static final long serialVersionUID = 1L;
+
+	private TreeList<PortValue> structure = null;
 
 	private OutputPort(Ruby runtime, RubyClass metaclass) {
 		super(runtime, metaclass);
@@ -22,54 +24,109 @@ public final class OutputPort extends Port {
 	}
 
 	public boolean isError() {
-		return (Boolean) callRubyMethod("error?", boolean.class);
+		return getValue().isError();
 	}
 
-	public byte[] getValue() {
-		String value = (String) callRubyMethod("value", String.class);
-
-		return value.getBytes();
+	public String getError() {
+		return getValue().getError();
 	}
 
-	public byte[] getValue(int from, int to, boolean isExclusive) {
-		IRubyObject begin = JavaUtil.convertJavaToRuby(runtime, from);
-		IRubyObject end = JavaUtil.convertJavaToRuby(runtime, to);
-		RubyRange range = RubyRange.newRange(runtime,
-				runtime.getCurrentContext(), begin, end, isExclusive);
-
-		String value = (String) callRubyMethod("value", String.class, range);
-
-		return value.getBytes();
+	public String getError(int... coords) throws IndexOutOfBoundsException {
+		return getValue(coords).getError();
 	}
 
-	public void getValue(int... coords) {
-		// String method = "[";
-		// int dims = coords.length;
-		// for (int c : coords) {
-		// method += c + "]";
-		// if (dims > 1) {
-		// method += "[";
-		// dims--;
-		// }
-		// }
+	public String getDataType() {
+		return getValue().getDataType();
+	}
 
-		// Maybe should grab and parse out from @structure into
-		// TreeList<PortValue> ?
+	public String getDataType(int... coords) throws IndexOutOfBoundsException {
+		return getValue(coords).getDataType();
+	}
 
-		RubyArray ra = (RubyArray) callRubyMethod("get_structure",
-				RubyArray.class);
+	public int getDataSize() {
+		return getValue().getDataSize();
+	}
 
-		System.out.println(ra.toString());
+	public int getDataSize(int... coords) throws IndexOutOfBoundsException {
+		return getValue(coords).getDataSize();
+	}
 
-		// PortValue value = (PortValue) callRubyMethod(method,
-		// PortValue.class);
-		//
-		// return value.getValue();
+	public byte[] getData() {
+		return getValue().getData();
+	}
+
+	public byte[] getData(int from, int to, boolean isExclusive) {
+		return getValue().getData(from, to, isExclusive);
+	}
+
+	public byte[] getData(int... coords) throws IndexOutOfBoundsException {
+		return getValue(coords).getData();
+	}
+
+	public PortValue getValue() {
+		if (structure == null) {
+			parsePortStructure();
+		}
+
+		return structure.getValue();
+	}
+
+	public PortValue getValue(int... coords) throws IndexOutOfBoundsException {
+		int depth = getDepth();
+		if (coords.length != depth) {
+			throw new IndexOutOfBoundsException("OutputPort of depth " + depth
+					+ " accessed as depth " + coords.length);
+		}
+
+		if (structure == null) {
+			parsePortStructure();
+		}
+
+		return structure.getValue(coords);
 	}
 
 	public URI getReference() {
-		String ref = (String) callRubyMethod("ref", String.class);
+		return getValue().getReference();
+	}
 
-		return URI.create(ref);
+	public URI getReference(int coords) throws IndexOutOfBoundsException {
+		return getValue(coords).getReference();
+	}
+
+	private void parsePortStructure() {
+		if (getDepth() == 0) {
+			PortValue value = (PortValue) callRubyMethod("get_structure",
+					PortValue.class);
+			structure = new TreeList<PortValue>(value);
+		} else {
+			RubyArray values = (RubyArray) callRubyMethod("get_structure",
+					RubyArray.class);
+			structure = parsePortStructure(values, new TreeList<PortValue>());
+		}
+	}
+
+	private TreeList<PortValue> parsePortStructure(RubyArray in,
+			TreeList<PortValue> struct) {
+		for (Object o : in) {
+			if (o.getClass() == RubyArray.class) {
+				struct.addNode(parsePortStructure((RubyArray) o,
+						new TreeList<PortValue>()));
+			} else {
+				PortValue value = (PortValue) ((IRubyObject) o)
+						.toJava(PortValue.class);
+				struct.addNode(new TreeList<PortValue>(value));
+			}
+		}
+
+		return struct;
+	}
+
+	@Override
+	public String toString() {
+		if (structure == null) {
+			parsePortStructure();
+		}
+
+		return structure.toString();
 	}
 }

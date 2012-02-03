@@ -40,6 +40,7 @@ import java.util.Map;
 import org.jruby.Ruby;
 import org.jruby.RubyClass;
 import org.jruby.RubyHash;
+import org.jruby.RubyString;
 import org.jruby.javasupport.JavaUtil;
 import org.jruby.javasupport.util.RuntimeHelpers;
 import org.jruby.runtime.builtin.IRubyObject;
@@ -222,8 +223,11 @@ public final class Run extends JRubyBase {
 	}
 
 	public byte[] getZipOutput() {
-		String zip = (String) callRubyMethod("zip_output", String.class);
-		return zip.getBytes();
+		// String zip = (String) callRubyMethod("zip_output", String.class);
+		// return zip.getBytes();
+		RubyString result = (RubyString) callRubyMethod("zip_output",
+				RubyString.class);
+		return result.getBytes();
 	}
 
 	public Map<String, OutputPort> getOutputPorts() {
