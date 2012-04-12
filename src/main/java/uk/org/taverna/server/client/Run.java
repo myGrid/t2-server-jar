@@ -41,7 +41,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import net.sf.practicalxml.ParseUtil;
 import net.sf.practicalxml.XmlUtil;
@@ -62,7 +61,7 @@ import uk.org.taverna.server.client.connection.UserCredentials;
 public final class Run {
 
 	private final Server server;
-	private final UUID uuid;
+	private final String id;
 	private String workflow;
 	private String baclavaOut;
 
@@ -84,7 +83,7 @@ public final class Run {
 	 */
 	public Run(Server server, String workflow, UserCredentials credentials) {
 		this.server = server;
-		this.uuid = server.initializeRun(workflow, credentials);
+		this.id = server.initializeRun(workflow, credentials);
 		this.workflow = workflow;
 		this.baclavaOut = null;
 
@@ -117,13 +116,13 @@ public final class Run {
 	 * 
 	 * @param server
 	 *            The server the Run is already on.
-	 * @param uuid
-	 *            The UUID of the Run.
+	 * @param id
+	 *            The id of the Run.
 	 * @param credentials
 	 */
-	Run(Server server, UUID uuid, UserCredentials credentials) {
+	Run(Server server, UserCredentials credentials, String id) {
 		this.server = server;
-		this.uuid = uuid;
+		this.id = id;
 		this.workflow = null;
 		this.baclavaOut = null;
 
@@ -313,12 +312,12 @@ public final class Run {
 	}
 
 	/**
-	 * Get the UUID of this run.
+	 * Get the id of this run.
 	 * 
-	 * @return the UUID of this run.
+	 * @return the id of this run.
 	 */
-	public UUID getUUID() {
-		return uuid;
+	public String getIdentifier() {
+		return id;
 	}
 
 	/**

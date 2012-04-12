@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -32,8 +32,6 @@
 
 package uk.org.taverna.server.client;
 
-import java.util.UUID;
-
 /**
  * This exception is thrown if the server cannot find the run that has been
  * requested or operated on.
@@ -44,11 +42,11 @@ public final class RunNotFoundException extends ServerException {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Construct the exception with the UUID of the run that cannot be found.
+	 * Construct the exception with the id of the run that cannot be found.
 	 * 
-	 * @param uuid
+	 * @param id
 	 */
-	public RunNotFoundException(UUID uuid) {
-		super("Could not find run " + uuid);
+	public RunNotFoundException(String id) {
+		super("Could not find run " + id);
 	}
 }
