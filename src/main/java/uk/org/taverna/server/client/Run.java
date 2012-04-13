@@ -256,7 +256,7 @@ public final class Run {
 		if (rs == RunStatus.INITIALIZED) {
 			String filename = uploadFile(file);
 			server.setRunAttribute(this, links.get("baclava"), filename,
-					credentials);
+					"text/plain", credentials);
 		} else {
 			throw new RunStateException(rs, RunStatus.INITIALIZED);
 		}
@@ -274,7 +274,7 @@ public final class Run {
 		if (rs == RunStatus.INITIALIZED) {
 			this.baclavaOut = name;
 			server.setRunAttribute(this, links.get("output"), baclavaOut,
-					credentials);
+					"text/plain", credentials);
 		} else {
 			throw new RunStateException(rs, RunStatus.INITIALIZED);
 		}
@@ -363,12 +363,12 @@ public final class Run {
 	 */
 	public void start() {
 		RunStatus rs = getStatus();
-		if (rs == RunStatus.INITIALIZED) {
-			server.setRunAttribute(this, links.get("status"),
-					RunStatus.RUNNING.status(), credentials);
-		} else {
+		if (rs != RunStatus.INITIALIZED) {
 			throw new RunStateException(rs, RunStatus.INITIALIZED);
 		}
+
+		server.setRunAttribute(this, links.get("status"),
+				RunStatus.RUNNING.status(), "text/plain", credentials);
 	}
 
 	/**

@@ -498,11 +498,15 @@ public final class Server {
 	 *            the full URI of the attribute to set.
 	 * @param value
 	 *            the new value of the attribute.
+	 * @param type
+	 *            the mime type of the attribute.
+	 * @param credentials
+	 *            the user credentials to use for authorization.
 	 */
 	public void setRunAttribute(String id, String uri, String value,
-			UserCredentials credentials) {
+			String type, UserCredentials credentials) {
 		try {
-			connection.setAttribute(uri, value, "text/plain", credentials);
+			connection.setAttribute(uri, value, type, credentials);
 		} catch (AttributeNotFoundException e) {
 			if (getRunsFromServer(credentials).containsKey(id)) {
 				throw e;
@@ -521,10 +525,14 @@ public final class Server {
 	 *            the full URI of the attribute to set.
 	 * @param value
 	 *            the new value of the attribute.
+	 * @param type
+	 *            the mime type of the attribute.
+	 * @param credentials
+	 *            the user credentials to use for authorization.
 	 */
-	public void setRunAttribute(Run run, String uri, String value,
+	public void setRunAttribute(Run run, String uri, String value, String type,
 			UserCredentials credentials) {
-		setRunAttribute(run.getIdentifier(), uri, value, credentials);
+		setRunAttribute(run.getIdentifier(), uri, value, type, credentials);
 	}
 
 	String getRunDescription(Run run, UserCredentials credentials) {
