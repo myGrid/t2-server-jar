@@ -63,6 +63,7 @@ public final class Run {
 	private final Server server;
 	private final String id;
 	private String workflow;
+	private boolean baclavaIn;
 	private String baclavaOut;
 
 	private final Map<String, String> links;
@@ -85,6 +86,7 @@ public final class Run {
 		this.server = server;
 		this.id = server.initializeRun(workflow, credentials);
 		this.workflow = workflow;
+		this.baclavaIn = false;
 		this.baclavaOut = null;
 
 		xmlUtils = XmlUtils.getInstance();
@@ -257,9 +259,15 @@ public final class Run {
 			String filename = uploadFile(file);
 			server.setRunAttribute(this, links.get("baclava"), filename,
 					"text/plain", credentials);
+
+			baclavaIn = true;
 		} else {
 			throw new RunStateException(rs, RunStatus.INITIALIZED);
 		}
+	}
+
+	public boolean isBaclavaInput() {
+		return baclavaIn;
 	}
 
 	/**
