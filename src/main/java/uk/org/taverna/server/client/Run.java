@@ -72,6 +72,9 @@ public final class Run {
 
 	private final UserCredentials credentials;
 
+	// Ports
+	private Map<String, InputPort> inputPorts = null;
+
 	/**
 	 * Create a new Run instance on the specified server with the supplied
 	 * workflow.
@@ -135,44 +138,24 @@ public final class Run {
 	}
 
 	/**
-	 * Set a workflow input value.
 	 * 
-	 * @param input
-	 *            The input port to set.
-	 * @param value
-	 *            The value to set the port to.
+	 * @return
 	 */
-	public void setInput(String input, String value) {
-		RunStatus rs = getStatus();
-		if (rs == RunStatus.INITIALIZED) {
-			server.setRunInput(this, input, value, credentials);
-		} else {
-			throw new RunStateException(rs, RunStatus.INITIALIZED);
+	public Map<String, InputPort> getInputPorts() {
+		if (inputPorts == null) {
+			inputPorts = getInputPortInfo();
 		}
+
+		return inputPorts;
 	}
 
 	/**
-	 * Use an already uploaded file as input to a workflow input port. The file
-	 * to be used must already have been uploaded to the server with
-	 * {@link #uploadFile(File)} or {@link #uploadFile(File, String, String)}
-	 * before it can be used by this method and the filename returned by either
-	 * of those methods is what should be passed into this one.
-	 * {@link #uploadInputFile(String, File, String, String)} can be used to do
-	 * these two steps in one call.
 	 * 
-	 * @param input
-	 *            The input port to set.
-	 * @param filename
-	 *            The filename of the file (on the server) to use as input.
-	 * @see #uploadInputFile(String, File, String, String)
+	 * @param name
+	 * @return
 	 */
-	public void setInputFile(String input, String filename) {
-		RunStatus rs = getStatus();
-		if (rs == RunStatus.INITIALIZED) {
-			server.setRunInputFile(this, input, filename, credentials);
-		} else {
-			throw new RunStateException(rs, RunStatus.INITIALIZED);
-		}
+	public InputPort getInputPort(String name) {
+		return getInputPorts().get(name);
 	}
 
 	/**
@@ -205,45 +188,6 @@ public final class Run {
 	 */
 	public String uploadFile(File file) throws IOException {
 		return uploadFile(file, null, null);
-	}
-
-	/**
-	 * Upload a file to the Run's workspace on the server and then use it as
-	 * input to an input port.
-	 * 
-	 * @param input
-	 *            The input port to set.
-	 * @param file
-	 *            The file to upload and use as input.
-	 * @param remoteDirectory
-	 *            The directory within the workspace to upload the file to.
-	 * @param rename
-	 *            The name to use for the file when saving it in the workspace.
-	 * @throws IOException
-	 */
-	public void uploadInputFile(String input, File file,
-			String remoteDirectory, String rename) throws IOException {
-		RunStatus rs = getStatus();
-		if (rs == RunStatus.INITIALIZED) {
-			String filename = uploadFile(file, remoteDirectory, rename);
-			setInputFile(input, filename);
-		} else {
-			throw new RunStateException(rs, RunStatus.INITIALIZED);
-		}
-	}
-
-	/**
-	 * Upload a file to the Run's workspace on the server and then use it as
-	 * input to an input port.
-	 * 
-	 * @param input
-	 *            The input port to set.
-	 * @param file
-	 *            The file to upload and use as input.
-	 * @throws IOException
-	 */
-	public void uploadInputFile(String input, File file) throws IOException {
-		uploadInputFile(input, file, null, null);
 	}
 
 	/**
@@ -368,11 +312,18 @@ public final class Run {
 	/**
 	 * Start this Run running on the server. The Run must not be already
 	 * running, or finished.
+	 * 
+	 * @throws IOException
 	 */
-	public void start() {
+	public void start() throws IOException {
 		RunStatus rs = getStatus();
 		if (rs != RunStatus.INITIALIZED) {
 			throw new RunStateException(rs, RunStatus.INITIALIZED);
+		}
+
+		// set all the inputs
+		if (!isBaclavaInput()) {
+			setAllInputs();
 		}
 
 		server.setRunAttribute(this, links.get("status"),
@@ -417,10 +368,6 @@ public final class Run {
 	 */
 	public void delete() {
 		server.deleteRun(this, credentials);
-	}
-
-	String getInputsPath() {
-		return links.get("inputs");
 	}
 
 	/**
@@ -524,6 +471,47 @@ public final class Run {
 		}
 	}
 
+	/*
+	 * Set all the inputs on the server. The inputs must have been set prior to
+	 * this call using the InputPort API.
+	 */
+	private void setAllInputs() throws IOException {
+		for (InputPort port : getInputPorts().values()) {
+			if (!port.isSet()) {
+				continue;
+			}
+
+			if (port.isFile()) {
+				// If we're using a local file upload it first then set the
+				// port to use a remote file.
+				if (!port.isRemoteFile()) {
+					File file = new File(uploadFile(port.getFile()));
+					port.setRemoteFile(file);
+				}
+
+				setInputPort(port);
+			} else {
+				setInputPort(port);
+			}
+		}
+	}
+
+	private void setInputPort(InputPort port) {
+		String path = links.get("inputs") + "/input/" + port.getName();
+		String value;
+
+		if (port.isFile()) {
+			String payload = xmlUtils.escapeXML(port.getFile().getPath());
+			value = xmlUtils.buildXMLFragment("inputfile", payload);
+		} else {
+			String payload = xmlUtils.escapeXML(port.getValue());
+			value = xmlUtils.buildXMLFragment("inputvalue", payload);
+		}
+
+		server.setRunAttribute(this, path, value, "application/xml",
+				credentials);
+	}
+
 	private Map<String, String> getRunDescription(UserCredentials credentials) {
 		HashMap<String, String> links = new HashMap<String, String>();
 
@@ -560,6 +548,8 @@ public final class Run {
 		doc = ParseUtil.parse(inputs);
 		links.put("baclava",
 				xmlUtils.evalXPath(doc, "//nsr:baclava", "xlink:href"));
+		links.put("inputexp",
+				xmlUtils.evalXPath(doc, "//nsr:expected", "xlink:href"));
 
 		// set io properties
 		links.put("io", links.get("listeners") + "/io");
@@ -568,6 +558,21 @@ public final class Run {
 		links.put("exitcode", links.get("io") + "/properties/exitcode");
 
 		return links;
+	}
+
+	private Map<String, InputPort> getInputPortInfo() {
+		Map<String, InputPort> ports = new HashMap<String, InputPort>();
+
+		String portDesc = server.getRunAttribute(this, links.get("inputexp"),
+				"application/xml", credentials);
+		Document doc = ParseUtil.parse(portDesc);
+
+		for (Element e : xmlUtils.evalXPath(doc, "//port:input")) {
+			InputPort port = new InputPort(this, e);
+			ports.put(port.getName(), port);
+		}
+
+		return ports;
 	}
 
 	private void ls_ports(String dir, List<String> lists, List<String> values,
