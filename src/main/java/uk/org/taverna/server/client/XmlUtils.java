@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.sf.practicalxml.XmlUtil;
 import net.sf.practicalxml.xpath.XPathWrapper;
 
 import org.w3c.dom.Document;
@@ -54,6 +55,7 @@ final class XmlUtils {
 
 	private static final String serverNS = "http://ns.taverna.org.uk/2010/xml/server/";
 	private static final String restNS = serverNS + "rest/";
+	private static final String portNS = "http://ns.taverna.org.uk/2010/port/";
 	private static final String xlinkNS = "http://www.w3.org/1999/xlink";
 
 	private final Map<String, String> fragments;
@@ -99,12 +101,20 @@ final class XmlUtils {
 		return String.format(fragments.get(key), data1, data2);
 	}
 
+	String escapeXML(String data) {
+		return XmlUtil.escape(data);
+	}
+
 	String getServerAttribute(Element e, String attr) {
 		return e.getAttributeNS(serverNS, attr);
 	}
 
 	String getRestAttribute(Element e, String attr) {
 		return e.getAttributeNS(restNS, attr);
+	}
+
+	String getPortAttribute(Element e, String attr) {
+		return e.getAttributeNS(portNS, attr);
 	}
 
 	private XPathWrapper getQuery(String expr) {
@@ -114,6 +124,7 @@ final class XmlUtils {
 			query = new XPathWrapper(expr);
 			query.bindNamespace("nss", serverNS);
 			query.bindNamespace("nsr", restNS);
+			query.bindNamespace("port", portNS);
 			query.bindNamespace("xlink", xlinkNS);
 
 			queries.put(expr, query);

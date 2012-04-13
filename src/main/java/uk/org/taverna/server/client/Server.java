@@ -363,63 +363,6 @@ public final class Server {
 	}
 
 	/**
-	 * Set an input port on a run.
-	 * 
-	 * @param run
-	 *            the Run.
-	 * @param input
-	 *            the name of the input port.
-	 * @param value
-	 *            the value to set the input port to be.
-	 */
-	public void setRunInput(Run run, String input, String value,
-			UserCredentials credentials) {
-		String path = run.getInputsPath() + "/input/" + input;
-		try {
-			connection.setAttribute(path,
-					xmlUtils.buildXMLFragment("inputvalue", value),
-					"application/xml", credentials);
-		} catch (AttributeNotFoundException e) {
-			String id = run.getIdentifier();
-			if (getRunsFromServer(credentials).containsKey(id)) {
-				throw e;
-			} else {
-				throw new RunNotFoundException(id);
-			}
-		}
-	}
-
-	/**
-	 * Set an input port on a run to use a file as its input. This file should
-	 * already have been uploaded to the server.
-	 * 
-	 * @param run
-	 *            the Run.
-	 * @param input
-	 *            the name of the input port.
-	 * @param filename
-	 *            the filename to use as input.
-	 * @see #uploadRunFile(Run, File, String)
-	 * @see #uploadRunFile(id, File, String)
-	 */
-	public void setRunInputFile(Run run, String input, String filename,
-			UserCredentials credentials) {
-		String path = run.getInputsPath() + "/input/" + input;
-		try {
-			connection.setAttribute(path,
-					xmlUtils.buildXMLFragment("inputfile", filename),
-					"application/xml", credentials);
-		} catch (AttributeNotFoundException e) {
-			String id = run.getIdentifier();
-			if (getRunsFromServer(credentials).containsKey(id)) {
-				throw e;
-			} else {
-				throw new RunNotFoundException(id);
-			}
-		}
-	}
-
-	/**
 	 * Read attribute data from a run.
 	 * 
 	 * @param id
