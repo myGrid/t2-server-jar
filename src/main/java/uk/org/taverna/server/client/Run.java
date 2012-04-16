@@ -64,7 +64,9 @@ public final class Run {
 	private final String id;
 	private String workflow;
 	private boolean baclavaIn;
-	private String baclavaOut;
+	private boolean baclavaOut;
+
+	private static final String BACLAVA_FILE = "out.xml";
 
 	private final Map<String, String> links;
 
@@ -90,7 +92,7 @@ public final class Run {
 		this.id = server.initializeRun(workflow, credentials);
 		this.workflow = workflow;
 		this.baclavaIn = false;
-		this.baclavaOut = null;
+		this.baclavaOut = false;
 
 		xmlUtils = XmlUtils.getInstance();
 
@@ -129,7 +131,7 @@ public final class Run {
 		this.server = server;
 		this.id = id;
 		this.workflow = null;
-		this.baclavaOut = null;
+		this.baclavaOut = false;
 
 		xmlUtils = XmlUtils.getInstance();
 
@@ -197,7 +199,7 @@ public final class Run {
 	 *            The file to upload.
 	 * @throws IOException
 	 */
-	public void uploadBaclavaFile(File file) throws IOException {
+	public void setBaclavaInput(File file) throws IOException {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
 			String filename = uploadFile(file);
@@ -214,30 +216,29 @@ public final class Run {
 		return baclavaIn;
 	}
 
-	/**
-	 * Set the server to return outputs for this Run in baclava format. This
-	 * must be set before the Run is started.
-	 * 
-	 * @param name
-	 *            the name of the baclava file to use
-	 */
-	public void setBaclavaOutput(String name) {
-		RunStatus rs = getStatus();
-		if (rs == RunStatus.INITIALIZED) {
-			this.baclavaOut = name;
-			server.setRunAttribute(this, links.get("output"), baclavaOut,
-					"text/plain", credentials);
-		} else {
-			throw new RunStateException(rs, RunStatus.INITIALIZED);
-		}
+	public boolean isBaclavaOutput() {
+		return baclavaOut;
 	}
 
 	/**
 	 * Set the server to return outputs for this Run in baclava format. This
 	 * must be set before the Run is started.
 	 */
-	public void setBaclavaOutput() {
-		setBaclavaOutput("out.xml");
+	public void requestBaclavaOutput() {
+		// don't try and request it again!
+		if (baclavaOut) {
+			return;
+		}
+
+		RunStatus rs = getStatus();
+		if (rs == RunStatus.INITIALIZED) {
+			server.setRunAttribute(this, links.get("output"), BACLAVA_FILE,
+					"text/plain", credentials);
+
+			baclavaOut = true;
+		} else {
+			throw new RunStateException(rs, RunStatus.INITIALIZED);
+		}
 	}
 
 	/**
@@ -251,8 +252,8 @@ public final class Run {
 	public String getBaclavaOutput() {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.FINISHED) {
-			String baclavaLink = links.get("wdir") + "/" + baclavaOut;
-			if (baclavaOut == null) {
+			String baclavaLink = links.get("wdir") + "/" + BACLAVA_FILE;
+			if (!baclavaOut) {
 				throw new AttributeNotFoundException(baclavaLink);
 			}
 
