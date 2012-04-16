@@ -41,8 +41,8 @@ import org.w3c.dom.Element;
  */
 public abstract class Port {
 	protected final Run run;
-	private final String name;
-	private final int depth;
+	protected final String name;
+	protected final int depth;
 
 	protected final XmlUtils xmlUtils;
 
@@ -51,6 +51,10 @@ public abstract class Port {
 		this.run = run;
 		this.name = xmlUtils.getPortAttribute(xml, "name");
 		this.depth = Integer.parseInt(xmlUtils.getPortAttribute(xml, "depth"));
+	}
+
+	public Run getRun() {
+		return run;
 	}
 
 	public String getName() {
