@@ -279,7 +279,7 @@ public final class Run {
 	 */
 	public RunStatus getStatus() {
 		return RunStatus.state(server.getRunAttribute(this,
-				links.get("status"), credentials));
+				links.get("status"), "text/plain", credentials));
 	}
 
 	/**
@@ -338,7 +338,7 @@ public final class Run {
 	public String getWorkflow() {
 		if (workflow == null) {
 			workflow = server.getRunAttribute(this, links.get("workflow"),
-					credentials);
+					"application/xml", credentials);
 		}
 
 		return workflow;
@@ -398,7 +398,7 @@ public final class Run {
 	 */
 	public int getExitCode() {
 		return new Integer(server.getRunAttribute(this, links.get("exitcode"),
-				credentials));
+				"text/plain", credentials));
 	}
 
 	/**
@@ -407,7 +407,8 @@ public final class Run {
 	 * @return the console output of the underlying Taverna Server process.
 	 */
 	public String getConsoleOutput() {
-		return server.getRunAttribute(this, links.get("stdout"), credentials);
+		return server.getRunAttribute(this, links.get("stdout"), "text/plain",
+				credentials);
 	}
 
 	/**
@@ -416,7 +417,8 @@ public final class Run {
 	 * @return the console errors of the underlying Taverna Server process.
 	 */
 	public String getConsoleError() {
-		return server.getRunAttribute(this, links.get("stderr"), credentials);
+		return server.getRunAttribute(this, links.get("stderr"), "text/plain",
+				credentials);
 	}
 
 	/**
@@ -448,7 +450,7 @@ public final class Run {
 
 	private Date getTime(String time) {
 		return XmlUtil.parseXsdDatetime(server.getRunAttribute(this,
-				links.get(time), credentials));
+				links.get(time), "text/plain", credentials));
 
 	}
 
@@ -544,7 +546,7 @@ public final class Run {
 
 		// get the inputs
 		String inputs = server.getRunAttribute(this, links.get("inputs"),
-				credentials);
+				"application/xml", credentials);
 		doc = ParseUtil.parse(inputs);
 		links.put("baclava",
 				xmlUtils.evalXPath(doc, "//nsr:baclava", "xlink:href"));

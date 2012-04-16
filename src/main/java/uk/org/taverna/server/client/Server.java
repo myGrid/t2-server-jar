@@ -390,7 +390,7 @@ public final class Server {
 	 * Read attribute data from a run.
 	 * 
 	 * @param run
-	 *            the Run instance
+	 *            the Run instance.
 	 * @param uri
 	 *            the full URI of the attribute to get.
 	 * @param type
@@ -405,8 +405,24 @@ public final class Server {
 	/**
 	 * Read an attribute, of a specific type, of a run.
 	 * 
+	 * @param id
+	 *            the id of the run.
+	 * @param uri
+	 *            the full URI of the attribute to get.
+	 * @param type
+	 *            the mime type of the attribute being retrieved.
+	 * @return the attribute as a String.
+	 */
+	public String getRunAttribute(String id, String uri, String type,
+			UserCredentials credentials) {
+		return new String(getRunData(id, uri, type, credentials));
+	}
+
+	/**
+	 * Read an attribute, of a specific type, of a run.
+	 * 
 	 * @param run
-	 *            the Run instance
+	 *            the Run instance.
 	 * @param uri
 	 *            the full URI of the attribute to get.
 	 * @param type
@@ -416,20 +432,6 @@ public final class Server {
 	public String getRunAttribute(Run run, String uri, String type,
 			UserCredentials credentials) {
 		return new String(getRunData(run.getIdentifier(), uri, type, credentials));
-	}
-
-	/**
-	 * Read an attribute of a run.
-	 * 
-	 * @param run
-	 *            the Run instance
-	 * @param uri
-	 *            the full URI of the attribute to get.
-	 * @return the attribute as a String.
-	 */
-	public String getRunAttribute(Run run, String uri,
-			UserCredentials credentials) {
-		return new String(getRunData(run.getIdentifier(), uri, null, credentials));
 	}
 
 	/**
@@ -478,9 +480,14 @@ public final class Server {
 		setRunAttribute(run.getIdentifier(), uri, value, type, credentials);
 	}
 
+	/*
+	 * This is a workaround until the connection stuff works with paths as
+	 * opposed to full URIs.
+	 */
 	String getRunDescription(Run run, UserCredentials credentials) {
-		return getRunAttribute(run, links.get("runs") + "/" + run.getIdentifier(),
-				credentials);
+		return getRunAttribute(run,
+				links.get("runs") + "/" + run.getIdentifier(),
+				"application/xml", credentials);
 	}
 
 	/**
