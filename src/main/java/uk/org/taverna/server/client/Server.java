@@ -45,6 +45,7 @@ import net.sf.practicalxml.ParseUtil;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.math.IntRange;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -375,8 +376,26 @@ public final class Server {
 	 */
 	public byte[] getRunData(String id, String uri, String type,
 			UserCredentials credentials) {
+		return getRunData(id, uri, type, null, credentials);
+	}
+
+	/**
+	 * Read attribute data from a run.
+	 * 
+	 * @param id
+	 *            the id of the run.
+	 * @param uri
+	 *            the full URI of the attribute to get.
+	 * @param type
+	 *            the mime type of the attribute being retrieved.
+	 * @param range
+	 * @param credentials
+	 * @return the data associated with the attribute.
+	 */
+	public byte[] getRunData(String id, String uri, String type,
+			IntRange range, UserCredentials credentials) {
 		try {
-			return connection.getAttribute(uri, type, credentials);
+			return connection.getAttribute(uri, type, range, credentials);
 		} catch (AttributeNotFoundException e) {
 			if (getRunsFromServer(credentials).containsKey(id)) {
 				throw e;
@@ -400,6 +419,20 @@ public final class Server {
 	public byte[] getRunData(Run run, String uri, String type,
 			UserCredentials credentials) {
 		return getRunData(run.getIdentifier(), uri, type, credentials);
+	}
+
+	/**
+	 * 
+	 * @param run
+	 * @param uri
+	 * @param type
+	 * @param range
+	 * @param credentials
+	 * @return
+	 */
+	public byte[] getRunData(Run run, String uri, String type, IntRange range,
+			UserCredentials credentials) {
+		return getRunData(run.getIdentifier(), uri, type, range, credentials);
 	}
 
 	/**

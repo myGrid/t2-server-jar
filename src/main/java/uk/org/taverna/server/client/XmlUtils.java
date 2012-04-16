@@ -117,6 +117,10 @@ final class XmlUtils {
 		return e.getAttributeNS(portNS, attr);
 	}
 
+	String getXlinkAttribute(Element e, String attr) {
+		return e.getAttributeNS(xlinkNS, attr);
+	}
+
 	private XPathWrapper getQuery(String expr) {
 		XPathWrapper query = queries.get(expr);
 

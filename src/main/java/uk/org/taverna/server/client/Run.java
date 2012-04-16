@@ -35,17 +35,15 @@ package uk.org.taverna.server.client;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import net.sf.practicalxml.ParseUtil;
 import net.sf.practicalxml.XmlUtil;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.math.IntRange;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -76,6 +74,7 @@ public final class Run {
 
 	// Ports
 	private Map<String, InputPort> inputPorts = null;
+	private Map<String, OutputPort> outputPorts = null;
 
 	/**
 	 * Create a new Run instance on the specified server with the supplied
@@ -143,6 +142,14 @@ public final class Run {
 	 * 
 	 * @return
 	 */
+	public Server getServer() {
+		return server;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
 	public Map<String, InputPort> getInputPorts() {
 		if (inputPorts == null) {
 			inputPorts = getInputPortInfo();
@@ -158,6 +165,27 @@ public final class Run {
 	 */
 	public InputPort getInputPort(String name) {
 		return getInputPorts().get(name);
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public Map<String, OutputPort> getOutputPorts() {
+		if (outputPorts == null) {
+			outputPorts = getOutputPortInfo();
+		}
+
+		return outputPorts;
+	}
+
+	/**
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public OutputPort getOutputPort(String name) {
+		return getOutputPorts().get(name);
 	}
 
 	/**
@@ -372,26 +400,6 @@ public final class Run {
 	}
 
 	/**
-	 * Get a list of the output ports that have been written to so far. Note
-	 * that this list will be in flux until the workflow has finished running so
-	 * if you wish to simply gather results at the end of a run you should test
-	 * its status first.
-	 * 
-	 * @return the list of the output ports that have been written to so far.
-	 * @see #isFinished()
-	 */
-	public List<String> getOutputPorts() {
-		List<String> lists = new ArrayList<String>();
-		List<String> items = new ArrayList<String>();
-
-		ls_ports("out", lists, items);
-
-		// return concatenated lists
-		items.addAll(lists);
-		return items;
-	}
-
-	/**
 	 * Get the return code of the underlying Taverna Server process. A zero
 	 * value indicates success.
 	 * 
@@ -578,175 +586,23 @@ public final class Run {
 		return ports;
 	}
 
-	private void ls_ports(String dir, List<String> lists, List<String> values,
-			boolean top) {
+	private Map<String, OutputPort> getOutputPortInfo() {
+		Map<String, OutputPort> ports = new HashMap<String, OutputPort>();
 
-		if (dir.endsWith("/")) {
-			dir = dir.substring(0, dir.length() - 1);
+		String portDesc = server.getRunAttribute(this, links.get("output"),
+				"application/xml", credentials);
+		Document doc = ParseUtil.parse(portDesc);
+
+		for (Element e : xmlUtils.evalXPath(doc, "//port:output")) {
+			OutputPort port = new OutputPort(this, e);
+			ports.put(port.getName(), port);
 		}
 
-		String dirList = server.getRunAttribute(this, links.get("wdir") + "/"
-				+ dir, "application/xml", credentials);
-		Document doc = ParseUtil.parse(dirList);
-
-		if (lists != null) {
-			List<Element> dirs = xmlUtils.evalXPath(doc, "//nss:dir");
-
-			// need to make space in the list for random access
-			if (dirs.size() > lists.size()) {
-				for (int i = 0; i < dirs.size(); i++) {
-					lists.add("");
-				}
-			}
-
-			for (Element e : dirs) {
-				String[] paths = e.getTextContent().split("/");
-				String name = paths[paths.length - 1];
-				if (top) {
-					lists.set(0, name);
-				} else {
-					String n = xmlUtils.getServerAttribute(e, "name");
-					if (n.endsWith(".error")) {
-						n = n.replaceAll(".error", "");
-					}
-					int index = (Integer.parseInt(n) - 1);
-					lists.set(index, name);
-				}
-			}
-		}
-
-		if (values != null) {
-			List<Element> files = xmlUtils.evalXPath(doc, "//nss:file");
-
-			// need to make space in the list for random access
-			if (files.size() > values.size()) {
-				for (int i = 0; i < files.size(); i++) {
-					values.add("");
-				}
-			}
-
-			for (Element e : files) {
-				String[] paths = e.getTextContent().split("/");
-				String name = paths[paths.length - 1];
-				if (top) {
-					values.set(0, name);
-				} else {
-					String n = xmlUtils.getServerAttribute(e, "name");
-					if (n.endsWith(".error")) {
-						n = n.replaceAll(".error", "");
-					}
-					int index = (Integer.parseInt(n) - 1);
-					values.set(index, name);
-				}
-			}
-		}
+		return ports;
 	}
 
-	private void ls_ports(String dir, List<String> lists, List<String> values) {
-		ls_ports(dir, lists, values, true);
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private RunOutput<?> getOutput(String port, boolean refs, boolean top) {
-
-		// if we are at the top level we need to return a singleton value here.
-		if (top) {
-			ArrayList<String> values = new ArrayList<String>();
-			ls_ports("out", null, values);
-
-			if (values.contains(port)) {
-				if (refs) {
-					try {
-						return new RunOutputRefs(new URI(links.get("wdir")
-								+ "/out/" + port));
-					} catch (URISyntaxException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				} else {
-					return new RunOutputData(server.getRunData(this,
-							links.get("wdir") + "/out/" + port,
-							"application/octet-stream", credentials));
-				}
-			}
-		}
-
-		// this port isn't a singleton so drill into it and build up
-		// lists (of lists, etc) of items
-		ArrayList<String> lists = new ArrayList<String>();
-		ArrayList<String> items = new ArrayList<String>();
-
-		RunOutput result = refs ? new RunOutputRefs() : new RunOutputData();
-
-		ls_ports("out/" + port, lists, items, false);
-
-		// for each list, recurse into it and add the items to the result
-		for (String list : lists) {
-			result.addNode(getOutput(port + "/" + list, refs, false));
-		}
-
-		// each item, add it to the output list
-		for (String item : items) {
-			if (refs) {
-				try {
-					result.addNode(new RunOutputRefs(new URI(links.get("wdir")
-							+ "/out/" + port + "/" + item)));
-				} catch (URISyntaxException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			} else {
-				result.addNode(new RunOutputData(server.getRunData(this,
-						links.get("wdir") + "/out/" + port + "/" + item,
-						"application/octet-stream", credentials)));
-			}
-		}
-
-		return result;
-	}
-
-	/**
-	 * Get the contents of the specified output port. Note that the contents of
-	 * an output port will be in flux until the workflow has finished running so
-	 * if you wish to simply gather results at the end of a run you should test
-	 * its status first.
-	 * 
-	 * @param port
-	 *            the output port to get.
-	 * @param refs
-	 *            true to return references to the data, false to return the
-	 *            actual data.
-	 * @return a data structure containing the data in the output port.
-	 */
-	public RunOutput<?> getOutput(String port, boolean refs) {
-		return getOutput(port, refs, true);
-	}
-
-	/**
-	 * Get the contents of the specified output port. Note that the contents of
-	 * an output port will be in flux until the workflow has finished running so
-	 * if you wish to simply gather results at the end of a run you should test
-	 * its status first.
-	 * 
-	 * @param port
-	 *            the output port to get.
-	 * @return a data structure containing the data in the output port.
-	 */
-	public RunOutput<?> getOutput(String port) {
-		return getOutput(port, false, true);
-	}
-
-	/**
-	 * Get references to the contents of the specified output port. Note that
-	 * the contents of an output port will be in flux until the workflow has
-	 * finished running so if you wish to simply gather results at the end of a
-	 * run you should test its status first.
-	 * 
-	 * @param port
-	 *            the output port to get.
-	 * @return a data structure containing the data in the output port.
-	 */
-	public RunOutput<?> getOutputRefs(String port) {
-		return getOutput(port, true, true);
+	byte[] getOutputData(URI uri, IntRange range) {
+		return server.getRunData(this, uri.toASCIIString(),
+				"application/octet-stream", range, credentials);
 	}
 }
