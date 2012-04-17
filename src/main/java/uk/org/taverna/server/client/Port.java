@@ -39,7 +39,7 @@ import org.w3c.dom.Element;
  * @author Robert Haines
  * 
  */
-public class Port {
+public abstract class Port {
 	protected final Run run;
 	private final String name;
 	private final int depth;
