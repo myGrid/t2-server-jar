@@ -32,11 +32,16 @@
 
 package uk.org.taverna.server.client.connection;
 
+import org.apache.commons.lang.math.IntRange;
+
 /**
  * 
  * @author Robert Haines
  */
 public interface Connection {
+	public byte[] getAttribute(String uri, String type, IntRange range,
+			UserCredentials credentials);
+
 	public byte[] getAttribute(String uri, String type,
 			UserCredentials credentials);
 
@@ -48,5 +53,5 @@ public interface Connection {
 	public void delete(String uri, UserCredentials credentials);
 
 	public String upload(String uri, String content,
- UserCredentials credentials);
+			UserCredentials credentials);
 }

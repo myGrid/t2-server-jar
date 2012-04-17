@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 
+import org.apache.commons.lang.math.IntRange;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -109,15 +110,29 @@ public class HttpConnection implements Connection {
 
 	@Override
 	public byte[] getAttribute(String uri, UserCredentials credentials) {
-		return getAttribute(uri, null, credentials);
+		return getAttribute(uri, null, null, credentials);
 	}
 
 	@Override
 	public byte[] getAttribute(String uri, String type,
 			UserCredentials credentials) {
+		return getAttribute(uri, type, null, credentials);
+	}
+
+	@Override
+	public byte[] getAttribute(String uri, String type, IntRange range,
+			UserCredentials credentials) {
 		HttpGet request = new HttpGet(uri);
+		int success = HttpURLConnection.HTTP_OK;
+
 		if (type != null) {
 			request.addHeader("Accept", type);
+		}
+
+		if (range != null) {
+			request.addHeader("Range", "bytes=" + range.getMinimumInteger()
+					+ "-" + range.getMaximumInteger());
+			success = HttpURLConnection.HTTP_PARTIAL;
 		}
 
 		if (credentials != null) {
@@ -128,7 +143,7 @@ public class HttpConnection implements Connection {
 		try {
 			response = httpClient.execute(request, httpContext);
 
-			return processResponse(response, HttpURLConnection.HTTP_OK, uri);
+			return processResponse(response, success, uri);
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
