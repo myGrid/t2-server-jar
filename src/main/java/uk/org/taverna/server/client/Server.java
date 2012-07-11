@@ -205,7 +205,7 @@ public final class Server {
 			id = e.getTextContent().trim();
 			ids.add(id);
 			if (!runs.containsKey(id)) {
-				runs.put(id, new Run(this, credentials, id));
+				runs.put(id, new Run(this, id, credentials));
 			}
 		}
 
@@ -330,10 +330,11 @@ public final class Server {
 	 *            the workflow to be run.
 	 * @return the id of the new run as returned by the server.
 	 */
-	String initializeRun(String workflow, UserCredentials credentials) {
+	String initializeRun(byte[] workflow, UserCredentials credentials) {
 		String id = null;
 		String location = connection.upload(links.get("runs"),
-				xmlUtils.buildXMLFragment("workflow", workflow), credentials);
+				xmlUtils.buildXMLFragment("workflow", new String(workflow)),
+				credentials);
 
 		if (location != null) {
 			id = location.substring(location.lastIndexOf("/") + 1);
@@ -349,8 +350,8 @@ public final class Server {
 	 *            the workflow to be run.
 	 * @return a new Run instance.
 	 */
-	public Run createRun(String workflow, UserCredentials credentials) {
-		return new Run(this, workflow, credentials);
+	public Run createRun(byte[] workflow, UserCredentials credentials) {
+		return Run.create(this, workflow, credentials);
 	}
 
 	/**
@@ -362,7 +363,7 @@ public final class Server {
 	 */
 	public Run createRun(File workflow, UserCredentials credentials)
 			throws IOException {
-		return new Run(this, workflow, credentials);
+		return Run.create(this, workflow, credentials);
 	}
 
 	/**

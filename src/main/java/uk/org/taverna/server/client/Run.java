@@ -60,7 +60,7 @@ public final class Run {
 
 	private final Server server;
 	private final String id;
-	private String workflow;
+	private byte[] workflow;
 	private boolean baclavaIn;
 	private boolean baclavaOut;
 
@@ -84,11 +84,14 @@ public final class Run {
 	 *            The server to create the Run on.
 	 * @param workflow
 	 *            The workflow associated with the Run.
+	 * @param id
+	 * 
 	 * @param credentials
 	 */
-	public Run(Server server, String workflow, UserCredentials credentials) {
+	private Run(Server server, byte[] workflow, String id,
+			UserCredentials credentials) {
 		this.server = server;
-		this.id = server.initializeRun(workflow, credentials);
+		this.id = id;
 		this.workflow = workflow;
 		this.baclavaIn = false;
 		this.baclavaOut = false;
@@ -97,22 +100,6 @@ public final class Run {
 
 		this.credentials = credentials;
 		links = getRunDescription(this.credentials);
-	}
-
-	/**
-	 * Create a new Run instance on the specified server with the supplied
-	 * workflow file.
-	 * 
-	 * @param server
-	 *            The server to create the Run on.
-	 * @param workflow
-	 *            The file containing the workflow to be associated with the
-	 *            Run.
-	 * @param credentials
-	 */
-	public Run(Server server, File workflow, UserCredentials credentials)
-			throws IOException {
-		this(server, FileUtils.readFileToString(workflow), credentials);
 	}
 
 	/**
@@ -126,7 +113,7 @@ public final class Run {
 	 *            The id of the Run.
 	 * @param credentials
 	 */
-	Run(Server server, UserCredentials credentials, String id) {
+	Run(Server server, String id, UserCredentials credentials) {
 		this.server = server;
 		this.id = id;
 		this.workflow = null;
@@ -136,6 +123,34 @@ public final class Run {
 
 		this.credentials = credentials;
 		links = getRunDescription(this.credentials);
+	}
+
+	/**
+	 * 
+	 * @param server
+	 * @param workflow
+	 * @param credentials
+	 * @return
+	 */
+	public static Run create(Server server, byte[] workflow,
+			UserCredentials credentials) {
+		String id = server.initializeRun(workflow, credentials);
+
+		return new Run(server, workflow, id, credentials);
+	}
+
+	/**
+	 * 
+	 * @param server
+	 * @param workflow
+	 * @param credentials
+	 * @return
+	 * @throws IOException
+	 */
+	public static Run create(Server server, File workflow,
+			UserCredentials credentials) throws IOException {
+		return create(server, FileUtils.readFileToByteArray(workflow),
+				credentials);
 	}
 
 	/**
@@ -364,9 +379,9 @@ public final class Run {
 	 * 
 	 * @return the workflow of this Run as a String.
 	 */
-	public String getWorkflow() {
+	public byte[] getWorkflow() {
 		if (workflow == null) {
-			workflow = server.getRunAttribute(this, links.get("workflow"),
+			workflow = server.getRunData(this, links.get("workflow"),
 					"application/xml", credentials);
 		}
 
