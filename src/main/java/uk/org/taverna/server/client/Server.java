@@ -277,6 +277,7 @@ public final class Server {
 	 * @throws URISyntaxException
 	 *             if the provided URI is badly formed.
 	 */
+	@Deprecated
 	public static Server connect(String uri) throws URISyntaxException {
 		return new Server(new URI(uri));
 	}
@@ -289,6 +290,7 @@ public final class Server {
 	 * @return a Server instance representing the connection to the specified
 	 *         Taverna Server.
 	 */
+	@Deprecated
 	public static Server connect(URI uri) {
 		return new Server(uri);
 	}

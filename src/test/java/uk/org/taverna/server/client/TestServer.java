@@ -32,15 +32,11 @@
 
 package uk.org.taverna.server.client;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
 
 public class TestServer {
 
@@ -68,22 +64,5 @@ public class TestServer {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-
-	@Test
-	public void testConnect() {
-		server = Server.connect(uri1);
-		Server other = Server.connect(uri2);
-		Server third = null;
-		try {
-			third = Server.connect(address);
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		assertNotNull(server);
-		assertSame(server, other);
-		assertSame(server, third);
 	}
 }
