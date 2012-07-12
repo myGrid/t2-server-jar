@@ -51,6 +51,7 @@ import org.w3c.dom.Element;
 
 import uk.org.taverna.server.client.connection.Connection;
 import uk.org.taverna.server.client.connection.ConnectionFactory;
+import uk.org.taverna.server.client.connection.URIUtils;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.connection.params.ConnectionParams;
 
@@ -67,6 +68,16 @@ import uk.org.taverna.server.client.connection.params.ConnectionParams;
  * @author Robert Haines
  */
 public final class Server {
+
+	/*
+	 * Where to find the REST endpoint in relation to the base URI of a Taverna
+	 * Server.
+	 * 
+	 * Add a slash to the end of this address to work around this bug:
+	 * http://dev.mygrid.org.uk/issues/browse/TAVSERV-113
+	 */
+	private final static String REST_ENDPOINT = "rest/";
+
 	private final Connection connection;
 
 	private final URI uri;
@@ -84,24 +95,12 @@ public final class Server {
 	 */
 	public Server(URI uri, ConnectionParams params) {
 		// strip out username and password if present in server URI
-		String userInfo = uri.getUserInfo();
-		if (userInfo != null) {
-			try {
-				this.uri = new URI(uri.getScheme(), null, uri.getHost(),
-						uri.getPort(), uri.getPath(), null, null);
-			} catch (URISyntaxException e) {
-				throw new IllegalArgumentException("Bad URI passed in: " + uri);
-			}
-		} else {
-			this.uri = uri;
-		}
+		this.uri = URIUtils.stripUserInfo(uri);
 
 		connection = ConnectionFactory.getConnection(this.uri, params);
 		xmlUtils = XmlUtils.getInstance();
 
-		// add a slash to the end of this address to work around this bug:
-		// http://www.mygrid.org.uk/dev/issues/browse/TAVSERV-113
-		URI restURI = URI.create(this.uri.toASCIIString() + "/rest/");
+		URI restURI = URIUtils.addToPath(uri, REST_ENDPOINT);
 		Document doc = ParseUtil.parse(new String(connection.getAttribute(
 				restURI, null)));
 		version = getServerVersion(doc);
@@ -163,7 +162,7 @@ public final class Server {
 	 */
 	public void deleteRun(String id, UserCredentials credentials) {
 		try {
-			connection.delete(URI.create(links.get("runs") + "/" + id),
+			connection.delete(URIUtils.addToPath(links.get("runs"), id),
 					credentials);
 		} catch (AccessForbiddenException e) {
 			if (getRunsFromServer(credentials).containsKey(id)) {
@@ -520,7 +519,7 @@ public final class Server {
 	 */
 	String getRunDescription(Run run, UserCredentials credentials) {
 		return getRunAttribute(run,
-				URI.create(links.get("runs") + "/" + run.getIdentifier()),
+				URIUtils.addToPath(links.get("runs"), run.getIdentifier()),
 				"application/xml", credentials);
 	}
 

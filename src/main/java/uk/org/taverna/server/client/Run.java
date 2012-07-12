@@ -47,6 +47,7 @@ import org.apache.commons.lang.math.IntRange;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import uk.org.taverna.server.client.connection.URIUtils;
 import uk.org.taverna.server.client.connection.UserCredentials;
 
 /**
@@ -217,10 +218,13 @@ public final class Run {
 	 */
 	public String uploadFile(File file, String remoteDirectory, String rename)
 			throws IOException {
-		String uploadLocation = links.get("wdir").toASCIIString();
-		uploadLocation += remoteDirectory != null ? "/" + remoteDirectory : "";
-		return server.uploadFile(this, file, URI.create(uploadLocation),
-				rename,
+		URI uploadLocation = links.get("wdir");
+		if (remoteDirectory != null) {
+			uploadLocation = URIUtils
+					.addToPath(uploadLocation, remoteDirectory);
+		}
+
+		return server.uploadFile(this, file, uploadLocation, rename,
 				credentials);
 	}
 
@@ -296,12 +300,13 @@ public final class Run {
 	public String getBaclavaOutput() {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.FINISHED) {
-			String baclavaLink = links.get("wdir") + "/" + BACLAVA_FILE;
+			URI baclavaLink = URIUtils.addToPath(links.get("wdir"),
+					BACLAVA_FILE);
 			if (!baclavaOut) {
 				throw new AttributeNotFoundException(baclavaLink);
 			}
 
-			return server.getRunAttribute(this, URI.create(baclavaLink),
+			return server.getRunAttribute(this, baclavaLink,
 					"application/octet-stream", credentials);
 		} else {
 			throw new RunStateException(rs, RunStatus.FINISHED);
@@ -491,8 +496,9 @@ public final class Run {
 			int lastSlash = dir.lastIndexOf("/");
 			String leaf = dir.substring(lastSlash + 1, dir.length());
 			String path = dir.substring(0, lastSlash);
-			server.makeRunDir(this, URI.create(links.get("wdir") + "/" + path),
-					leaf, credentials);
+			server.makeRunDir(this,
+					URIUtils.addToPath(links.get("wdir"), path), leaf,
+					credentials);
 		} else {
 			server.makeRunDir(this, links.get("wdir"), dir, credentials);
 		}
@@ -524,7 +530,8 @@ public final class Run {
 	}
 
 	private void setInputPort(InputPort port) {
-		String path = links.get("inputs") + "/input/" + port.getName();
+		URI path = URIUtils.addToPath(links.get("inputs"),
+				"/input/" + port.getName());
 		String value;
 
 		if (port.isFile()) {
@@ -535,8 +542,7 @@ public final class Run {
 			value = xmlUtils.buildXMLFragment("inputvalue", payload);
 		}
 
-		server.setRunAttribute(this, URI.create(path), value,
-				"application/xml",
+		server.setRunAttribute(this, path, value, "application/xml",
 				credentials);
 	}
 
@@ -580,11 +586,13 @@ public final class Run {
 				xmlUtils.evalXPathHref(doc, "//nsr:expected"));
 
 		// set io properties
-		links.put("io", URI.create(links.get("listeners") + "/io"));
-		links.put("stdout", URI.create(links.get("io") + "/properties/stdout"));
-		links.put("stderr", URI.create(links.get("io") + "/properties/stderr"));
+		links.put("io", URIUtils.addToPath(links.get("listeners"), "/io"));
+		links.put("stdout",
+				URIUtils.addToPath(links.get("io"), "/properties/stdout"));
+		links.put("stderr",
+				URIUtils.addToPath(links.get("io"), "/properties/stderr"));
 		links.put("exitcode",
-				URI.create(links.get("io") + "/properties/exitcode"));
+				URIUtils.addToPath(links.get("io"), "/properties/exitcode"));
 
 		return links;
 	}
