@@ -45,6 +45,7 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
@@ -80,7 +81,7 @@ public class HttpConnection implements Connection {
 	}
 
 	@Override
-	public String upload(String uri, String content, String type,
+	public String upload(String uri, byte[] content, String type,
 			UserCredentials credentials) {
 		HttpPost request = new HttpPost(uri);
 		String location = null;
@@ -90,7 +91,7 @@ public class HttpConnection implements Connection {
 		}
 
 		try {
-			StringEntity entity = new StringEntity(content, "UTF-8");
+			ByteArrayEntity entity = new ByteArrayEntity(content);
 			entity.setContentType(type);
 			request.setEntity(entity);
 

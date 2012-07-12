@@ -64,8 +64,6 @@ final class XmlUtils {
 	private XmlUtils() {
 		// set up message fragments
 		fragments = new HashMap<String, String>();
-		fragments.put("workflow", "<t2s:workflow xmlns:t2s=\"" + serverNS
-				+ "\">\n  %s\n</t2s:workflow>");
 		fragments.put("input", "<t2sr:runInput xmlns:t2sr=\"" + restNS
 				+ "\">\n  %s\n</t2sr:runInput>");
 		fragments.put("inputvalue", String.format(fragments.get("input"),

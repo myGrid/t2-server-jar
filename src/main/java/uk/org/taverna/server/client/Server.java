@@ -332,9 +332,8 @@ public final class Server {
 	 */
 	String initializeRun(byte[] workflow, UserCredentials credentials) {
 		String id = null;
-		String location = connection.upload(links.get("runs"),
-				xmlUtils.buildXMLFragment("workflow", new String(workflow)),
-				"application/xml", credentials);
+		String location = connection.upload(links.get("runs"), workflow,
+				"application/vnd.taverna.t2flow+xml", credentials);
 
 		if (location != null) {
 			id = location.substring(location.lastIndexOf("/") + 1);
@@ -556,7 +555,8 @@ public final class Server {
 		String contents = Base64.encodeBase64String(data);
 
 		connection.upload(uploadLocation,
-				xmlUtils.buildXMLFragment("upload", rename, contents),
+				xmlUtils.buildXMLFragment("upload", rename, contents)
+						.getBytes(),
 				"application/xml", credentials);
 
 		return rename;
@@ -638,7 +638,8 @@ public final class Server {
 		}
 
 		try {
-			connection.upload(root, xmlUtils.buildXMLFragment("mkdir", name),
+			connection.upload(root, xmlUtils.buildXMLFragment("mkdir", name)
+					.getBytes(),
 					"application/xml", credentials);
 		} catch (AttributeNotFoundException e) {
 			if (getRunsFromServer(credentials).containsKey(id)) {
