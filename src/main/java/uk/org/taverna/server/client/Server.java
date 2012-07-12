@@ -525,108 +525,41 @@ public final class Server {
 				"application/xml", credentials);
 	}
 
-	/**
-	 * Upload a file to the server for use by a run.
-	 * 
-	 * @param id
-	 *            the id of the run to upload to.
-	 * @param file
-	 *            the file to upload.
-	 * @param uploadLocation
-	 *            the location to upload to. This should be the full URI.
-	 * @param rename
-	 *            optionally rename the file at the remote location. Pass null
-	 *            or the empty string to ignore.
-	 * @return the name of the file on the remote server. This will be unchanged
-	 *         unless rename was used.
-	 * @throws IOException
-	 * @see #uploadRunFile(id, File, String)
-	 * @see #uploadRunFile(Run, File, String, String)
-	 * @see #uploadRunFile(Run, File, String)
-	 */
-	public String uploadRunFile(String id, File file, String uploadLocation,
-			String rename, UserCredentials credentials) throws IOException {
+	void uploadData(String location, byte[] data, String remoteName,
+			UserCredentials credentials) {
+		String contents = Base64.encodeBase64String(data);
 
+		connection.upload(location,
+				xmlUtils.buildXMLFragment("upload", remoteName, contents)
+				.getBytes(), "application/xml", credentials);
+	}
+
+	String uploadFile(String id, File file, String uploadLocation,
+			String rename, UserCredentials credentials) throws IOException {
 		if (rename == null || rename.equals("")) {
 			rename = file.getName();
 		}
 
 		byte[] data = FileUtils.readFileToByteArray(file);
-		String contents = Base64.encodeBase64String(data);
-
-		connection.upload(uploadLocation,
-				xmlUtils.buildXMLFragment("upload", rename, contents)
-						.getBytes(),
-				"application/xml", credentials);
+		uploadData(uploadLocation, data, rename, credentials);
 
 		return rename;
 	}
 
-	/**
-	 * Upload a file to the server for use by a run.
-	 * 
-	 * @param id
-	 *            the id of the run to upload to.
-	 * @param file
-	 *            the file to upload.
-	 * @param uploadLocation
-	 *            the location to upload to. This should be the full URI.
-	 * @return the name of the file on the remote server. This will be unchanged
-	 *         unless rename was used.
-	 * @throws IOException
-	 * @see #uploadRunFile(id, File, String, String)
-	 * @see #uploadRunFile(Run, File, String, String)
-	 * @see #uploadRunFile(Run, File, String)
-	 */
-	public String uploadRunFile(String id, File file, String uploadLocation,
+	String uploadFile(String id, File file, String uploadLocation,
 			UserCredentials credentials) throws IOException {
-		return uploadRunFile(id, file, uploadLocation, null, credentials);
+		return uploadFile(id, file, uploadLocation, null, credentials);
 	}
 
-	/**
-	 * Upload a file to the server for use by a run.
-	 * 
-	 * @param run
-	 *            the Run instance to upload to.
-	 * @param file
-	 *            the file to upload.
-	 * @param uploadLocation
-	 *            the location to upload to. This should be the full URI.
-	 * @param rename
-	 *            optionally rename the file at the remote location. Pass null
-	 *            or the empty string to ignore.
-	 * @return the name of the file on the remote server. This will be unchanged
-	 *         unless rename was used.
-	 * @throws IOException
-	 * @see #uploadRunFile(Run, File, String)
-	 * @see #uploadRunFile(id, File, String)
-	 * @see #uploadRunFile(id, File, String, String)
-	 */
-	public String uploadRunFile(Run run, File file, String uploadLocation,
+	String uploadFile(Run run, File file, String uploadLocation,
 			String rename, UserCredentials credentials) throws IOException {
-		return uploadRunFile(run.getIdentifier(), file, uploadLocation, rename,
+		return uploadFile(run.getIdentifier(), file, uploadLocation, rename,
 				credentials);
 	}
 
-	/**
-	 * Upload a file to the server for use by a run.
-	 * 
-	 * @param run
-	 *            the Run instance to upload to.
-	 * @param file
-	 *            the file to upload.
-	 * @param uploadLocation
-	 *            the location to upload to. This should be the full URI.
-	 * @return the name of the file on the remote server. This will be unchanged
-	 *         unless rename was used.
-	 * @throws IOException
-	 * @see #uploadRunFile(Run, File, String, String)
-	 * @see #uploadRunFile(id, File, String)
-	 * @see #uploadRunFile(id, File, String, String)
-	 */
-	public String uploadRunFile(Run run, File file, String uploadLocation,
+	String uploadFile(Run run, File file, String uploadLocation,
 			UserCredentials credentials) throws IOException {
-		return uploadRunFile(run.getIdentifier(), file, uploadLocation, null,
+		return uploadFile(run.getIdentifier(), file, uploadLocation, null,
 				credentials);
 	}
 

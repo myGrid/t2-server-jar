@@ -219,7 +219,7 @@ public final class Run {
 			throws IOException {
 		String uploadLocation = links.get("wdir");
 		uploadLocation += remoteDirectory != null ? "/" + remoteDirectory : "";
-		return server.uploadRunFile(this, file, uploadLocation, rename,
+		return server.uploadFile(this, file, uploadLocation, rename,
 				credentials);
 	}
 
