@@ -32,6 +32,7 @@
 
 package uk.org.taverna.server.client;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,6 +90,10 @@ final class XmlUtils {
 
 	String evalXPath(Document doc, String expr, String attr) {
 		return getQuery(expr + "/@" + attr).evaluateAsString(doc);
+	}
+
+	URI evalXPathHref(Document doc, String expr) {
+		return URI.create(evalXPath(doc, expr, "xlink:href"));
 	}
 
 	String buildXMLFragment(String key, String data) {

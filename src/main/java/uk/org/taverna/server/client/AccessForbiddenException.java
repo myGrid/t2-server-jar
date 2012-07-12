@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -32,6 +32,8 @@
 
 package uk.org.taverna.server.client;
 
+import java.net.URI;
+
 /**
  * This exception is thrown if the server returns a forbidden error code (403).
  * 
@@ -45,10 +47,10 @@ public class AccessForbiddenException extends ServerException {
 	 * 
 	 * @param path
 	 */
-	public AccessForbiddenException(String path) {
+	public AccessForbiddenException(URI uri) {
 		super(
 				"Access to "
-						+ path
+						+ uri
 						+ " is forbidden. Either you do not have the required credentials or the server does not allow the requested operation");
 	}
 }

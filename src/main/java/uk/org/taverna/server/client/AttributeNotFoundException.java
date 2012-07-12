@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -32,6 +32,8 @@
 
 package uk.org.taverna.server.client;
 
+import java.net.URI;
+
 /**
  * This exception is thrown if the server returns a not found error code (404).
  * 
@@ -43,9 +45,10 @@ public final class AttributeNotFoundException extends ServerException {
 	/**
 	 * Construct the exception with the specified attribute path.
 	 * 
-	 * @param path
+	 * @param uri
+	 *            the URI at which an attribute could not be found.
 	 */
-	public AttributeNotFoundException(String path) {
-		super("Could not find attribute at " + path);
+	public AttributeNotFoundException(URI uri) {
+		super("Could not find attribute at " + uri);
 	}
 }

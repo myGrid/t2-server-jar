@@ -73,7 +73,7 @@ public final class Server {
 	private final float version;
 	private final Map<String, Run> runs;
 
-	private final Map<String, String> links;
+	private final Map<String, URI> links;
 
 	private final XmlUtils xmlUtils;
 
@@ -101,9 +101,9 @@ public final class Server {
 
 		// add a slash to the end of this address to work around this bug:
 		// http://www.mygrid.org.uk/dev/issues/browse/TAVSERV-113
-		String restPath = this.uri.toASCIIString() + "/rest/";
+		URI restURI = URI.create(this.uri.toASCIIString() + "/rest/");
 		Document doc = ParseUtil.parse(new String(connection.getAttribute(
-				restPath, null)));
+				restURI, null)));
 		version = getServerVersion(doc);
 		links = getServerDescription(doc);
 
@@ -163,7 +163,8 @@ public final class Server {
 	 */
 	public void deleteRun(String id, UserCredentials credentials) {
 		try {
-			connection.delete(links.get("runs") + "/" + id, credentials);
+			connection.delete(URI.create(links.get("runs") + "/" + id),
+					credentials);
 		} catch (AccessForbiddenException e) {
 			if (getRunsFromServer(credentials).containsKey(id)) {
 				throw e;
@@ -235,33 +236,31 @@ public final class Server {
 		}
 	}
 
-	private Map<String, String> getServerDescription(Document doc) {
-		HashMap<String, String> links = new HashMap<String, String>();
+	private Map<String, URI> getServerDescription(Document doc) {
+		HashMap<String, URI> links = new HashMap<String, URI>();
 
-		links.put("runs", xmlUtils.evalXPath(doc, "//nsr:runs", "xlink:href"));
+		links.put("runs", xmlUtils.evalXPathHref(doc, "//nsr:runs"));
 
 		if (version > 1.0) {
-			String policy = xmlUtils.evalXPath(doc, "//nsr:policy",
-					"xlink:href");
+			URI policy = xmlUtils.evalXPathHref(doc, "//nsr:policy");
 
 			links.put("policy", policy);
 			doc = ParseUtil.parse(new String(connection.getAttribute(policy,
 					null)));
 
-			links.put("permlisteners", xmlUtils.evalXPath(doc,
-					"//nsr:permittedListenerTypes", "xlink:href"));
+			links.put("permlisteners",
+					xmlUtils.evalXPathHref(doc, "//nsr:permittedListenerTypes"));
 
-			links.put("notifications", xmlUtils.evalXPath(doc,
-					"//nsr:enabledNotificationFabrics", "xlink:href"));
+			links.put("notifications", xmlUtils.evalXPathHref(doc,
+					"//nsr:enabledNotificationFabrics"));
 		} else {
-			links.put("permlisteners", xmlUtils.evalXPath(doc,
-					"//nsr:permittedListeners", "xlink:href"));
+			links.put("permlisteners",
+					xmlUtils.evalXPathHref(doc, "//nsr:permittedListeners"));
 		}
 
-		links.put("runlimit",
-				xmlUtils.evalXPath(doc, "//nsr:runLimit", "xlink:href"));
-		links.put("permworkflows", xmlUtils.evalXPath(doc,
-				"//nsr:permittedWorkflows", "xlink:href"));
+		links.put("runlimit", xmlUtils.evalXPathHref(doc, "//nsr:runLimit"));
+		links.put("permworkflows",
+				xmlUtils.evalXPathHref(doc, "//nsr:permittedWorkflows"));
 
 		return links;
 	}
@@ -376,7 +375,7 @@ public final class Server {
 	 *            the mime type of the attribute being retrieved.
 	 * @return the data associated with the attribute.
 	 */
-	public byte[] getRunData(String id, String uri, String type,
+	public byte[] getRunData(String id, URI uri, String type,
 			UserCredentials credentials) {
 		return getRunData(id, uri, type, null, credentials);
 	}
@@ -394,7 +393,7 @@ public final class Server {
 	 * @param credentials
 	 * @return the data associated with the attribute.
 	 */
-	public byte[] getRunData(String id, String uri, String type,
+	public byte[] getRunData(String id, URI uri, String type,
 			IntRange range, UserCredentials credentials) {
 		try {
 			return connection.getAttribute(uri, type, range, credentials);
@@ -418,7 +417,7 @@ public final class Server {
 	 *            the mime type of the attribute being retrieved.
 	 * @return the data associated with the attribute.
 	 */
-	public byte[] getRunData(Run run, String uri, String type,
+	public byte[] getRunData(Run run, URI uri, String type,
 			UserCredentials credentials) {
 		return getRunData(run.getIdentifier(), uri, type, credentials);
 	}
@@ -432,7 +431,7 @@ public final class Server {
 	 * @param credentials
 	 * @return
 	 */
-	public byte[] getRunData(Run run, String uri, String type, IntRange range,
+	public byte[] getRunData(Run run, URI uri, String type, IntRange range,
 			UserCredentials credentials) {
 		return getRunData(run.getIdentifier(), uri, type, range, credentials);
 	}
@@ -448,7 +447,7 @@ public final class Server {
 	 *            the mime type of the attribute being retrieved.
 	 * @return the attribute as a String.
 	 */
-	public String getRunAttribute(String id, String uri, String type,
+	public String getRunAttribute(String id, URI uri, String type,
 			UserCredentials credentials) {
 		return new String(getRunData(id, uri, type, credentials));
 	}
@@ -464,7 +463,7 @@ public final class Server {
 	 *            the mime type of the attribute being retrieved.
 	 * @return the attribute as a String.
 	 */
-	public String getRunAttribute(Run run, String uri, String type,
+	public String getRunAttribute(Run run, URI uri, String type,
 			UserCredentials credentials) {
 		return new String(getRunData(run.getIdentifier(), uri, type, credentials));
 	}
@@ -483,7 +482,7 @@ public final class Server {
 	 * @param credentials
 	 *            the user credentials to use for authorization.
 	 */
-	public void setRunAttribute(String id, String uri, String value,
+	public void setRunAttribute(String id, URI uri, String value,
 			String type, UserCredentials credentials) {
 		try {
 			connection.setAttribute(uri, value, type, credentials);
@@ -510,7 +509,7 @@ public final class Server {
 	 * @param credentials
 	 *            the user credentials to use for authorization.
 	 */
-	public void setRunAttribute(Run run, String uri, String value, String type,
+	public void setRunAttribute(Run run, URI uri, String value, String type,
 			UserCredentials credentials) {
 		setRunAttribute(run.getIdentifier(), uri, value, type, credentials);
 	}
@@ -521,11 +520,11 @@ public final class Server {
 	 */
 	String getRunDescription(Run run, UserCredentials credentials) {
 		return getRunAttribute(run,
-				links.get("runs") + "/" + run.getIdentifier(),
+				URI.create(links.get("runs") + "/" + run.getIdentifier()),
 				"application/xml", credentials);
 	}
 
-	void uploadData(String location, byte[] data, String remoteName,
+	void uploadData(URI location, byte[] data, String remoteName,
 			UserCredentials credentials) {
 		String contents = Base64.encodeBase64String(data);
 
@@ -534,7 +533,7 @@ public final class Server {
 				.getBytes(), "application/xml", credentials);
 	}
 
-	String uploadFile(String id, File file, String uploadLocation,
+	String uploadFile(String id, File file, URI uploadLocation,
 			String rename, UserCredentials credentials) throws IOException {
 		if (rename == null || rename.equals("")) {
 			rename = file.getName();
@@ -546,27 +545,27 @@ public final class Server {
 		return rename;
 	}
 
-	String uploadFile(String id, File file, String uploadLocation,
+	String uploadFile(String id, File file, URI uploadLocation,
 			UserCredentials credentials) throws IOException {
 		return uploadFile(id, file, uploadLocation, null, credentials);
 	}
 
-	String uploadFile(Run run, File file, String uploadLocation,
+	String uploadFile(Run run, File file, URI uploadLocation,
 			String rename, UserCredentials credentials) throws IOException {
 		return uploadFile(run.getIdentifier(), file, uploadLocation, rename,
 				credentials);
 	}
 
-	String uploadFile(Run run, File file, String uploadLocation,
+	String uploadFile(Run run, File file, URI uploadLocation,
 			UserCredentials credentials) throws IOException {
 		return uploadFile(run.getIdentifier(), file, uploadLocation, null,
 				credentials);
 	}
 
-	void makeRunDir(String id, String root, String name,
+	void makeRunDir(String id, URI root, String name,
 			UserCredentials credentials) throws IOException {
 		if (name.contains("/")) {
-			throw new AccessForbiddenException(
+			throw new IllegalArgumentException(
 					"creation of subdirectories directly (" + name + ")");
 		}
 
@@ -583,7 +582,7 @@ public final class Server {
 		}
 	}
 
-	void makeRunDir(Run run, String root, String name,
+	void makeRunDir(Run run, URI root, String name,
 			UserCredentials credentials) throws IOException {
 		makeRunDir(run.getIdentifier(), root, name, credentials);
 	}

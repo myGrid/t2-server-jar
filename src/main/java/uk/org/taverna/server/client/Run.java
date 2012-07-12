@@ -66,7 +66,7 @@ public final class Run {
 
 	private static final String BACLAVA_FILE = "out.xml";
 
-	private final Map<String, String> links;
+	private final Map<String, URI> links;
 
 	private final XmlUtils xmlUtils;
 
@@ -217,9 +217,10 @@ public final class Run {
 	 */
 	public String uploadFile(File file, String remoteDirectory, String rename)
 			throws IOException {
-		String uploadLocation = links.get("wdir");
+		String uploadLocation = links.get("wdir").toASCIIString();
 		uploadLocation += remoteDirectory != null ? "/" + remoteDirectory : "";
-		return server.uploadFile(this, file, uploadLocation, rename,
+		return server.uploadFile(this, file, URI.create(uploadLocation),
+				rename,
 				credentials);
 	}
 
@@ -300,7 +301,7 @@ public final class Run {
 				throw new AttributeNotFoundException(baclavaLink);
 			}
 
-			return server.getRunAttribute(this, baclavaLink,
+			return server.getRunAttribute(this, URI.create(baclavaLink),
 					"application/octet-stream", credentials);
 		} else {
 			throw new RunStateException(rs, RunStatus.FINISHED);
@@ -490,8 +491,8 @@ public final class Run {
 			int lastSlash = dir.lastIndexOf("/");
 			String leaf = dir.substring(lastSlash + 1, dir.length());
 			String path = dir.substring(0, lastSlash);
-			server.makeRunDir(this, links.get("wdir") + "/" + path, leaf,
-					credentials);
+			server.makeRunDir(this, URI.create(links.get("wdir") + "/" + path),
+					leaf, credentials);
 		} else {
 			server.makeRunDir(this, links.get("wdir"), dir, credentials);
 		}
@@ -534,54 +535,56 @@ public final class Run {
 			value = xmlUtils.buildXMLFragment("inputvalue", payload);
 		}
 
-		server.setRunAttribute(this, path, value, "application/xml",
+		server.setRunAttribute(this, URI.create(path), value,
+				"application/xml",
 				credentials);
 	}
 
-	private Map<String, String> getRunDescription(UserCredentials credentials) {
-		HashMap<String, String> links = new HashMap<String, String>();
+	private Map<String, URI> getRunDescription(UserCredentials credentials) {
+		HashMap<String, URI> links = new HashMap<String, URI>();
 
 		// parse out the simple stuff
 		String description = server.getRunDescription(this, credentials);
 		Document doc = ParseUtil.parse(description);
 
 		links.put("expiry",
-				xmlUtils.evalXPath(doc, "//nsr:expiry", "xlink:href"));
+				xmlUtils.evalXPathHref(doc, "//nsr:expiry"));
 		links.put("workflow",
-				xmlUtils.evalXPath(doc, "//nsr:creationWorkflow", "xlink:href"));
+				xmlUtils.evalXPathHref(doc, "//nsr:creationWorkflow"));
 		links.put("status",
-				xmlUtils.evalXPath(doc, "//nsr:status", "xlink:href"));
+				xmlUtils.evalXPathHref(doc, "//nsr:status"));
 		links.put("createtime",
-				xmlUtils.evalXPath(doc, "//nsr:createTime", "xlink:href"));
+				xmlUtils.evalXPathHref(doc, "//nsr:createTime"));
 		links.put("starttime",
-				xmlUtils.evalXPath(doc, "//nsr:startTime", "xlink:href"));
+				xmlUtils.evalXPathHref(doc, "//nsr:startTime"));
 		links.put("finishtime",
-				xmlUtils.evalXPath(doc, "//nsr:finishTime", "xlink:href"));
+				xmlUtils.evalXPathHref(doc, "//nsr:finishTime"));
 		links.put("wdir",
-				xmlUtils.evalXPath(doc, "//nsr:workingDirectory", "xlink:href"));
+				xmlUtils.evalXPathHref(doc, "//nsr:workingDirectory"));
 		links.put("inputs",
-				xmlUtils.evalXPath(doc, "//nsr:inputs", "xlink:href"));
+				xmlUtils.evalXPathHref(doc, "//nsr:inputs"));
 		links.put("output",
-				xmlUtils.evalXPath(doc, "//nsr:output", "xlink:href"));
+				xmlUtils.evalXPathHref(doc, "//nsr:output"));
 		links.put("securectx",
-				xmlUtils.evalXPath(doc, "//nsr:securityContext", "xlink:href"));
+				xmlUtils.evalXPathHref(doc, "//nsr:securityContext"));
 		links.put("listeners",
-				xmlUtils.evalXPath(doc, "//nsr:listeners", "xlink:href"));
+				xmlUtils.evalXPathHref(doc, "//nsr:listeners"));
 
 		// get the inputs
 		String inputs = server.getRunAttribute(this, links.get("inputs"),
 				"application/xml", credentials);
 		doc = ParseUtil.parse(inputs);
 		links.put("baclava",
-				xmlUtils.evalXPath(doc, "//nsr:baclava", "xlink:href"));
+				xmlUtils.evalXPathHref(doc, "//nsr:baclava"));
 		links.put("inputexp",
-				xmlUtils.evalXPath(doc, "//nsr:expected", "xlink:href"));
+				xmlUtils.evalXPathHref(doc, "//nsr:expected"));
 
 		// set io properties
-		links.put("io", links.get("listeners") + "/io");
-		links.put("stdout", links.get("io") + "/properties/stdout");
-		links.put("stderr", links.get("io") + "/properties/stderr");
-		links.put("exitcode", links.get("io") + "/properties/exitcode");
+		links.put("io", URI.create(links.get("listeners") + "/io"));
+		links.put("stdout", URI.create(links.get("io") + "/properties/stdout"));
+		links.put("stderr", URI.create(links.get("io") + "/properties/stderr"));
+		links.put("exitcode",
+				URI.create(links.get("io") + "/properties/exitcode"));
 
 		return links;
 	}
@@ -617,7 +620,7 @@ public final class Run {
 	}
 
 	byte[] getOutputData(URI uri, IntRange range) {
-		return server.getRunData(this, uri.toASCIIString(),
+		return server.getRunData(this, uri,
 				"application/octet-stream", range, credentials);
 	}
 }

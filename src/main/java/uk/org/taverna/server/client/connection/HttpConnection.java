@@ -81,7 +81,7 @@ public class HttpConnection implements Connection {
 	}
 
 	@Override
-	public String upload(String uri, byte[] content, String type,
+	public String upload(URI uri, byte[] content, String type,
 			UserCredentials credentials) {
 		HttpPost request = new HttpPost(uri);
 		String location = null;
@@ -97,7 +97,7 @@ public class HttpConnection implements Connection {
 
 			HttpResponse response = httpClient.execute(request, httpContext);
 
-			processResponse(response, HttpURLConnection.HTTP_CREATED, "");
+			processResponse(response, HttpURLConnection.HTTP_CREATED, uri);
 			location = response.getHeaders("location")[0].getValue();
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
@@ -111,18 +111,18 @@ public class HttpConnection implements Connection {
 	}
 
 	@Override
-	public byte[] getAttribute(String uri, UserCredentials credentials) {
+	public byte[] getAttribute(URI uri, UserCredentials credentials) {
 		return getAttribute(uri, null, null, credentials);
 	}
 
 	@Override
-	public byte[] getAttribute(String uri, String type,
+	public byte[] getAttribute(URI uri, String type,
 			UserCredentials credentials) {
 		return getAttribute(uri, type, null, credentials);
 	}
 
 	@Override
-	public byte[] getAttribute(String uri, String type, IntRange range,
+	public byte[] getAttribute(URI uri, String type, IntRange range,
 			UserCredentials credentials) {
 		HttpGet request = new HttpGet(uri);
 		int success = HttpURLConnection.HTTP_OK;
@@ -158,7 +158,7 @@ public class HttpConnection implements Connection {
 	}
 
 	@Override
-	public void setAttribute(String uri, String value, String type,
+	public void setAttribute(URI uri, String value, String type,
 			UserCredentials credentials) {
 		HttpPut request = new HttpPut(uri);
 
@@ -183,7 +183,7 @@ public class HttpConnection implements Connection {
 	}
 
 	@Override
-	public void delete(String uri, UserCredentials credentials) {
+	public void delete(URI uri, UserCredentials credentials) {
 		HttpDelete request = new HttpDelete(uri);
 
 		if (credentials != null) {
@@ -192,8 +192,7 @@ public class HttpConnection implements Connection {
 
 		try {
 			HttpResponse response = httpClient.execute(request, httpContext);
-			processResponse(response, HttpURLConnection.HTTP_NO_CONTENT,
-					"run at " + uri);
+			processResponse(response, HttpURLConnection.HTTP_NO_CONTENT, uri);
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -204,7 +203,7 @@ public class HttpConnection implements Connection {
 	}
 
 	private byte[] processResponse(HttpResponse response, int success,
-			String message) throws IOException {
+			URI requestURI) throws IOException {
 		int status = response.getStatusLine().getStatusCode();
 
 		// get the entity from the response.
@@ -229,17 +228,18 @@ public class HttpConnection implements Connection {
 
 		switch (status) {
 		case HttpURLConnection.HTTP_NOT_FOUND:
-			throw new AttributeNotFoundException(message);
+			throw new AttributeNotFoundException(requestURI);
 		case HttpURLConnection.HTTP_FORBIDDEN:
-			throw new AccessForbiddenException(message);
+			throw new AccessForbiddenException(requestURI);
 		case HttpURLConnection.HTTP_UNAUTHORIZED:
 			throw new AuthorizationException();
 		case HttpURLConnection.HTTP_INTERNAL_ERROR:
-			message = (content != null) ? content : "<not specified>";
+			String message = (content != null) ? content : "<not specified>";
 			throw new InternalServerException(message);
 		default:
 			String error = status + " ("
-					+ response.getStatusLine().getReasonPhrase() + ")";
+					+ response.getStatusLine().getReasonPhrase()
+					+ ") while accessing '" + requestURI + "'";
 			error += (content != null) ? " - " + content : " - <not specified>";
 
 			throw new UnexpectedResponseException(error);

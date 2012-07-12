@@ -32,6 +32,8 @@
 
 package uk.org.taverna.server.client.connection;
 
+import java.net.URI;
+
 import org.apache.commons.lang.math.IntRange;
 
 /**
@@ -39,19 +41,19 @@ import org.apache.commons.lang.math.IntRange;
  * @author Robert Haines
  */
 public interface Connection {
-	public byte[] getAttribute(String uri, String type, IntRange range,
+	public byte[] getAttribute(URI uri, String type, IntRange range,
 			UserCredentials credentials);
 
-	public byte[] getAttribute(String uri, String type,
+	public byte[] getAttribute(URI uri, String type,
 			UserCredentials credentials);
 
-	public byte[] getAttribute(String uri, UserCredentials credentials);
+	public byte[] getAttribute(URI uri, UserCredentials credentials);
 
-	public void setAttribute(String uri, String value, String type,
+	public void setAttribute(URI uri, String value, String type,
 			UserCredentials credentials);
 
-	public void delete(String uri, UserCredentials credentials);
+	public void delete(URI uri, UserCredentials credentials);
 
-	public String upload(String uri, byte[] content, String type,
+	public String upload(URI uri, byte[] content, String type,
 			UserCredentials credentials);
 }
