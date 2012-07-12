@@ -52,6 +52,6 @@ public interface Connection {
 
 	public void delete(String uri, UserCredentials credentials);
 
-	public String upload(String uri, String content,
+	public String upload(String uri, String content, String type,
 			UserCredentials credentials);
 }

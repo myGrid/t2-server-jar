@@ -80,7 +80,8 @@ public class HttpConnection implements Connection {
 	}
 
 	@Override
-	public String upload(String uri, String content, UserCredentials credentials) {
+	public String upload(String uri, String content, String type,
+			UserCredentials credentials) {
 		HttpPost request = new HttpPost(uri);
 		String location = null;
 
@@ -90,7 +91,7 @@ public class HttpConnection implements Connection {
 
 		try {
 			StringEntity entity = new StringEntity(content, "UTF-8");
-			entity.setContentType("application/xml");
+			entity.setContentType(type);
 			request.setEntity(entity);
 
 			HttpResponse response = httpClient.execute(request, httpContext);

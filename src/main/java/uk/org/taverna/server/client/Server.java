@@ -334,7 +334,7 @@ public final class Server {
 		String id = null;
 		String location = connection.upload(links.get("runs"),
 				xmlUtils.buildXMLFragment("workflow", new String(workflow)),
-				credentials);
+				"application/xml", credentials);
 
 		if (location != null) {
 			id = location.substring(location.lastIndexOf("/") + 1);
@@ -557,7 +557,7 @@ public final class Server {
 
 		connection.upload(uploadLocation,
 				xmlUtils.buildXMLFragment("upload", rename, contents),
-				credentials);
+				"application/xml", credentials);
 
 		return rename;
 	}
@@ -639,7 +639,7 @@ public final class Server {
 
 		try {
 			connection.upload(root, xmlUtils.buildXMLFragment("mkdir", name),
-					credentials);
+					"application/xml", credentials);
 		} catch (AttributeNotFoundException e) {
 			if (getRunsFromServer(credentials).containsKey(id)) {
 				throw e;
