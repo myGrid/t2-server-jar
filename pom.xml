@@ -34,9 +34,7 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
-			<version>4.1</version>
-			<type>jar</type>
-			<scope>compile</scope>
+			<version>4.2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sf.practicalxml</groupId>
@@ -55,9 +53,7 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpcore</artifactId>
-			<version>4.1</version>
-			<type>jar</type>
-			<scope>compile</scope>
+			<version>4.2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
