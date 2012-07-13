@@ -205,6 +205,40 @@ public final class Run {
 	}
 
 	/**
+	 * Upload data to a file in this Run instance's workspace on the server.
+	 * 
+	 * @param data
+	 *            The data to upload.
+	 * @param remoteName
+	 *            The name of the file to save the data in on the server.
+	 * @param remoteDirectory
+	 *            The directory within the workspace in which to save the data.
+	 *            This directory must already exist.
+	 */
+	public void uploadData(byte[] data, String remoteName,
+			String remoteDirectory) {
+		URI uploadLocation = links.get("wdir");
+		if (remoteDirectory != null) {
+			uploadLocation = URIUtils
+					.addToPath(uploadLocation, remoteDirectory);
+		}
+
+		server.uploadData(uploadLocation, data, remoteName, credentials);
+	}
+
+	/**
+	 * Upload data to a file in this Run instance's workspace on the server.
+	 * 
+	 * @param data
+	 *            The data to upload.
+	 * @param remoteName
+	 *            The name of the file to save the data in on the server.
+	 */
+	public void uploadData(byte[] data, String remoteName) {
+		uploadData(data, remoteName, null);
+	}
+
+	/**
 	 * Upload a file to this Run instance's workspace on the server.
 	 * 
 	 * @param file
