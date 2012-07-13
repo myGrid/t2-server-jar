@@ -35,9 +35,12 @@ package uk.org.taverna.server.client;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.xml.bind.DatatypeConverter;
 
 import net.sf.practicalxml.ParseUtil;
 import net.sf.practicalxml.XmlUtil;
@@ -542,9 +545,11 @@ public final class Run {
 	}
 
 	private Date getTime(String time) {
-		return XmlUtil.parseXsdDatetime(server.getRunAttribute(this,
-				links.get(time), "text/plain", credentials));
+		String dateTime = server.getRunAttribute(this, links.get(time),
+				"text/plain", credentials);
+		Calendar cal = DatatypeConverter.parseDateTime(dateTime);
 
+		return cal.getTime();
 	}
 
 	/**
