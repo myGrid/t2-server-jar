@@ -35,9 +35,11 @@ package uk.org.taverna.server.client;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.DatatypeConverter;
@@ -577,12 +579,14 @@ public final class Run {
 
 	/*
 	 * Set all the inputs on the server. The inputs must have been set prior to
-	 * this call using the InputPort API.
+	 * this call using the InputPort API or a runtime exception is thrown.
 	 */
 	private void setAllInputs() throws IOException {
+		List<String> missingPorts = new ArrayList<String>();
+
 		for (InputPort port : getInputPorts().values()) {
 			if (!port.isSet()) {
-				continue;
+				missingPorts.add(port.getName());
 			}
 
 			if (port.isFile()) {
@@ -597,6 +601,10 @@ public final class Run {
 			} else {
 				setInputPort(port);
 			}
+		}
+
+		if (!missingPorts.isEmpty()) {
+			throw new RunInputsNotSetException(id, missingPorts);
 		}
 	}
 
