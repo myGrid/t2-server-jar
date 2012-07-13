@@ -82,17 +82,9 @@ public final class Run {
 	private Map<String, InputPort> inputPorts = null;
 	private Map<String, OutputPort> outputPorts = null;
 
-	/**
-	 * Create a new Run instance on the specified server with the supplied
-	 * workflow.
-	 * 
-	 * @param server
-	 *            The server to create the Run on.
-	 * @param workflow
-	 *            The workflow associated with the Run.
-	 * @param id
-	 * 
-	 * @param credentials
+	/*
+	 * Create a Run instance. This will already have been created on the remote
+	 * server.
 	 */
 	private Run(Server server, byte[] workflow, String id,
 			UserCredentials credentials) {
@@ -108,27 +100,12 @@ public final class Run {
 		links = getRunDescription(this.credentials);
 	}
 
-	/**
-	 * Create a new Run instance to represent a run that is already on the
-	 * specified server. This constructor is provided for internal use when
-	 * lists of runs are being built up in a Server instance.
-	 * 
-	 * @param server
-	 *            The server the Run is already on.
-	 * @param id
-	 *            The id of the Run.
-	 * @param credentials
+	/*
+	 * Internal constructor for other classes within the package to create
+	 * "lightweight" runs. Used when listing runs, etc.
 	 */
 	Run(Server server, String id, UserCredentials credentials) {
-		this.server = server;
-		this.id = id;
-		this.workflow = null;
-		this.baclavaOut = false;
-
-		xmlUtils = XmlUtils.getInstance();
-
-		this.credentials = credentials;
-		links = getRunDescription(this.credentials);
+		this(server, null, id, credentials);
 	}
 
 	/**
