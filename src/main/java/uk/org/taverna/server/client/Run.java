@@ -310,8 +310,26 @@ public final class Run {
 		setBaclavaInput(data);
 	}
 
+	/**
+	 * Is this run using baclava to set all its input ports?
+	 * 
+	 * @return true if yes, false if not.
+	 */
 	public boolean isBaclavaInput() {
-		return baclavaIn;
+		// if baclavaIn is true then we know that is correct, else we check.
+		if (baclavaIn) {
+			return true;
+		} else {
+			String test = server.getRunAttribute(this, links.get("baclava"),
+					"text/plain", credentials);
+
+			// if we get back the baclava input file name we are using it.
+			if (test.equals(BACLAVA_IN_FILE)) {
+				baclavaIn = true;
+			}
+
+			return baclavaIn;
+		}
 	}
 
 	public boolean isBaclavaOutput() {
