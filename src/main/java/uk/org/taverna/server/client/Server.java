@@ -44,7 +44,6 @@ import java.util.Map;
 import net.sf.practicalxml.ParseUtil;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.math.IntRange;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -530,35 +529,6 @@ public final class Server {
 		connection.upload(location,
 				xmlUtils.buildXMLFragment("upload", remoteName, contents)
 				.getBytes(), "application/xml", credentials);
-	}
-
-	String uploadFile(String id, File file, URI uploadLocation,
-			String rename, UserCredentials credentials) throws IOException {
-		if (rename == null || rename.equals("")) {
-			rename = file.getName();
-		}
-
-		byte[] data = FileUtils.readFileToByteArray(file);
-		uploadData(uploadLocation, data, rename, credentials);
-
-		return rename;
-	}
-
-	String uploadFile(String id, File file, URI uploadLocation,
-			UserCredentials credentials) throws IOException {
-		return uploadFile(id, file, uploadLocation, null, credentials);
-	}
-
-	String uploadFile(Run run, File file, URI uploadLocation,
-			String rename, UserCredentials credentials) throws IOException {
-		return uploadFile(run.getIdentifier(), file, uploadLocation, rename,
-				credentials);
-	}
-
-	String uploadFile(Run run, File file, URI uploadLocation,
-			UserCredentials credentials) throws IOException {
-		return uploadFile(run.getIdentifier(), file, uploadLocation, null,
-				credentials);
 	}
 
 	void makeRunDir(String id, URI root, String name,

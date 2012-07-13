@@ -238,14 +238,29 @@ public final class Run {
 	 */
 	public String uploadFile(File file, String remoteDirectory, String rename)
 			throws IOException {
-		URI uploadLocation = links.get("wdir");
-		if (remoteDirectory != null) {
-			uploadLocation = URIUtils
-					.addToPath(uploadLocation, remoteDirectory);
+		if (rename == null || rename.equals("")) {
+			rename = file.getName();
 		}
 
-		return server.uploadFile(this, file, uploadLocation, rename,
-				credentials);
+		byte[] data = FileUtils.readFileToByteArray(file);
+		uploadData(data, rename, remoteDirectory);
+
+		return rename;
+	}
+
+	/**
+	 * Upload a file to this Run instance's workspace on the server.
+	 * 
+	 * @param file
+	 *            The file to upload.
+	 * @param remoteDirectory
+	 *            The directory within the workspace to upload the file to.
+	 * @return the name of the file as used on the server.
+	 * @throws IOException
+	 */
+	public String uploadFile(File file, String remoteDirectory)
+			throws IOException {
+		return uploadFile(file, remoteDirectory, null);
 	}
 
 	/**
