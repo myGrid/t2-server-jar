@@ -43,7 +43,6 @@ import java.util.Map;
 import javax.xml.bind.DatatypeConverter;
 
 import net.sf.practicalxml.ParseUtil;
-import net.sf.practicalxml.XmlUtil;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.math.IntRange;
@@ -473,10 +472,14 @@ public final class Run {
 	 * Set the expiry time of this Run.
 	 * 
 	 * @param time
-	 *            the newexpiry time of this Run.
+	 *            the new expiry time of this Run.
 	 */
 	public void setExpiry(Date time) {
-		System.out.println(XmlUtil.formatXsdDatetime(time));
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(time);
+		String expiry = DatatypeConverter.printDateTime(cal);
+		server.setRunAttribute(this, links.get("expiry"), expiry, "text/plain",
+				credentials);
 	}
 
 	/**
