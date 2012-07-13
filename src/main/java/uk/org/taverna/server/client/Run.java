@@ -332,8 +332,26 @@ public final class Run {
 		}
 	}
 
+	/**
+	 * Is this run using baclava to return all its output port data?
+	 * 
+	 * @return true if yes, false if not.
+	 */
 	public boolean isBaclavaOutput() {
-		return baclavaOut;
+		// if baclavaOut is true then we know that is correct, else we check.
+		if (baclavaOut) {
+			return true;
+		} else {
+			String test = server.getRunAttribute(this, links.get("output"),
+					"text/plain", credentials);
+
+			// if we get back the baclava output file name we are using it.
+			if (test.equals(BACLAVA_OUT_FILE)) {
+				baclavaOut = true;
+			}
+
+			return baclavaOut;
+		}
 	}
 
 	/**
