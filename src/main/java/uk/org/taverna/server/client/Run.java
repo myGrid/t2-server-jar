@@ -59,13 +59,18 @@ import uk.org.taverna.server.client.connection.UserCredentials;
  */
 public final class Run {
 
+	/*
+	 * Internal names to use for storing baclava input and output in files on
+	 * the server.
+	 */
+	private static final String BACLAVA_IN_FILE = "in.baclava";
+	private static final String BACLAVA_OUT_FILE = "out.baclava";
+
 	private final Server server;
 	private final String id;
 	private byte[] workflow;
 	private boolean baclavaIn;
 	private boolean baclavaOut;
-
-	private static final String BACLAVA_FILE = "out.xml";
 
 	private final Map<String, URI> links;
 
@@ -275,6 +280,25 @@ public final class Run {
 	}
 
 	/**
+	 * Upload baclava data to specify all input port value.
+	 * 
+	 * @param data
+	 *            The data to upload.
+	 */
+	public void setBaclavaInput(byte[] data) {
+		RunStatus rs = getStatus();
+		if (rs == RunStatus.INITIALIZED) {
+			uploadData(data, BACLAVA_IN_FILE);
+			server.setRunAttribute(this, links.get("baclava"), BACLAVA_IN_FILE,
+					"text/plain", credentials);
+
+			baclavaIn = true;
+		} else {
+			throw new RunStateException(rs, RunStatus.INITIALIZED);
+		}
+	}
+
+	/**
 	 * Upload a baclava file to specify all input port values.
 	 * 
 	 * @param file
@@ -282,16 +306,8 @@ public final class Run {
 	 * @throws IOException
 	 */
 	public void setBaclavaInput(File file) throws IOException {
-		RunStatus rs = getStatus();
-		if (rs == RunStatus.INITIALIZED) {
-			String filename = uploadFile(file);
-			server.setRunAttribute(this, links.get("baclava"), filename,
-					"text/plain", credentials);
-
-			baclavaIn = true;
-		} else {
-			throw new RunStateException(rs, RunStatus.INITIALIZED);
-		}
+		byte[] data = FileUtils.readFileToByteArray(file);
+		setBaclavaInput(data);
 	}
 
 	public boolean isBaclavaInput() {
@@ -314,7 +330,7 @@ public final class Run {
 
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
-			server.setRunAttribute(this, links.get("output"), BACLAVA_FILE,
+			server.setRunAttribute(this, links.get("output"), BACLAVA_OUT_FILE,
 					"text/plain", credentials);
 
 			baclavaOut = true;
@@ -327,20 +343,20 @@ public final class Run {
 	 * Get the outputs of this Run as a baclava formatted document. The Run must
 	 * have been set to output in baclava format before it is started.
 	 * 
-	 * @return The baclava formatted document contents as a String.
+	 * @return The baclava formatted document contents as a byte array.
 	 * @see #setBaclavaOutput()
 	 * @see #setBaclavaOutput(String)
 	 */
-	public String getBaclavaOutput() {
+	public byte[] getBaclavaOutput() {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.FINISHED) {
 			URI baclavaLink = URIUtils.addToPath(links.get("wdir"),
-					BACLAVA_FILE);
+					BACLAVA_OUT_FILE);
 			if (!baclavaOut) {
 				throw new AttributeNotFoundException(baclavaLink);
 			}
 
-			return server.getRunAttribute(this, baclavaLink,
+			return server.getRunData(this, baclavaLink,
 					"application/octet-stream", credentials);
 		} else {
 			throw new RunStateException(rs, RunStatus.FINISHED);
