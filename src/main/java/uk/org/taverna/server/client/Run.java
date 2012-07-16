@@ -608,7 +608,7 @@ public final class Run {
 				// If we're using a local file upload it first then set the
 				// port to use a remote file.
 				if (!port.isRemoteFile()) {
-					File file = new File(uploadFile(port.getFile()));
+					String file = uploadFile(port.getFile());
 					port.setRemoteFile(file);
 				}
 

@@ -33,6 +33,7 @@
 package uk.org.taverna.server.client;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
 import org.w3c.dom.Element;
 
@@ -44,14 +45,14 @@ import org.w3c.dom.Element;
 public final class InputPort extends Port {
 
 	private String value;
-	private File file;
+	private String filename;
 	private boolean remoteFile;
 
 	InputPort(Run run, Element xml) {
 		super(run, xml);
 
 		value = null;
-		file = null;
+		filename = null;
 		remoteFile = false;
 	}
 
@@ -61,34 +62,44 @@ public final class InputPort extends Port {
 
 	public void setValue(String value) {
 		if (run.isInitialized()) {
-			file = null;
+			filename = null;
 			remoteFile = false;
 			this.value = value;
 		}
 	}
 
 	public File getFile() {
-		return file;
+		return new File(filename);
 	}
 
-	public void setFile(File file) {
+	public String getFileName() {
+		return filename;
+	}
+
+	public void setFile(File file) throws FileNotFoundException {
 		if (run.isInitialized()) {
-			value = null;
-			remoteFile = false;
-			this.file = file;
+			if (file.isFile() && file.canRead()) {
+				value = null;
+				remoteFile = false;
+				this.filename = file.getAbsolutePath();
+			} else {
+				throw new FileNotFoundException("File '"
+						+ file.getAbsolutePath()
+						+ "' either does not exist or is not readable.");
+			}
 		}
 	}
 
-	public void setRemoteFile(File file) {
+	public void setRemoteFile(String filename) {
 		if (run.isInitialized()) {
 			value = null;
-			this.file = file;
+			this.filename = filename;
 			remoteFile = true;
 		}
 	}
 
 	public boolean isFile() {
-		return !(file == null);
+		return !(filename == null);
 	}
 
 	public boolean isRemoteFile() {
