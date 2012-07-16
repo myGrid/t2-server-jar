@@ -329,11 +329,11 @@ public final class Server {
 	 */
 	String initializeRun(byte[] workflow, UserCredentials credentials) {
 		String id = null;
-		String location = connection.upload(links.get("runs"), workflow,
+		URI location = connection.upload(links.get("runs"), workflow,
 				"application/vnd.taverna.t2flow+xml", credentials);
 
 		if (location != null) {
-			id = location.substring(location.lastIndexOf("/") + 1);
+			id = URIUtils.extractFinalPathComponent(location);
 		}
 
 		return id;

@@ -55,9 +55,9 @@ public interface Connection {
 
 	public void delete(URI uri, UserCredentials credentials);
 
-	public String upload(URI uri, byte[] content, String type,
+	public URI upload(URI uri, byte[] content, String type,
 			UserCredentials credentials);
 
-	public String upload(URI uri, InputStream content, String type,
+	public URI upload(URI uri, InputStream content, String type,
 			UserCredentials credentials);
 }

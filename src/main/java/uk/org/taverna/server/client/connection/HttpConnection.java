@@ -83,22 +83,22 @@ public class HttpConnection implements Connection {
 	}
 
 	@Override
-	public String upload(URI uri, byte[] content, String type,
+	public URI upload(URI uri, byte[] content, String type,
 			UserCredentials credentials) {
 		return upload(uri, new ByteArrayInputStream(content), content.length,
 				type, credentials);
 	}
 
 	@Override
-	public String upload(URI uri, InputStream content, String type,
+	public URI upload(URI uri, InputStream content, String type,
 			UserCredentials credentials) {
 		return upload(uri, content, -1, type, credentials);
 	}
 
-	private String upload(URI uri, InputStream content, long length,
+	private URI upload(URI uri, InputStream content, long length,
 			String type, UserCredentials credentials) {
 		HttpPost request = new HttpPost(uri);
-		String location = null;
+		URI location = null;
 
 		if (credentials != null) {
 			credentials.authenticate(request, httpContext);
@@ -112,7 +112,8 @@ public class HttpConnection implements Connection {
 			HttpResponse response = httpClient.execute(request, httpContext);
 
 			processResponse(response, HttpURLConnection.HTTP_CREATED, uri);
-			location = response.getHeaders("location")[0].getValue();
+			location = URI
+					.create(response.getHeaders("location")[0].getValue());
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

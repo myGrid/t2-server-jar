@@ -93,4 +93,16 @@ public class TestURIUtils {
 		added = URIUtils.addToPath(pathSlashHTTP, "/path/added");
 		assertTrue(added.equals(longAddedStandardHTTP));
 	}
+
+	@Test
+	public void testExtractFinalPathComponent() {
+		String end = URIUtils.extractFinalPathComponent(standardHTTP);
+		assertTrue(end.isEmpty());
+
+		end = URIUtils.extractFinalPathComponent(pathHTTP);
+		assertTrue(end.equalsIgnoreCase("path"));
+
+		end = URIUtils.extractFinalPathComponent(pathSlashHTTP);
+		assertTrue(end.isEmpty());
+	}
 }

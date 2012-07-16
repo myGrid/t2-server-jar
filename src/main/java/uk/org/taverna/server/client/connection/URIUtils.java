@@ -81,4 +81,19 @@ public final class URIUtils {
 					+ extraPath + ")");
 		}
 	}
+
+	/**
+	 * Extract the final component of the URI's path. If there is no path, or
+	 * the path ends with '/' the empty string is returned. So
+	 * 'http://example.org/this/is/a/path' would yield 'path',
+	 * 'http://example.org' would yield '' and 'http://example.org/path/' would
+	 * also yield ''.
+	 * 
+	 * @param uri
+	 * @return
+	 */
+	public static String extractFinalPathComponent(URI uri) {
+		String path = uri.getPath();
+		return path.substring(path.lastIndexOf("/") + 1);
+	}
 }
