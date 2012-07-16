@@ -32,7 +32,9 @@
 
 package uk.org.taverna.server.client.connection;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 
@@ -45,7 +47,7 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
@@ -83,6 +85,18 @@ public class HttpConnection implements Connection {
 	@Override
 	public String upload(URI uri, byte[] content, String type,
 			UserCredentials credentials) {
+		return upload(uri, new ByteArrayInputStream(content), content.length,
+				type, credentials);
+	}
+
+	@Override
+	public String upload(URI uri, InputStream content, String type,
+			UserCredentials credentials) {
+		return upload(uri, content, -1, type, credentials);
+	}
+
+	private String upload(URI uri, InputStream content, long length,
+			String type, UserCredentials credentials) {
 		HttpPost request = new HttpPost(uri);
 		String location = null;
 
@@ -91,7 +105,7 @@ public class HttpConnection implements Connection {
 		}
 
 		try {
-			ByteArrayEntity entity = new ByteArrayEntity(content);
+			InputStreamEntity entity = new InputStreamEntity(content, length);
 			entity.setContentType(type);
 			request.setEntity(entity);
 

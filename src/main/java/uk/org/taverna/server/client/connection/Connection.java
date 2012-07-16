@@ -32,6 +32,7 @@
 
 package uk.org.taverna.server.client.connection;
 
+import java.io.InputStream;
 import java.net.URI;
 
 import org.apache.commons.lang.math.IntRange;
@@ -55,5 +56,8 @@ public interface Connection {
 	public void delete(URI uri, UserCredentials credentials);
 
 	public String upload(URI uri, byte[] content, String type,
+			UserCredentials credentials);
+
+	public String upload(URI uri, InputStream content, String type,
 			UserCredentials credentials);
 }
