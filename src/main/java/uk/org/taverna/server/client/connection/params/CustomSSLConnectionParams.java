@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -35,52 +35,112 @@ package uk.org.taverna.server.client.connection.params;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.InputStream;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 
 /**
+ * This class provides easy configuration of an SSL connection to a Taverna
+ * Server. Peer verification can be toggled and a client certificate can be
+ * provided for authentication to servers with non-standard, or self-signed,
+ * certificates.
  * 
  * @author Robert Haines
  */
 public final class CustomSSLConnectionParams extends AbstractConnectionParams {
 
-	public CustomSSLConnectionParams(File certificate, boolean noVerify) {
+	/**
+	 * Create a custom SSL configuration with a client certificate and optional
+	 * peer verification.
+	 * 
+	 * @param certificate
+	 *            the client certificate as an InputStream.
+	 * @param noVerify
+	 *            switch to turn off peer verification.
+	 * @throws CertificateException
+	 *             if there is a problem with the provided certificate.
+	 */
+	public CustomSSLConnectionParams(InputStream certificate, boolean noVerify)
+			throws CertificateException {
 		super();
 
 		if (certificate != null) {
-			try {
-				FileInputStream fis = new FileInputStream(certificate);
+			CertificateFactory cf = CertificateFactory.getInstance("X.509");
+			Certificate cert = cf.generateCertificate(certificate);
 
-				CertificateFactory cf = CertificateFactory.getInstance("X.509");
-				Certificate cert = cf.generateCertificate(fis);
-
-				params.put(SSL_CLIENT_CERT, cert);
-				fis.close();
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (CertificateException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// Ignore. This only triggers if we can't close the stream.
-			}
+			params.put(SSL_CLIENT_CERT, cert);
 		}
 
 		setBooleanParameter(SSL_NO_VERIFY_HOST, noVerify);
 	}
 
-	public CustomSSLConnectionParams(File certificate) {
+	/**
+	 * Create a custom SSL configuration with just a client certificate.
+	 * 
+	 * @param certificate
+	 *            the client certificate as an InputStream.
+	 * @throws CertificateException
+	 *             if there is a problem with the provided certificate.
+	 */
+	public CustomSSLConnectionParams(InputStream certificate)
+			throws CertificateException {
 		this(certificate, false);
 	}
 
+	/**
+	 * Create a custom SSL configuration with a client certificate and optional
+	 * peer verification.
+	 * 
+	 * @param certificate
+	 *            the client certificate as a File object.
+	 * @param noVerify
+	 *            switch to turn off peer verification.
+	 * @throws FileNotFoundException
+	 *             if the certificate provided could not be found.
+	 * @throws CertificateException
+	 *             if there is a problem with the provided certificate.
+	 */
+	public CustomSSLConnectionParams(File certificate, boolean noVerify)
+			throws FileNotFoundException, CertificateException {
+		this(new FileInputStream(certificate), noVerify);
+	}
+
+	/**
+	 * Create a custom SSL configuration with just a client certificate.
+	 * 
+	 * @param certificate
+	 *            the client certificate as a File object.
+	 * @throws FileNotFoundException
+	 *             if the certificate provided could not be found.
+	 * @throws CertificateException
+	 *             if there is a problem with the provided certificate.
+	 */
+	public CustomSSLConnectionParams(File certificate)
+			throws FileNotFoundException, CertificateException {
+		this(certificate, false);
+	}
+
+	/**
+	 * Create a custom SSL configuration with a client certificate and optional
+	 * peer verification.
+	 * 
+	 * @param certificate
+	 *            the client certificate.
+	 * @param noVerify
+	 *            switch to turn off peer verification.
+	 */
 	public CustomSSLConnectionParams(Certificate certificate, boolean noVerify) {
 		params.put(SSL_CLIENT_CERT, certificate);
 		setBooleanParameter(SSL_NO_VERIFY_HOST, noVerify);
 	}
 
+	/**
+	 * Create a custom SSL configuration with just a client certificate.
+	 * 
+	 * @param certificate
+	 *            the client certificate.
+	 */
 	public CustomSSLConnectionParams(Certificate certificate) {
 		this(certificate, false);
 	}
