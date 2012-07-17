@@ -296,17 +296,8 @@ public final class Server {
 	 * 
 	 * @return the URI of this server instance.
 	 */
-	public URI getUri() {
+	public URI getURI() {
 		return uri;
-	}
-
-	/**
-	 * Get the URI of this server instance as a String.
-	 * 
-	 * @return the URI of this server instance as a String.
-	 */
-	public String getStringUri() {
-		return uri.toASCIIString();
 	}
 
 	/**
