@@ -100,8 +100,8 @@ public final class Server {
 		xmlUtils = XmlUtils.getInstance();
 
 		URI restURI = URIUtils.addToPath(uri, REST_ENDPOINT);
-		Document doc = ParseUtil.parse(new String(connection.getAttribute(
-				restURI, null)));
+		Document doc = ParseUtil.parse(new String(connection
+				.read(restURI, null)));
 		version = getServerVersion(doc);
 		links = getServerDescription(doc);
 
@@ -192,7 +192,7 @@ public final class Server {
 	}
 
 	private Map<String, Run> getRunsFromServer(UserCredentials credentials) {
-		String runList = new String(connection.getAttribute(links.get("runs"),
+		String runList = new String(connection.read(links.get("runs"),
 				credentials));
 		Document doc = ParseUtil.parse(runList);
 
@@ -243,8 +243,7 @@ public final class Server {
 			URI policy = xmlUtils.evalXPathHref(doc, "//nsr:policy");
 
 			links.put("policy", policy);
-			doc = ParseUtil.parse(new String(connection.getAttribute(policy,
-					null)));
+			doc = ParseUtil.parse(new String(connection.read(policy, null)));
 
 			links.put("permlisteners",
 					xmlUtils.evalXPathHref(doc, "//nsr:permittedListenerTypes"));
@@ -316,7 +315,7 @@ public final class Server {
 	 * @return the maximum number of run that this server can host concurrently.
 	 */
 	public int getRunLimit(UserCredentials credentials) {
-		return Integer.parseInt(new String(connection.getAttribute(
+		return Integer.parseInt(new String(connection.read(
 				links.get("runlimit"), credentials)).trim());
 	}
 
@@ -329,7 +328,7 @@ public final class Server {
 	 */
 	String initializeRun(byte[] workflow, UserCredentials credentials) {
 		String id = null;
-		URI location = connection.upload(links.get("runs"), workflow,
+		URI location = connection.create(links.get("runs"), workflow,
 				"application/vnd.taverna.t2flow+xml", credentials);
 
 		if (location != null) {
@@ -394,7 +393,7 @@ public final class Server {
 	public byte[] getRunData(String id, URI uri, String type,
 			IntRange range, UserCredentials credentials) {
 		try {
-			return connection.getAttribute(uri, type, range, credentials);
+			return connection.read(uri, type, range, credentials);
 		} catch (AttributeNotFoundException e) {
 			if (getRunsFromServer(credentials).containsKey(id)) {
 				throw e;
@@ -483,7 +482,7 @@ public final class Server {
 	public void setRunAttribute(String id, URI uri, String value,
 			String type, UserCredentials credentials) {
 		try {
-			connection.setAttribute(uri, value, type, credentials);
+			connection.update(uri, value, type, credentials);
 		} catch (AttributeNotFoundException e) {
 			if (getRunsFromServer(credentials).containsKey(id)) {
 				throw e;
@@ -526,7 +525,7 @@ public final class Server {
 			UserCredentials credentials) {
 		String contents = Base64.encodeBase64String(data);
 
-		connection.upload(location,
+		connection.create(location,
 				xmlUtils.buildXMLFragment("upload", remoteName, contents)
 				.getBytes(), "application/xml", credentials);
 	}
@@ -539,7 +538,7 @@ public final class Server {
 		}
 
 		try {
-			connection.upload(root, xmlUtils.buildXMLFragment("mkdir", name)
+			connection.create(root, xmlUtils.buildXMLFragment("mkdir", name)
 					.getBytes(),
 					"application/xml", credentials);
 		} catch (AttributeNotFoundException e) {

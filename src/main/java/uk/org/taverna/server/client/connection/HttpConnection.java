@@ -83,20 +83,20 @@ public class HttpConnection implements Connection {
 	}
 
 	@Override
-	public URI upload(URI uri, byte[] content, String type,
+	public URI create(URI uri, byte[] content, String type,
 			UserCredentials credentials) {
-		return upload(uri, new ByteArrayInputStream(content), content.length,
+		return post(uri, new ByteArrayInputStream(content), content.length,
 				type, credentials);
 	}
 
 	@Override
-	public URI upload(URI uri, InputStream content, String type,
+	public URI create(URI uri, InputStream content, String type,
 			UserCredentials credentials) {
-		return upload(uri, content, -1, type, credentials);
+		return post(uri, content, -1, type, credentials);
 	}
 
-	private URI upload(URI uri, InputStream content, long length,
-			String type, UserCredentials credentials) {
+	private URI post(URI uri, InputStream content, long length, String type,
+			UserCredentials credentials) {
 		HttpPost request = new HttpPost(uri);
 		URI location = null;
 
@@ -126,18 +126,17 @@ public class HttpConnection implements Connection {
 	}
 
 	@Override
-	public byte[] getAttribute(URI uri, UserCredentials credentials) {
-		return getAttribute(uri, null, null, credentials);
+	public byte[] read(URI uri, UserCredentials credentials) {
+		return read(uri, null, null, credentials);
 	}
 
 	@Override
-	public byte[] getAttribute(URI uri, String type,
-			UserCredentials credentials) {
-		return getAttribute(uri, type, null, credentials);
+	public byte[] read(URI uri, String type, UserCredentials credentials) {
+		return read(uri, type, null, credentials);
 	}
 
 	@Override
-	public byte[] getAttribute(URI uri, String type, IntRange range,
+	public byte[] read(URI uri, String type, IntRange range,
 			UserCredentials credentials) {
 		HttpGet request = new HttpGet(uri);
 		int success = HttpURLConnection.HTTP_OK;
@@ -173,7 +172,7 @@ public class HttpConnection implements Connection {
 	}
 
 	@Override
-	public void setAttribute(URI uri, String value, String type,
+	public void update(URI uri, String value, String type,
 			UserCredentials credentials) {
 		HttpPut request = new HttpPut(uri);
 

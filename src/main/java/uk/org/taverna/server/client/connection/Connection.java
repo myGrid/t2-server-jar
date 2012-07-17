@@ -42,22 +42,21 @@ import org.apache.commons.lang.math.IntRange;
  * @author Robert Haines
  */
 public interface Connection {
-	public byte[] getAttribute(URI uri, String type, IntRange range,
+	public byte[] read(URI uri, String type, IntRange range,
 			UserCredentials credentials);
 
-	public byte[] getAttribute(URI uri, String type,
-			UserCredentials credentials);
+	public byte[] read(URI uri, String type, UserCredentials credentials);
 
-	public byte[] getAttribute(URI uri, UserCredentials credentials);
+	public byte[] read(URI uri, UserCredentials credentials);
 
-	public void setAttribute(URI uri, String value, String type,
+	public void update(URI uri, String value, String type,
 			UserCredentials credentials);
 
 	public void delete(URI uri, UserCredentials credentials);
 
-	public URI upload(URI uri, byte[] content, String type,
+	public URI create(URI uri, byte[] content, String type,
 			UserCredentials credentials);
 
-	public URI upload(URI uri, InputStream content, String type,
+	public URI create(URI uri, InputStream content, String type,
 			UserCredentials credentials);
 }
