@@ -70,7 +70,7 @@ public final class URIUtils {
 	 *            the extra path to be appended to the URI.
 	 * @return the new URI with the extended path.
 	 */
-	public static URI addToPath(URI uri, String extraPath) {
+	public static URI appendToPath(URI uri, String extraPath) {
 		try {
 			return new URIBuilder(uri).setPath(uri.getPath() + "/" + extraPath)
 					.build().normalize();

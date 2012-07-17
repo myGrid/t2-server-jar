@@ -99,7 +99,7 @@ public final class Server {
 		connection = ConnectionFactory.getConnection(this.uri, params);
 		xmlUtils = XmlUtils.getInstance();
 
-		URI restURI = URIUtils.addToPath(uri, REST_ENDPOINT);
+		URI restURI = URIUtils.appendToPath(uri, REST_ENDPOINT);
 		Document doc = ParseUtil.parse(new String(connection
 				.read(restURI, null)));
 		version = getServerVersion(doc);
@@ -161,7 +161,7 @@ public final class Server {
 	 */
 	public void deleteRun(String id, UserCredentials credentials) {
 		try {
-			connection.delete(URIUtils.addToPath(links.get("runs"), id),
+			connection.delete(URIUtils.appendToPath(links.get("runs"), id),
 					credentials);
 		} catch (AccessForbiddenException e) {
 			if (getRunsFromServer(credentials).containsKey(id)) {
@@ -517,7 +517,7 @@ public final class Server {
 	 */
 	String getRunDescription(Run run, UserCredentials credentials) {
 		return getRunAttribute(run,
-				URIUtils.addToPath(links.get("runs"), run.getIdentifier()),
+				URIUtils.appendToPath(links.get("runs"), run.getIdentifier()),
 				"application/xml", credentials);
 	}
 

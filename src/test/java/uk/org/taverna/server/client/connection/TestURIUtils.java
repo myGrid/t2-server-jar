@@ -69,28 +69,28 @@ public class TestURIUtils {
 
 	@Test
 	public void testAddToPath() {
-		URI added = URIUtils.addToPath(standardHTTP, "path/added");
+		URI added = URIUtils.appendToPath(standardHTTP, "path/added");
 		assertTrue(added.equals(addedStandardHTTP));
 
-		added = URIUtils.addToPath(standardHTTP, "/path/added");
+		added = URIUtils.appendToPath(standardHTTP, "/path/added");
 		assertTrue(added.equals(addedStandardHTTP));
 
-		added = URIUtils.addToPath(slashHTTP, "path/added");
+		added = URIUtils.appendToPath(slashHTTP, "path/added");
 		assertTrue(added.equals(addedStandardHTTP));
 
-		added = URIUtils.addToPath(slashHTTP, "/path/added");
+		added = URIUtils.appendToPath(slashHTTP, "/path/added");
 		assertTrue(added.equals(addedStandardHTTP));
 
-		added = URIUtils.addToPath(pathHTTP, "path/added");
+		added = URIUtils.appendToPath(pathHTTP, "path/added");
 		assertTrue(added.equals(longAddedStandardHTTP));
 
-		added = URIUtils.addToPath(pathHTTP, "/path/added");
+		added = URIUtils.appendToPath(pathHTTP, "/path/added");
 		assertTrue(added.equals(longAddedStandardHTTP));
 
-		added = URIUtils.addToPath(pathSlashHTTP, "path/added");
+		added = URIUtils.appendToPath(pathSlashHTTP, "path/added");
 		assertTrue(added.equals(longAddedStandardHTTP));
 
-		added = URIUtils.addToPath(pathSlashHTTP, "/path/added");
+		added = URIUtils.appendToPath(pathSlashHTTP, "/path/added");
 		assertTrue(added.equals(longAddedStandardHTTP));
 	}
 

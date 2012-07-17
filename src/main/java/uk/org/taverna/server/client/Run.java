@@ -206,7 +206,7 @@ public final class Run {
 		URI uploadLocation = links.get("wdir");
 		if (remoteDirectory != null) {
 			uploadLocation = URIUtils
-					.addToPath(uploadLocation, remoteDirectory);
+					.appendToPath(uploadLocation, remoteDirectory);
 		}
 
 		server.uploadData(uploadLocation, data, remoteName, credentials);
@@ -382,7 +382,7 @@ public final class Run {
 	public byte[] getBaclavaOutput() {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.FINISHED) {
-			URI baclavaLink = URIUtils.addToPath(links.get("wdir"),
+			URI baclavaLink = URIUtils.appendToPath(links.get("wdir"),
 					BACLAVA_OUT_FILE);
 			if (!baclavaOut) {
 				throw new AttributeNotFoundException(baclavaLink);
@@ -585,7 +585,7 @@ public final class Run {
 			String leaf = dir.substring(lastSlash + 1, dir.length());
 			String path = dir.substring(0, lastSlash);
 			server.makeRunDir(this,
-					URIUtils.addToPath(links.get("wdir"), path), leaf,
+					URIUtils.appendToPath(links.get("wdir"), path), leaf,
 					credentials);
 		} else {
 			server.makeRunDir(this, links.get("wdir"), dir, credentials);
@@ -624,7 +624,7 @@ public final class Run {
 	}
 
 	private void setInputPort(InputPort port) {
-		URI path = URIUtils.addToPath(links.get("inputs"),
+		URI path = URIUtils.appendToPath(links.get("inputs"),
 				"/input/" + port.getName());
 		String value;
 
@@ -680,13 +680,13 @@ public final class Run {
 				xmlUtils.evalXPathHref(doc, "//nsr:expected"));
 
 		// set io properties
-		links.put("io", URIUtils.addToPath(links.get("listeners"), "/io"));
+		links.put("io", URIUtils.appendToPath(links.get("listeners"), "/io"));
 		links.put("stdout",
-				URIUtils.addToPath(links.get("io"), "/properties/stdout"));
+				URIUtils.appendToPath(links.get("io"), "/properties/stdout"));
 		links.put("stderr",
-				URIUtils.addToPath(links.get("io"), "/properties/stderr"));
+				URIUtils.appendToPath(links.get("io"), "/properties/stderr"));
 		links.put("exitcode",
-				URIUtils.addToPath(links.get("io"), "/properties/exitcode"));
+				URIUtils.appendToPath(links.get("io"), "/properties/exitcode"));
 
 		return links;
 	}
