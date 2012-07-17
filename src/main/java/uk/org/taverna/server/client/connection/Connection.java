@@ -49,7 +49,10 @@ public interface Connection {
 
 	public byte[] read(URI uri, UserCredentials credentials);
 
-	public void update(URI uri, String value, String type,
+	public void update(URI uri, byte[] content, String type,
+			UserCredentials credentials);
+
+	public void update(URI uri, InputStream content, String type,
 			UserCredentials credentials);
 
 	public void delete(URI uri, UserCredentials credentials);

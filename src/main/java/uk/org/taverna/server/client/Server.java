@@ -482,7 +482,7 @@ public final class Server {
 	public void setRunAttribute(String id, URI uri, String value,
 			String type, UserCredentials credentials) {
 		try {
-			connection.update(uri, value, type, credentials);
+			connection.update(uri, value.getBytes(), type, credentials);
 		} catch (AttributeNotFoundException e) {
 			if (getRunsFromServer(credentials).containsKey(id)) {
 				throw e;

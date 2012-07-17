@@ -48,7 +48,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.protocol.BasicHttpContext;
@@ -172,7 +171,19 @@ public class HttpConnection implements Connection {
 	}
 
 	@Override
-	public void update(URI uri, String value, String type,
+	public void update(URI uri, byte[] content, String type,
+			UserCredentials credentials) {
+		put(uri, new ByteArrayInputStream(content), content.length, type,
+				credentials);
+	}
+
+	@Override
+	public void update(URI uri, InputStream content, String type,
+			UserCredentials credentials) {
+		put(uri, content, -1, type, credentials);
+	}
+
+	private void put(URI uri, InputStream content, long length, String type,
 			UserCredentials credentials) {
 		HttpPut request = new HttpPut(uri);
 
@@ -181,9 +192,10 @@ public class HttpConnection implements Connection {
 		}
 
 		try {
-			StringEntity content = new StringEntity(value, "UTF-8");
-			content.setContentType(type);
-			request.setEntity(content);
+			// StringEntity entity = new StringEntity(content, "UTF-8");
+			InputStreamEntity entity = new InputStreamEntity(content, length);
+			entity.setContentType(type);
+			request.setEntity(entity);
 
 			HttpResponse response = httpClient.execute(request, httpContext);
 			processResponse(response, HttpURLConnection.HTTP_OK, uri);
