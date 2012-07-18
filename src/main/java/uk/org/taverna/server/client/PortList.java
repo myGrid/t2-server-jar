@@ -34,7 +34,7 @@ package uk.org.taverna.server.client;
 
 import java.io.PrintWriter;
 import java.net.URI;
-import java.util.AbstractList;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrBuilder;
@@ -43,60 +43,72 @@ import org.apache.commons.lang.text.StrBuilder;
  * 
  * @author Robert Haines
  */
-public abstract class PortValue extends AbstractList<PortValue> {
+public final class PortList extends PortValue {
 
-	public static final String PORT_ERROR_TYPE = "application/x-error";
-	public static final String PORT_LIST_TYPE = "application/x-list";
+	private final List<PortValue> list;
+	private long dataSize;
 
-	private final Run run;
-	private final URI reference;
-	private final String type;
-	protected final long size;
-
-	PortValue(Port parent, URI reference, String type, long size) {
-		this.run = parent.getRun();
-		this.reference = reference;
-		this.type = type;
-		this.size = size;
+	PortList(Port parent, URI reference, List<PortValue> list) {
+		super(parent, reference, PORT_LIST_TYPE, 0);
+		this.list = list;
+		this.dataSize = -1;
 	}
-
-	public String getContentType() {
-		return type;
-	}
-
-	public abstract byte[] getData();
-
-	public abstract byte[] getData(int index);
-
-	public String getDataAsString() {
-		return new String(getData());
-	}
-
-	public abstract long getDataSize();
-
-	public URI getReference() {
-		return reference;
-	}
-
-	public Run getRun() {
-		return run;
-	}
-
-	public abstract boolean isError();
 
 	@Override
-	public String toString() {
-		return toString(0);
+	public PortValue get(int index) {
+		return list.get(index);
 	}
 
+	@Override
+	public int size() {
+		return list.size();
+	}
+
+	@Override
+	public boolean isError() {
+		for (PortValue p : list) {
+			if (p.isError()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
+	public byte[] getData() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public byte[] getData(int index) {
+		return list.get(index).getData();
+	}
+
+	@Override
+	public long getDataSize() {
+		if (dataSize == -1) {
+			dataSize = 0;
+
+			for (PortValue p : list) {
+				dataSize += p.getDataSize();
+			}
+		}
+
+		return dataSize;
+	}
+
+	@Override
 	public String toString(int indent) {
 		String spaces = StringUtils.repeat(" ", indent);
 		StrBuilder message = new StrBuilder();
 		PrintWriter pw = new PrintWriter(message.asWriter());
 
-		pw.format("%sReference:    %s\n", spaces, reference.toASCIIString());
-		pw.format("%sContent type: %s\n", spaces, type);
-		pw.format("%sData size:    %d", spaces, getDataSize());
+		pw.format("%s%s\n%s[\n", spaces, getReference(), spaces);
+		for (PortValue p : list) {
+			pw.format("%s\n", p.toString(indent + 1));
+		}
+		pw.format("%s]", spaces);
 
 		return message.toString();
 	}

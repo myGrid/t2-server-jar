@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,24 +30,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package uk.org.taverna.server.client.util;
+package uk.org.taverna.server.client;
+
+import java.net.URI;
 
 /**
- * An exception to be thrown if a branch only operation is performed on a leaf
- * and vice-versa.
  * 
  * @author Robert Haines
  */
-public final class TreeListTypeMismatchException extends RuntimeException {
-	private static final long serialVersionUID = 1L;
+public final class PortError extends PortData {
 
-	/**
-	 * Create an exception with the type of node that can be operated on.
-	 * 
-	 * @param need
-	 */
-	public TreeListTypeMismatchException(String need) {
-		super("The operation you have tried to perform only applies to " + need
-				+ " nodes.");
+	PortError(Port parent, URI reference) {
+		super(parent, reference, PORT_ERROR_TYPE, 0);
+	}
+
+	@Override
+	public boolean isError() {
+		return true;
 	}
 }

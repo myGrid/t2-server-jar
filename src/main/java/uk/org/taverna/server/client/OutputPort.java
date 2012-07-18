@@ -32,21 +32,27 @@
 
 package uk.org.taverna.server.client;
 
+import java.io.PrintWriter;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 import net.sf.practicalxml.util.NodeListIterable;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.text.StrBuilder;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import uk.org.taverna.server.client.util.TreeList;
+import uk.org.taverna.server.client.connection.URIUtils;
 
+/**
+ * 
+ * @author Robert Haines
+ */
 public final class OutputPort extends Port {
 
-	private final TreeList<PortValue> structure;
-	private int totalDataSize;
-	private boolean error;
+	private final PortValue value;
 
 	/**
 	 * 
@@ -56,53 +62,25 @@ public final class OutputPort extends Port {
 	OutputPort(Run run, Element xml) {
 		super(run, xml);
 
-		totalDataSize = 0;
-		error = false;
-		structure = parse((Element) xml.getFirstChild());
+		value = parse((Element) xml.getFirstChild());
 	}
 
 	/**
 	 * 
-	 * @param coords
 	 * @return
-	 * @throws IndexOutOfBoundsException
 	 */
-	public PortValue getValue(int... coords) throws IndexOutOfBoundsException {
-		if (coords.length != depth) {
-			throw new IndexOutOfBoundsException("OutputPort of depth " + depth
-					+ " accessed as depth " + coords.length + ".");
-		}
-
-		return structure.getValue(coords);
+	public PortValue getValue() {
+		return value;
 	}
 
 	/**
-	 * 
-	 * @param coords
-	 * @return
-	 * @throws IndexOutOfBoundsException
-	 */
-	public PortValue getValue(List<Integer> coords)
-			throws IndexOutOfBoundsException {
-		if (coords == null || coords.size() == 0) {
-			return getValue();
-		} else {
-			int[] array = new int[coords.size()];
-			for (int i = 0; i < array.length; i++) {
-				array[i] = coords.get(i);
-			}
-			return getValue(array);
-		}
-	}
-
-	/**
-	 * Does this port contain error? should this be hasError?
+	 * Does this port contain error?
 	 * 
 	 * @return <code>true</code> if this port contains an error,
 	 *         <code>false</code> otherwise.
 	 */
 	public boolean isError() {
-		return error;
+		return value.isError();
 	}
 
 	/**
@@ -112,19 +90,48 @@ public final class OutputPort extends Port {
 	 * 
 	 * @return The total data size of this OutputPort.
 	 */
-	public int getTotalDataSize() {
-		return totalDataSize;
+	public long getDataSize() {
+		return value.getDataSize();
+	}
+
+	public String getContentType() {
+		return value.getContentType();
+	}
+
+	public byte[] getData() {
+		return value.getData();
+	}
+
+	public byte[] getData(int index) {
+		return value.getData(index);
+	}
+
+	public String getDataAsString() {
+		return value.getDataAsString();
+	}
+
+	public URI getReference() {
+		return value.getReference();
 	}
 
 	@Override
 	public String toString() {
-		return structure.toString();
+		return toString(0);
 	}
 
-	/*
-	 * Side-effect warning: This method sets this.error and this.totalDataSize!
-	 */
-	private TreeList<PortValue> parse(Element node) {
+	public String toString(int indent) {
+		String spaces = StringUtils.repeat(" ", indent);
+		StrBuilder message = new StrBuilder();
+		PrintWriter pw = new PrintWriter(message.asWriter());
+
+		pw.format("%s%s", spaces, getName());
+		pw.format("%s (depth %s) {\n", spaces, getDepth());
+		pw.format("%s%s\n}", spaces, value.toString(indent + 1));
+
+		return message.toString();
+	}
+
+	private PortValue parse(Element node) {
 		String name = node.getNodeName();
 
 		if (name.equalsIgnoreCase("port:value")) {
@@ -132,21 +139,24 @@ public final class OutputPort extends Port {
 			String type = xmlUtils.getPortAttribute(node, "contentType");
 			int size = Integer.parseInt(xmlUtils.getPortAttribute(node,
 					"contentByteLength"));
-			totalDataSize += size;
-			PortValue value = new PortValue(this, ref, type, size);
-			return new TreeList<PortValue>(value);
+
+			return new PortData(this, ref, type, size);
 		} else if (name.equalsIgnoreCase("port:list")) {
-			TreeList<PortValue> list = new TreeList<PortValue>();
+			// FIXME: This really is faked bad! The XML doc should have the list
+			// ref in it re: http://dev.mygrid.org.uk/issues/browse/TAVSERV-260
+			URI ref = URIUtils.appendToPath(run.getServer().getURI(),
+					"rest/runs/" + run.getIdentifier() + "/wd/" + getName());
+			List<PortValue> list = new ArrayList<PortValue>();
 			NodeListIterable nodes = new NodeListIterable(node.getChildNodes());
 			for (Node n : nodes) {
-				list.addNode(parse((Element) n));
+				list.add(parse((Element) n));
 			}
-			return list;
+
+			return new PortList(this, ref, list);
 		} else {
-			this.error = true;
-			URI error = URI.create(xmlUtils.getXlinkAttribute(node, "href"));
-			PortValue value = new PortValue(this, error);
-			return new TreeList<PortValue>(value);
+			URI ref = URI.create(xmlUtils.getXlinkAttribute(node, "href"));
+
+			return new PortError(this, ref);
 		}
 	}
 }
