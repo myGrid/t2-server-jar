@@ -44,7 +44,7 @@ import java.util.Map;
 import net.sf.practicalxml.ParseUtil;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang.math.IntRange;
+import org.apache.commons.lang.math.LongRange;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -381,8 +381,8 @@ public final class Server {
 	 * @param credentials
 	 * @return the data associated with the attribute.
 	 */
-	public byte[] getRunData(String id, URI uri, String type,
-			IntRange range, UserCredentials credentials) {
+	public byte[] getRunData(String id, URI uri, String type, LongRange range,
+			UserCredentials credentials) {
 		try {
 			return connection.read(uri, type, range, credentials);
 		} catch (AttributeNotFoundException e) {
@@ -419,7 +419,7 @@ public final class Server {
 	 * @param credentials
 	 * @return
 	 */
-	public byte[] getRunData(Run run, URI uri, String type, IntRange range,
+	public byte[] getRunData(Run run, URI uri, String type, LongRange range,
 			UserCredentials credentials) {
 		return getRunData(run.getIdentifier(), uri, type, range, credentials);
 	}

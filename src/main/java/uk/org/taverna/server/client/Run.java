@@ -47,7 +47,7 @@ import javax.xml.bind.DatatypeConverter;
 import net.sf.practicalxml.ParseUtil;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.math.IntRange;
+import org.apache.commons.lang.math.LongRange;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -721,7 +721,7 @@ public final class Run {
 		return ports;
 	}
 
-	byte[] getOutputData(URI uri, IntRange range) {
+	byte[] getOutputData(URI uri, LongRange range) {
 		return server.getRunData(this, uri,
 				"application/octet-stream", range, credentials);
 	}

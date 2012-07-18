@@ -35,14 +35,14 @@ package uk.org.taverna.server.client.connection;
 import java.io.InputStream;
 import java.net.URI;
 
-import org.apache.commons.lang.math.IntRange;
+import org.apache.commons.lang.math.LongRange;
 
 /**
  * 
  * @author Robert Haines
  */
 public interface Connection {
-	public byte[] read(URI uri, String type, IntRange range,
+	public byte[] read(URI uri, String type, LongRange range,
 			UserCredentials credentials);
 
 	public byte[] read(URI uri, String type, UserCredentials credentials);

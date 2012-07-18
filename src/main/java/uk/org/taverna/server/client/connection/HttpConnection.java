@@ -38,7 +38,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 
-import org.apache.commons.lang.math.IntRange;
+import org.apache.commons.lang.math.LongRange;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -135,7 +135,7 @@ public class HttpConnection implements Connection {
 	}
 
 	@Override
-	public byte[] read(URI uri, String type, IntRange range,
+	public byte[] read(URI uri, String type, LongRange range,
 			UserCredentials credentials) {
 		HttpGet request = new HttpGet(uri);
 		int success = HttpURLConnection.HTTP_OK;
@@ -145,8 +145,8 @@ public class HttpConnection implements Connection {
 		}
 
 		if (range != null) {
-			request.addHeader("Range", "bytes=" + range.getMinimumInteger()
-					+ "-" + range.getMaximumInteger());
+			request.addHeader("Range", "bytes=" + range.getMinimumLong() + "-"
+					+ range.getMaximumLong());
 			success = HttpURLConnection.HTTP_PARTIAL;
 		}
 
