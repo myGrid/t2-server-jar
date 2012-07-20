@@ -731,4 +731,18 @@ public final class Run {
 		return server.getDataStream(uri, "application/octet-stream", range,
 				credentials);
 	}
+
+	/*
+	 * This method just abstracts out the basic stream-to-file code.
+	 */
+	void writeStreamToFile(InputStream stream, File file) throws IOException {
+		OutputStream os = null;
+		try {
+			os = new FileOutputStream(file);
+			IOUtils.copyLarge(stream, os);
+		} finally {
+			IOUtils.closeQuietly(stream);
+			IOUtils.closeQuietly(os);
+		}
+	}
 }

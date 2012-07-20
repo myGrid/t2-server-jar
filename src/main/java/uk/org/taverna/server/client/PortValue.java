@@ -32,6 +32,8 @@
 
 package uk.org.taverna.server.client;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URI;
@@ -70,6 +72,8 @@ public abstract class PortValue extends AbstractList<PortValue> {
 	public abstract byte[] getData(int index);
 
 	public abstract InputStream getDataStream();
+
+	public abstract void writeDataToFile(File file) throws IOException;
 
 	public String getDataAsString() {
 		return new String(getData());

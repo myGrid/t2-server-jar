@@ -32,6 +32,7 @@
 
 package uk.org.taverna.server.client;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URI;
@@ -88,6 +89,11 @@ public final class PortList extends PortValue {
 
 	@Override
 	public InputStream getDataStream() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void writeDataToFile(File file) {
 		throw new UnsupportedOperationException();
 	}
 

@@ -32,6 +32,8 @@
 
 package uk.org.taverna.server.client;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.SoftReference;
 import java.net.URI;
@@ -87,6 +89,12 @@ public class PortData extends PortValue {
 	@Override
 	public InputStream getDataStream() {
 		return getRun().getOutputDataStream(getReference(), null);
+	}
+
+	@Override
+	public void writeDataToFile(File file) throws IOException {
+		InputStream is = getRun().getOutputDataStream(getReference(), null);
+		getRun().writeStreamToFile(is, file);
 	}
 
 	@Override
