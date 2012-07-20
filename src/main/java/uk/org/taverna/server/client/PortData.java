@@ -32,6 +32,7 @@
 
 package uk.org.taverna.server.client;
 
+import java.io.InputStream;
 import java.lang.ref.SoftReference;
 import java.net.URI;
 import java.util.Arrays;
@@ -81,6 +82,11 @@ public class PortData extends PortValue {
 	@Override
 	public long getDataSize() {
 		return size;
+	}
+
+	@Override
+	public InputStream getDataStream() {
+		return getRun().getOutputDataStream(getReference(), null);
 	}
 
 	@Override

@@ -32,7 +32,6 @@
 
 package uk.org.taverna.server.client.connection;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -47,6 +46,7 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
@@ -65,7 +65,7 @@ import uk.org.taverna.server.client.connection.params.ConnectionParams;
  * 
  * @author Robert Haines
  */
-public class HttpConnection implements Connection {
+public class HttpConnection extends AbstractConnection {
 
 	protected final URI uri;
 
@@ -82,19 +82,7 @@ public class HttpConnection implements Connection {
 	}
 
 	@Override
-	public URI create(URI uri, byte[] content, String type,
-			UserCredentials credentials) {
-		return post(uri, new ByteArrayInputStream(content), content.length,
-				type, credentials);
-	}
-
-	@Override
-	public URI create(URI uri, InputStream content, String type,
-			UserCredentials credentials) {
-		return post(uri, content, -1, type, credentials);
-	}
-
-	private URI post(URI uri, InputStream content, long length, String type,
+	public URI create(URI uri, InputStream content, long length, String type,
 			UserCredentials credentials) {
 		HttpPost request = new HttpPost(uri);
 		URI location = null;
@@ -103,14 +91,18 @@ public class HttpConnection implements Connection {
 			credentials.authenticate(request, httpContext);
 		}
 
+		HttpResponse response = null;
 		try {
 			InputStreamEntity entity = new InputStreamEntity(content, length);
 			entity.setContentType(type);
 			request.setEntity(entity);
 
-			HttpResponse response = httpClient.execute(request, httpContext);
+			response = httpClient.execute(request, httpContext);
 
-			processResponse(response, HttpURLConnection.HTTP_CREATED, uri);
+			if (!isSuccess(response, HttpURLConnection.HTTP_CREATED)) {
+				error(response, uri);
+			}
+
 			location = URI
 					.create(response.getHeaders("location")[0].getValue());
 		} catch (ClientProtocolException e) {
@@ -119,23 +111,30 @@ public class HttpConnection implements Connection {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			HttpClientUtils.closeQuietly(response);
 		}
 
 		return location;
 	}
 
 	@Override
-	public byte[] read(URI uri, UserCredentials credentials) {
-		return read(uri, null, null, credentials);
+	public InputStream readStream(URI uri, String type, LongRange range,
+			UserCredentials credentials) {
+		HttpEntity entity = get(uri, type, range, credentials);
+
+		InputStream stream = null;
+		try {
+			stream = entity.getContent();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return stream;
 	}
 
-	@Override
-	public byte[] read(URI uri, String type, UserCredentials credentials) {
-		return read(uri, type, null, credentials);
-	}
-
-	@Override
-	public byte[] read(URI uri, String type, LongRange range,
+	private HttpEntity get(URI uri, String type, LongRange range,
 			UserCredentials credentials) {
 		HttpGet request = new HttpGet(uri);
 		int success = HttpURLConnection.HTTP_OK;
@@ -154,11 +153,17 @@ public class HttpConnection implements Connection {
 			credentials.authenticate(request, httpContext);
 		}
 
-		HttpResponse response;
+		HttpResponse response = null;
 		try {
 			response = httpClient.execute(request, httpContext);
 
-			return processResponse(response, success, uri);
+			HttpEntity entity = response.getEntity();
+			if (isSuccess(response, success)) {
+				return entity;
+			} else {
+				error(response, entity, uri);
+			}
+
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -171,19 +176,24 @@ public class HttpConnection implements Connection {
 	}
 
 	@Override
-	public void update(URI uri, byte[] content, String type,
+	public byte[] read(URI uri, String type, LongRange range,
 			UserCredentials credentials) {
-		put(uri, new ByteArrayInputStream(content), content.length, type,
-				credentials);
+
+		HttpEntity entity = get(uri, type, range, credentials);
+
+		try {
+			return EntityUtils.toByteArray(entity);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return null;
 	}
 
 	@Override
-	public void update(URI uri, InputStream content, String type,
-			UserCredentials credentials) {
-		put(uri, content, -1, type, credentials);
-	}
-
-	private void put(URI uri, InputStream content, long length, String type,
+	public boolean update(URI uri, InputStream content, long length,
+			String type,
 			UserCredentials credentials) {
 		HttpPut request = new HttpPut(uri);
 
@@ -191,65 +201,81 @@ public class HttpConnection implements Connection {
 			credentials.authenticate(request, httpContext);
 		}
 
+		HttpResponse response = null;
 		try {
 			// StringEntity entity = new StringEntity(content, "UTF-8");
 			InputStreamEntity entity = new InputStreamEntity(content, length);
 			entity.setContentType(type);
 			request.setEntity(entity);
 
-			HttpResponse response = httpClient.execute(request, httpContext);
-			processResponse(response, HttpURLConnection.HTTP_OK, uri);
+			response = httpClient.execute(request, httpContext);
+
+			if (isSuccess(response, HttpURLConnection.HTTP_OK)) {
+				return true;
+			} else {
+				error(response, uri);
+			}
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			HttpClientUtils.closeQuietly(response);
 		}
+
+		return false;
 	}
 
 	@Override
-	public void delete(URI uri, UserCredentials credentials) {
+	public boolean delete(URI uri, UserCredentials credentials) {
 		HttpDelete request = new HttpDelete(uri);
 
 		if (credentials != null) {
 			credentials.authenticate(request, httpContext);
 		}
 
+		HttpResponse response = null;
 		try {
-			HttpResponse response = httpClient.execute(request, httpContext);
-			processResponse(response, HttpURLConnection.HTTP_NO_CONTENT, uri);
+			response = httpClient.execute(request, httpContext);
+
+			if (isSuccess(response, HttpURLConnection.HTTP_NO_CONTENT)) {
+				return true;
+			} else {
+				error(response, uri);
+			}
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			HttpClientUtils.closeQuietly(response);
 		}
+
+		return false;
 	}
 
-	private byte[] processResponse(HttpResponse response, int success,
-			URI requestURI) throws IOException {
+	private boolean isSuccess(HttpResponse response, int success) {
+		return response.getStatusLine().getStatusCode() == success;
+	}
+
+	private void error(HttpResponse response, HttpEntity entity, URI requestURI) {
 		int status = response.getStatusLine().getStatusCode();
 
-		// get the entity from the response.
-		HttpEntity entity = response.getEntity();
-
-		// if the response is successful, return the pay-load.
-		if (status == success) {
-			if (entity == null) {
-				return null;
-			}
-			return EntityUtils.toByteArray(entity);
-		}
-
-		// if we get here we need to consume the entity. This has the side
-		// effect of resetting the HTTP connection so it MUST be done every
-		// time. We need to save any content first for error messages.
+		// We need to save any content from the entity for error messages, then
+		// reset it by consuming it.
 		String content = null;
 		if (entity != null) {
-			content = EntityUtils.toString(entity);
-			EntityUtils.consume(entity);
+			try {
+				content = EntityUtils.toString(entity);
+			} catch (IOException e) {
+				// Ignore.
+			} finally {
+				EntityUtils.consumeQuietly(entity);
+			}
 		}
 
 		switch (status) {
@@ -270,5 +296,9 @@ public class HttpConnection implements Connection {
 
 			throw new UnexpectedResponseException(error);
 		}
+	}
+
+	private void error(HttpResponse response, URI requestURI) {
+		error(response, response.getEntity(), requestURI);
 	}
 }

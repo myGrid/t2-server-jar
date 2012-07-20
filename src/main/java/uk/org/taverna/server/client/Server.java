@@ -34,6 +34,7 @@ package uk.org.taverna.server.client;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -350,6 +351,16 @@ public final class Server {
 	public Run createRun(File workflow, UserCredentials credentials)
 			throws IOException {
 		return Run.create(this, workflow, credentials);
+	}
+
+	byte[] getData(URI uri, String type, LongRange range,
+			UserCredentials credentials) {
+		return connection.read(uri, type, range, credentials);
+	}
+
+	InputStream getDataStream(URI uri, String type, LongRange range,
+			UserCredentials credentials) {
+		return connection.readStream(uri, type, range, credentials);
 	}
 
 	/**

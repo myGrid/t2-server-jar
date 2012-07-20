@@ -34,6 +34,7 @@ package uk.org.taverna.server.client;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -722,7 +723,12 @@ public final class Run {
 	}
 
 	byte[] getOutputData(URI uri, LongRange range) {
-		return server.getRunData(this, uri,
-				"application/octet-stream", range, credentials);
+		return server.getData(uri, "application/octet-stream", range,
+				credentials);
+	}
+
+	InputStream getOutputDataStream(URI uri, LongRange range) {
+		return server.getDataStream(uri, "application/octet-stream", range,
+				credentials);
 	}
 }

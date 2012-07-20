@@ -32,6 +32,7 @@
 
 package uk.org.taverna.server.client;
 
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.util.AbstractList;
@@ -67,6 +68,8 @@ public abstract class PortValue extends AbstractList<PortValue> {
 	public abstract byte[] getData();
 
 	public abstract byte[] getData(int index);
+
+	public abstract InputStream getDataStream();
 
 	public String getDataAsString() {
 		return new String(getData());

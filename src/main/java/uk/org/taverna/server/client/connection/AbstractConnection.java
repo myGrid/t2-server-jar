@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -30,92 +30,58 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package uk.org.taverna.server.client;
+package uk.org.taverna.server.client.connection;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.net.URI;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.text.StrBuilder;
 
 /**
  * 
  * @author Robert Haines
  */
-public final class PortList extends PortValue {
+public abstract class AbstractConnection implements Connection {
 
-	private final List<PortValue> list;
-	private long dataSize;
-
-	PortList(Port parent, URI reference, List<PortValue> list) {
-		super(parent, reference, PORT_LIST_TYPE, 0);
-		this.list = list;
-		this.dataSize = -1;
+	@Override
+	public URI create(URI uri, byte[] content, String type,
+			UserCredentials credentials) {
+		return create(uri, new ByteArrayInputStream(content), content.length,
+				type, credentials);
 	}
 
 	@Override
-	public PortValue get(int index) {
-		return list.get(index);
+	public URI create(URI uri, InputStream content, String type,
+			UserCredentials credentials) {
+		return create(uri, content, -1, type, credentials);
 	}
 
 	@Override
-	public int size() {
-		return list.size();
+	public InputStream readStream(URI uri, String type,
+			UserCredentials credentials) {
+		return readStream(uri, type, null, credentials);
 	}
 
 	@Override
-	public boolean isError() {
-		for (PortValue p : list) {
-			if (p.isError()) {
-				return true;
-			}
-		}
-
-		return false;
+	public byte[] read(URI uri, UserCredentials credentials) {
+		return read(uri, null, null, credentials);
 	}
 
 	@Override
-	public byte[] getData() {
-		throw new UnsupportedOperationException();
+	public byte[] read(URI uri, String type, UserCredentials credentials) {
+		return read(uri, type, null, credentials);
 	}
 
 	@Override
-	public byte[] getData(int index) {
-		return list.get(index).getData();
+	public boolean update(URI uri, byte[] content, String type,
+			UserCredentials credentials) {
+		return update(uri, new ByteArrayInputStream(content), content.length,
+				type,
+				credentials);
 	}
 
 	@Override
-	public InputStream getDataStream() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public long getDataSize() {
-		if (dataSize == -1) {
-			dataSize = 0;
-
-			for (PortValue p : list) {
-				dataSize += p.getDataSize();
-			}
-		}
-
-		return dataSize;
-	}
-
-	@Override
-	public String toString(int indent) {
-		String spaces = StringUtils.repeat(" ", indent);
-		StrBuilder message = new StrBuilder();
-		PrintWriter pw = new PrintWriter(message.asWriter());
-
-		pw.format("%s%s\n%s[\n", spaces, getReference(), spaces);
-		for (PortValue p : list) {
-			pw.format("%s\n", p.toString(indent + 1));
-		}
-		pw.format("%s]", spaces);
-
-		return message.toString();
+	public boolean update(URI uri, InputStream content, String type,
+			UserCredentials credentials) {
+		return update(uri, content, -1, type, credentials);
 	}
 }

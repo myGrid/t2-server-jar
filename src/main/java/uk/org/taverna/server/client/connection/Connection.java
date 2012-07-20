@@ -42,6 +42,12 @@ import org.apache.commons.lang.math.LongRange;
  * @author Robert Haines
  */
 public interface Connection {
+	public InputStream readStream(URI uri, String type, LongRange range,
+			UserCredentials credentials);
+
+	public InputStream readStream(URI uri, String type,
+			UserCredentials credentials);
+
 	public byte[] read(URI uri, String type, LongRange range,
 			UserCredentials credentials);
 
@@ -49,13 +55,20 @@ public interface Connection {
 
 	public byte[] read(URI uri, UserCredentials credentials);
 
-	public void update(URI uri, byte[] content, String type,
+	public boolean update(URI uri, InputStream content, long length,
+			String type,
 			UserCredentials credentials);
 
-	public void update(URI uri, InputStream content, String type,
+	public boolean update(URI uri, byte[] content, String type,
 			UserCredentials credentials);
 
-	public void delete(URI uri, UserCredentials credentials);
+	public boolean update(URI uri, InputStream content, String type,
+			UserCredentials credentials);
+
+	public boolean delete(URI uri, UserCredentials credentials);
+
+	public URI create(URI uri, InputStream content, long length, String type,
+			UserCredentials credentials);
 
 	public URI create(URI uri, byte[] content, String type,
 			UserCredentials credentials);
