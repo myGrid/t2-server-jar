@@ -634,6 +634,49 @@ public final class Run {
 	}
 
 	/**
+	 * Get an input stream that can be used to stream all the output data of
+	 * this run in zip format.
+	 * 
+	 * <b>Note:</b> You are responsible for closing the stream once you have
+	 * finished with it. Not doing so may prevent further use of the underlying
+	 * network connection.
+	 * 
+	 * @return The stream to read the zip data from.
+	 * @see #writeOutputToZipFile(File)
+	 */
+	public InputStream getOutputZipStream() {
+		RunStatus rs = getStatus();
+		if (rs == RunStatus.FINISHED) {
+			URI uri = URIUtils.appendToPath(links.get("wdir"), "out");
+
+			return server.getDataStream(uri, "application/zip", null,
+					credentials);
+		} else {
+			throw new RunStateException(rs, RunStatus.FINISHED);
+		}
+	}
+
+	/**
+	 * Writes all the output data of this run directly to a file in zip format.
+	 * The data is not loaded into memory, it is streamed directly to the file.
+	 * The file is created if it does not already exist and will overwrite
+	 * existing data if it does.
+	 * 
+	 * @param file
+	 *            the file to write to.
+	 * @throws FileNotFoundException
+	 *             if the file exists but is a directory rather than a regular
+	 *             file, does not exist but cannot be created, or cannot be
+	 *             opened for any other reason.
+	 * @throws IOException
+	 *             if there is any I/O error.
+	 * @see #getOutputZipStream()
+	 */
+	public void writeOutputToZipFile(File file) throws IOException {
+		writeStreamToFile(getOutputZipStream(), file);
+	}
+
+	/**
 	 * Create a directory in the workspace of this Run.
 	 * 
 	 * @param dir
