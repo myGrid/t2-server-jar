@@ -33,8 +33,11 @@
 package uk.org.taverna.server.client;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -48,6 +51,7 @@ import javax.xml.bind.DatatypeConverter;
 import net.sf.practicalxml.ParseUtil;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.math.LongRange;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -377,8 +381,9 @@ public final class Run {
 	 * have been set to output in baclava format before it is started.
 	 * 
 	 * @return The baclava formatted document contents as a byte array.
-	 * @see #setBaclavaOutput()
-	 * @see #setBaclavaOutput(String)
+	 * @see #requestBaclavaOutput()
+	 * @see #getBaclavaOutputStream()
+	 * @see #writeBaclavaOutputToFile(File)
 	 */
 	public byte[] getBaclavaOutput() {
 		RunStatus rs = getStatus();
@@ -394,6 +399,61 @@ public final class Run {
 		} else {
 			throw new RunStateException(rs, RunStatus.FINISHED);
 		}
+	}
+
+	/**
+	 * Get an input stream that can be used to stream the baclava output data of
+	 * this run. The Run must have been set to output in baclava format before
+	 * it is started.
+	 * 
+	 * <b>Note:</b> You are responsible for closing the stream once you have
+	 * finished with it. Not doing so may prevent further use of the underlying
+	 * network connection.
+	 * 
+	 * @return The stream to read the baclava data from.
+	 * @see #getBaclavaOutput()
+	 * @see #writeBaclavaOutputToFile(File)
+	 * @see #requestBaclavaOutput()
+	 */
+	public InputStream getBaclavaOutputStream() {
+		RunStatus rs = getStatus();
+		if (rs == RunStatus.FINISHED) {
+			URI baclavaLink = URIUtils.appendToPath(links.get("wdir"),
+					BACLAVA_OUT_FILE);
+			if (!baclavaOut) {
+				throw new AttributeNotFoundException(baclavaLink);
+			}
+
+			return server.getDataStream(baclavaLink,
+					"application/octet-stream", null, credentials);
+		} else {
+			throw new RunStateException(rs, RunStatus.FINISHED);
+		}
+	}
+
+	/**
+	 * Writes the baclava output data of this run directly to a file. The data
+	 * is not loaded into memory, it is streamed directly to the file. The file
+	 * is created if it does not already exist and will overwrite existing data
+	 * if it does.
+	 * 
+	 * The Run must have been set to output in baclava format before it is
+	 * started.
+	 * 
+	 * @param file
+	 *            the file to write to.
+	 * @throws FileNotFoundException
+	 *             if the file exists but is a directory rather than a regular
+	 *             file, does not exist but cannot be created, or cannot be
+	 *             opened for any other reason.
+	 * @throws IOException
+	 *             if there is any I/O error.
+	 * @see #getBaclavaOutput()
+	 * @see #getBaclavaOutputStream()
+	 * @see #requestBaclavaOutput()
+	 */
+	public void writeBaclavaOutputToFile(File file) throws IOException {
+		writeStreamToFile(getBaclavaOutputStream(), file);
 	}
 
 	/**
