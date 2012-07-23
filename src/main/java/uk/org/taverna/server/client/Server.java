@@ -81,10 +81,10 @@ public final class Server {
 	private final Connection connection;
 
 	private final URI uri;
-	private final float version;
+	private float version;
 	private final Map<String, Run> runs;
 
-	private final Map<String, URI> links;
+	private Map<String, URI> links;
 
 	private final XmlUtils xmlUtils;
 
@@ -100,21 +100,11 @@ public final class Server {
 		connection = ConnectionFactory.getConnection(this.uri, params);
 		xmlUtils = XmlUtils.getInstance();
 
-		URI restURI = URIUtils.appendToPath(uri, REST_ENDPOINT);
-		Document doc = ParseUtil.parse(new String(connection
-				.read(restURI, null)));
-		version = getServerVersion(doc);
-		links = getServerDescription(doc);
-
-		// System.out.println("u: " + this.uri);
-		// System.out.println("v: " + version);
-		// for (String s : links.keySet()) {
-		// System.out.println(s + ": " + links.get(s));
-		// }
+		version = 0.0f;
+		links = null;
 
 		// initialise run list
 		runs = new HashMap<String, Run>();
-		// getRunsFromServer();
 	}
 
 	/**
@@ -131,6 +121,10 @@ public final class Server {
 	 * @return the Taverna Server version.
 	 */
 	public float getVersion() {
+		if (this.version == 0.0f) {
+			getServerInfo();
+		}
+
 		return version;
 	}
 
@@ -162,7 +156,7 @@ public final class Server {
 	 */
 	public void deleteRun(String id, UserCredentials credentials) {
 		try {
-			connection.delete(URIUtils.appendToPath(links.get("runs"), id),
+			connection.delete(URIUtils.appendToPath(getLink("runs"), id),
 					credentials);
 		} catch (AccessForbiddenException e) {
 			if (getRunsFromServer(credentials).containsKey(id)) {
@@ -193,7 +187,7 @@ public final class Server {
 	}
 
 	private Map<String, Run> getRunsFromServer(UserCredentials credentials) {
-		String runList = new String(connection.read(links.get("runs"),
+		String runList = new String(connection.read(getLink("runs"),
 				credentials));
 		Document doc = ParseUtil.parse(runList);
 
@@ -222,6 +216,14 @@ public final class Server {
 		assert (runs.size() == ids.size());
 
 		return runs;
+	}
+
+	private void getServerInfo() {
+		URI restURI = URIUtils.appendToPath(uri, REST_ENDPOINT);
+		Document doc = ParseUtil.parse(new String(connection
+				.read(restURI, null)));
+		this.version = getServerVersion(doc);
+		this.links = getServerDescription(doc);
 	}
 
 	private float getServerVersion(Document doc) {
@@ -308,7 +310,8 @@ public final class Server {
 	 */
 	public int getRunLimit(UserCredentials credentials) {
 		return Integer.parseInt(new String(connection.read(
-				links.get("runlimit"), credentials)).trim());
+				getLink("runlimit"),
+				credentials)).trim());
 	}
 
 	/**
@@ -320,7 +323,7 @@ public final class Server {
 	 */
 	String initializeRun(byte[] workflow, UserCredentials credentials) {
 		String id = null;
-		URI location = connection.create(links.get("runs"), workflow,
+		URI location = connection.create(getLink("runs"), workflow,
 				"application/vnd.taverna.t2flow+xml", credentials);
 
 		if (location != null) {
@@ -519,7 +522,7 @@ public final class Server {
 	 */
 	String getRunDescription(Run run, UserCredentials credentials) {
 		return getRunAttribute(run,
-				URIUtils.appendToPath(links.get("runs"), run.getIdentifier()),
+				URIUtils.appendToPath(getLink("runs"), run.getIdentifier()),
 				"application/xml", credentials);
 	}
 
@@ -555,5 +558,13 @@ public final class Server {
 	void makeRunDir(Run run, URI root, String name,
 			UserCredentials credentials) throws IOException {
 		makeRunDir(run.getIdentifier(), root, name, credentials);
+	}
+
+	private URI getLink(String link) {
+		if (this.links == null) {
+			getServerInfo();
+		}
+
+		return links.get(link);
 	}
 }
