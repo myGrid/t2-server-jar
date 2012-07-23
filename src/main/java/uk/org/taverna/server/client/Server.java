@@ -82,7 +82,7 @@ public final class Server {
 
 	private final URI uri;
 	private float version;
-	private final Map<String, Run> runs;
+	private final Map<String, Map<String, Run>> runs;
 
 	private Map<String, URI> links;
 
@@ -104,7 +104,7 @@ public final class Server {
 		links = null;
 
 		// initialise run list
-		runs = new HashMap<String, Run>();
+		runs = new HashMap<String, Map<String, Run>>();
 	}
 
 	/**
@@ -187,35 +187,43 @@ public final class Server {
 	}
 
 	private Map<String, Run> getRunsFromServer(UserCredentials credentials) {
+		// Get this user's run list.
 		String runList = new String(connection.read(getLink("runs"),
 				credentials));
 		Document doc = ParseUtil.parse(runList);
 
-		// add new runs, but keep a list of the new
-		// ids so we can remove the stale ones below.
+		// Get this user's run cache.
+		Map<String, Run> userRuns = runs.get(credentials.getUsername());
+		if (userRuns == null) {
+			userRuns = new HashMap<String, Run>();
+			runs.put(credentials.getUsername(), userRuns);
+		}
+
+		// Add new runs to the user's run cache, but keep a list of the new ids
+		// so we can remove the stale ones below.
 		String id;
 		ArrayList<String> ids = new ArrayList<String>();
 		for (Element e : xmlUtils.evalXPath(doc, "//nsr:run")) {
 			id = e.getTextContent().trim();
 			ids.add(id);
-			if (!runs.containsKey(id)) {
-				runs.put(id, new Run(this, id, credentials));
+			if (!userRuns.containsKey(id)) {
+				userRuns.put(id, new Run(this, id, credentials));
 			}
 		}
 
-		// any ids in the runs list that aren't in the list we've
-		// just got from the server are dead and can be removed.
-		if (runs.size() > ids.size()) {
-			for (String i : runs.keySet()) {
+		// Any ids in the runs list that aren't in the list we've just got from
+		// the server are dead and can be removed.
+		if (userRuns.size() > ids.size()) {
+			for (String i : userRuns.keySet()) {
 				if (!ids.contains(i)) {
-					runs.remove(i);
+					userRuns.remove(i);
 				}
 			}
 		}
 
-		assert (runs.size() == ids.size());
+		assert (userRuns.size() == ids.size());
 
-		return runs;
+		return userRuns;
 	}
 
 	private void getServerInfo() {
