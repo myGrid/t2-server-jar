@@ -75,6 +75,7 @@ public final class Run {
 	private static final String BACLAVA_IN_FILE = "in.baclava";
 	private static final String BACLAVA_OUT_FILE = "out.baclava";
 
+	private final URI uri;
 	private final Server server;
 	private final String id;
 	private byte[] workflow;
@@ -95,10 +96,11 @@ public final class Run {
 	 * Create a Run instance. This will already have been created on the remote
 	 * server.
 	 */
-	private Run(Server server, byte[] workflow, String id,
+	private Run(URI uri, Server server, byte[] workflow,
 			UserCredentials credentials) {
+		this.uri = uri;
 		this.server = server;
-		this.id = id;
+		this.id = URIUtils.extractFinalPathComponent(uri);
 		this.workflow = workflow;
 		this.baclavaIn = false;
 		this.baclavaOut = false;
@@ -113,8 +115,8 @@ public final class Run {
 	 * Internal constructor for other classes within the package to create
 	 * "lightweight" runs. Used when listing runs, etc.
 	 */
-	Run(Server server, String id, UserCredentials credentials) {
-		this(server, null, id, credentials);
+	Run(URI uri, Server server, UserCredentials credentials) {
+		this(uri, server, null, credentials);
 	}
 
 	/**
@@ -126,9 +128,9 @@ public final class Run {
 	 */
 	public static Run create(Server server, byte[] workflow,
 			UserCredentials credentials) {
-		String id = server.initializeRun(workflow, credentials);
+		URI uri = server.initializeRun(workflow, credentials);
 
-		return new Run(server, workflow, id, credentials);
+		return new Run(uri, server, workflow, credentials);
 	}
 
 	/**
@@ -143,6 +145,14 @@ public final class Run {
 			UserCredentials credentials) throws IOException {
 		return create(server, FileUtils.readFileToByteArray(workflow),
 				credentials);
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public URI getURI() {
+		return uri;
 	}
 
 	/**

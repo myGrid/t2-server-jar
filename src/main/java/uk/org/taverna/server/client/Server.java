@@ -202,12 +202,14 @@ public final class Server {
 		// Add new runs to the user's run cache, but keep a list of the new ids
 		// so we can remove the stale ones below.
 		String id;
+		URI uri;
 		ArrayList<String> ids = new ArrayList<String>();
 		for (Element e : xmlUtils.evalXPath(doc, "//nsr:run")) {
 			id = e.getTextContent().trim();
+			uri = URIUtils.appendToPath(getLink("runs"), id);
 			ids.add(id);
 			if (!userRuns.containsKey(id)) {
-				userRuns.put(id, new Run(this, id, credentials));
+				userRuns.put(id, new Run(uri, this, credentials));
 			}
 		}
 
@@ -329,16 +331,11 @@ public final class Server {
 	 *            the workflow to be run.
 	 * @return the id of the new run as returned by the server.
 	 */
-	String initializeRun(byte[] workflow, UserCredentials credentials) {
-		String id = null;
+	URI initializeRun(byte[] workflow, UserCredentials credentials) {
 		URI location = connection.create(getLink("runs"), workflow,
 				"application/vnd.taverna.t2flow+xml", credentials);
 
-		if (location != null) {
-			id = URIUtils.extractFinalPathComponent(location);
-		}
-
-		return id;
+		return location;
 	}
 
 	/**
