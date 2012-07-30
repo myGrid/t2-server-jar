@@ -35,6 +35,7 @@ package uk.org.taverna.server.client.xml;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
@@ -47,7 +48,9 @@ import uk.org.taverna.server.client.connection.Connection;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.xml.Resources.Label;
 import uk.org.taverna.server.client.xml.rest.PolicyDescription;
+import uk.org.taverna.server.client.xml.rest.RunList;
 import uk.org.taverna.server.client.xml.rest.ServerDescription;
+import uk.org.taverna.server.client.xml.rest.TavernaRun;
 
 public final class ResourcesReader {
 
@@ -104,5 +107,18 @@ public final class ResourcesReader {
 				.getEnabledNotificationFabrics().getHref());
 
 		return new ServerResources(links, version, revision, timestamp);
+	}
+
+	public Map<String, URI> readRunList(URI uri, UserCredentials credentials) {
+		RunList runList = (RunList) read(uri, credentials);
+		List<TavernaRun> trs = runList.getRun();
+
+		Map<String, URI> runs = new HashMap<String, URI>(trs.size());
+
+		for (TavernaRun tr : trs) {
+			runs.put(tr.getValue(), tr.getHref());
+		}
+
+		return runs;
 	}
 }

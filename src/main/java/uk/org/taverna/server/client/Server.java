@@ -37,17 +37,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.sf.practicalxml.ParseUtil;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.math.LongRange;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import uk.org.taverna.server.client.connection.Connection;
 import uk.org.taverna.server.client.connection.ConnectionFactory;
@@ -187,9 +182,8 @@ public final class Server {
 
 	private Map<String, Run> getRunsFromServer(UserCredentials credentials) {
 		// Get this user's run list.
-		String runList = new String(connection.read(getLink(Label.RUNS),
-				credentials));
-		Document doc = ParseUtil.parse(runList);
+		URI uri = getLink(Label.RUNS);
+		Map<String, URI> runList = reader.readRunList(uri, credentials);
 
 		// Get this user's run cache.
 		Map<String, Run> userRuns = runs.get(credentials.getUsername());
@@ -198,31 +192,24 @@ public final class Server {
 			runs.put(credentials.getUsername(), userRuns);
 		}
 
-		// Add new runs to the user's run cache, but keep a list of the new ids
-		// so we can remove the stale ones below.
-		String id;
-		URI uri;
-		ArrayList<String> ids = new ArrayList<String>();
-		for (Element e : xmlUtils.evalXPath(doc, "//nsr:run")) {
-			id = e.getTextContent().trim();
-			uri = URIUtils.appendToPath(getLink(Label.RUNS), id);
-			ids.add(id);
+		// Add new runs to the user's run cache.
+		for (String id : runList.keySet()) {
 			if (!userRuns.containsKey(id)) {
-				userRuns.put(id, new Run(uri, this, credentials));
+				userRuns.put(id, new Run(runList.get(id), this, credentials));
 			}
 		}
 
-		// Any ids in the runs list that aren't in the list we've just got from
+		// Any ids in the runs list that aren't in the map we've just got from
 		// the server are dead and can be removed.
-		if (userRuns.size() > ids.size()) {
+		if (userRuns.size() > runList.size()) {
 			for (String i : userRuns.keySet()) {
-				if (!ids.contains(i)) {
+				if (!runList.containsKey(i)) {
 					userRuns.remove(i);
 				}
 			}
 		}
 
-		assert (userRuns.size() == ids.size());
+		assert (userRuns.size() == runList.size());
 
 		return userRuns;
 	}
