@@ -1,0 +1,6 @@
+--
+
+--
+
+SYSTEM "./xlink.xsd" "http://www.w3.org/1999/xlink"
+SYSTEM "./server.xsd" "http://ns.taverna.org.uk/2010/xml/server/"

@@ -11,13 +11,13 @@
 	<version>0.0.3</version>
 	<name>Taverna Server Client Library</name>
 	<description>A Java library to interact with the REST interface of Taverna Server</description>
-    <licenses>
-        <license>
-            <name>The BSD License</name>
-            <url>http://www.opensource.org/licenses/bsd-license.php</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
+	<licenses>
+		<license>
+			<name>The BSD License</name>
+			<url>http://www.opensource.org/licenses/bsd-license.php</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 	<scm>
 		<connection>https://github.com/myGrid/t2-server-jar.git</connection>
 		<developerConnection>https://github.com/myGrid/t2-server-jar.git</developerConnection>
@@ -71,11 +71,53 @@
 		</dependency>
 	</dependencies>
 	<build>
+		<resources>
+			<resource>
+				<directory>/home/hainesr/work/taverna/src/t2-server-jar/src/main/xsd</directory>
+			</resource>
+			<resource>
+				<directory>/home/hainesr/work/taverna/src/t2-server-jar/src/main/xjb</directory>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>2.7</version>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>jaxb2-maven-plugin</artifactId>
+				<version>1.4</version>
+				<executions>
+					<execution>
+						<id>rest-xjc</id>
+						<goals>
+							<goal>xjc</goal>
+						</goals>
+						<configuration>
+							<schemaFiles>rest.xsd</schemaFiles>
+							<bindingFiles>bindings.xjb</bindingFiles>
+							<catalog>${project.basedir}/src/main/xsd/namespaces.cat</catalog>
+							<packageName>uk.org.taverna.server.client.xml.rest</packageName>
+							<staleFile>${project.build.directory}/jaxb2/.restXjcStaleFlag</staleFile>
+						</configuration>
+					</execution>
+					<execution>
+						<id>port-xjc</id>
+						<goals>
+							<goal>xjc</goal>
+						</goals>
+						<configuration>
+							<schemaFiles>port.xsd</schemaFiles>
+							<bindingFiles>bindings.xjb</bindingFiles>
+							<catalog>${project.basedir}/src/main/xsd/namespaces.cat</catalog>
+							<packageName>uk.org.taverna.server.client.xml.port</packageName>
+							<staleFile>${project.build.directory}/jaxb2/.portXjcStaleFlag</staleFile>
+							<clearOutputDir>false</clearOutputDir>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
