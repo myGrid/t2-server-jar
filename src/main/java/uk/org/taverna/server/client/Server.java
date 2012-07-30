@@ -54,6 +54,9 @@ import uk.org.taverna.server.client.connection.ConnectionFactory;
 import uk.org.taverna.server.client.connection.URIUtils;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.connection.params.ConnectionParams;
+import uk.org.taverna.server.client.xml.Resources.Label;
+import uk.org.taverna.server.client.xml.ResourcesReader;
+import uk.org.taverna.server.client.xml.ServerResources;
 
 /**
  * The Server class represents a connection to a Taverna Server instance
@@ -81,10 +84,10 @@ public final class Server {
 	private final Connection connection;
 
 	private final URI uri;
-	private float version;
 	private final Map<String, Map<String, Run>> runs;
 
-	private Map<String, URI> links;
+	private final ResourcesReader reader;
+	private ServerResources resources;
 
 	private final XmlUtils xmlUtils;
 
@@ -100,8 +103,8 @@ public final class Server {
 		connection = ConnectionFactory.getConnection(this.uri, params);
 		xmlUtils = XmlUtils.getInstance();
 
-		version = 0.0f;
-		links = null;
+		reader = new ResourcesReader(connection);
+		resources = null;
 
 		// initialise run list
 		runs = new HashMap<String, Map<String, Run>>();
@@ -121,11 +124,7 @@ public final class Server {
 	 * @return the Taverna Server version.
 	 */
 	public float getVersion() {
-		if (this.version == 0.0f) {
-			getServerInfo();
-		}
-
-		return version;
+		return getServerResources().getVersion();
 	}
 
 	/**
@@ -156,7 +155,7 @@ public final class Server {
 	 */
 	public void deleteRun(String id, UserCredentials credentials) {
 		try {
-			connection.delete(URIUtils.appendToPath(getLink("runs"), id),
+			connection.delete(URIUtils.appendToPath(getLink(Label.RUNS), id),
 					credentials);
 		} catch (AccessForbiddenException e) {
 			if (getRunsFromServer(credentials).containsKey(id)) {
@@ -188,7 +187,7 @@ public final class Server {
 
 	private Map<String, Run> getRunsFromServer(UserCredentials credentials) {
 		// Get this user's run list.
-		String runList = new String(connection.read(getLink("runs"),
+		String runList = new String(connection.read(getLink(Label.RUNS),
 				credentials));
 		Document doc = ParseUtil.parse(runList);
 
@@ -206,7 +205,7 @@ public final class Server {
 		ArrayList<String> ids = new ArrayList<String>();
 		for (Element e : xmlUtils.evalXPath(doc, "//nsr:run")) {
 			id = e.getTextContent().trim();
-			uri = URIUtils.appendToPath(getLink("runs"), id);
+			uri = URIUtils.appendToPath(getLink(Label.RUNS), id);
 			ids.add(id);
 			if (!userRuns.containsKey(id)) {
 				userRuns.put(id, new Run(uri, this, credentials));
@@ -228,51 +227,13 @@ public final class Server {
 		return userRuns;
 	}
 
-	private void getServerInfo() {
-		URI restURI = URIUtils.appendToPath(uri, REST_ENDPOINT);
-		Document doc = ParseUtil.parse(new String(connection
-				.read(restURI, null)));
-		this.version = getServerVersion(doc);
-		this.links = getServerDescription(doc);
-	}
-
-	private float getServerVersion(Document doc) {
-		String version = xmlUtils.evalXPath(doc, "/nsr:serverDescription",
-				"nss:serverVersion");
-
-		if (version.equalsIgnoreCase("")) {
-			return 1.0f;
-		} else {
-			return Float.parseFloat(version.substring(0, 3));
-		}
-	}
-
-	private Map<String, URI> getServerDescription(Document doc) {
-		HashMap<String, URI> links = new HashMap<String, URI>();
-
-		links.put("runs", xmlUtils.evalXPathHref(doc, "//nsr:runs"));
-
-		if (version > 1.0) {
-			URI policy = xmlUtils.evalXPathHref(doc, "//nsr:policy");
-
-			links.put("policy", policy);
-			doc = ParseUtil.parse(new String(connection.read(policy, null)));
-
-			links.put("permlisteners",
-					xmlUtils.evalXPathHref(doc, "//nsr:permittedListenerTypes"));
-
-			links.put("notifications", xmlUtils.evalXPathHref(doc,
-					"//nsr:enabledNotificationFabrics"));
-		} else {
-			links.put("permlisteners",
-					xmlUtils.evalXPathHref(doc, "//nsr:permittedListeners"));
+	private ServerResources getServerResources() {
+		if (resources == null) {
+			URI restURI = URIUtils.appendToPath(uri, REST_ENDPOINT);
+			resources = reader.readServerResources(restURI);
 		}
 
-		links.put("runlimit", xmlUtils.evalXPathHref(doc, "//nsr:runLimit"));
-		links.put("permworkflows",
-				xmlUtils.evalXPathHref(doc, "//nsr:permittedWorkflows"));
-
-		return links;
+		return resources;
 	}
 
 	/**
@@ -320,7 +281,7 @@ public final class Server {
 	 */
 	public int getRunLimit(UserCredentials credentials) {
 		return Integer.parseInt(new String(connection.read(
-				getLink("runlimit"),
+				getLink(Label.RUNLIMIT),
 				credentials)).trim());
 	}
 
@@ -332,7 +293,7 @@ public final class Server {
 	 * @return the id of the new run as returned by the server.
 	 */
 	URI initializeRun(byte[] workflow, UserCredentials credentials) {
-		URI location = connection.create(getLink("runs"), workflow,
+		URI location = connection.create(getLink(Label.RUNS), workflow,
 				"application/vnd.taverna.t2flow+xml", credentials);
 
 		return location;
@@ -527,7 +488,7 @@ public final class Server {
 	 */
 	String getRunDescription(Run run, UserCredentials credentials) {
 		return getRunAttribute(run,
-				URIUtils.appendToPath(getLink("runs"), run.getIdentifier()),
+				URIUtils.appendToPath(getLink(Label.RUNS), run.getIdentifier()),
 				"application/xml", credentials);
 	}
 
@@ -565,11 +526,7 @@ public final class Server {
 		makeRunDir(run.getIdentifier(), root, name, credentials);
 	}
 
-	private URI getLink(String link) {
-		if (this.links == null) {
-			getServerInfo();
-		}
-
-		return links.get(link);
+	private URI getLink(Label key) {
+		return getServerResources().get(key);
 	}
 }
