@@ -73,8 +73,6 @@ final class XmlUtils {
 				"<t2sr:file>%s</t2sr:file>"));
 		fragments.put("upload", "<t2sr:upload xmlns:t2sr=\"" + restNS
 				+ "\" t2sr:name=\"%s\">\n  %s\n</t2sr:upload>");
-		fragments.put("mkdir", "<t2sr:mkdir xmlns:t2sr=\"" + restNS
-				+ "\" t2sr:name=\"%s\" />");
 
 		// initialise compiled queries
 		queries = new HashMap<String, XPathWrapper>();

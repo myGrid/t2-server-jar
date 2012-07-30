@@ -51,6 +51,7 @@ import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.connection.params.ConnectionParams;
 import uk.org.taverna.server.client.xml.Resources.Label;
 import uk.org.taverna.server.client.xml.ResourcesReader;
+import uk.org.taverna.server.client.xml.ResourcesWriter;
 import uk.org.taverna.server.client.xml.ServerResources;
 
 /**
@@ -496,8 +497,7 @@ public final class Server {
 		}
 
 		try {
-			connection.create(root, xmlUtils.buildXMLFragment("mkdir", name)
-					.getBytes(),
+			connection.create(root, ResourcesWriter.mkdir(name),
 					"application/xml", credentials);
 		} catch (AttributeNotFoundException e) {
 			if (getRunsFromServer(credentials).containsKey(id)) {
