@@ -41,6 +41,7 @@ import javax.xml.bind.Marshaller;
 
 import uk.org.taverna.server.client.xml.rest.MakeDirectory;
 import uk.org.taverna.server.client.xml.rest.ObjectFactory;
+import uk.org.taverna.server.client.xml.rest.UploadFile;
 
 public final class ResourcesWriter {
 
@@ -65,6 +66,17 @@ public final class ResourcesWriter {
 
 		ObjectFactory factory = new ObjectFactory();
 		JAXBElement<MakeDirectory> element = factory.createMkdir(md);
+
+		return write(element);
+	}
+
+	public static byte[] upload(String name, byte[] data) {
+		UploadFile uf = new UploadFile();
+		uf.setName(name);
+		uf.setValue(data);
+
+		ObjectFactory factory = new ObjectFactory();
+		JAXBElement<UploadFile> element = factory.createUpload(uf);
 
 		return write(element);
 	}

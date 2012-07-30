@@ -41,7 +41,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.math.LongRange;
 
 import uk.org.taverna.server.client.connection.Connection;
@@ -85,8 +84,6 @@ public final class Server {
 	private final ResourcesReader reader;
 	private ServerResources resources;
 
-	private final XmlUtils xmlUtils;
-
 	/**
 	 * 
 	 * @param uri
@@ -97,7 +94,6 @@ public final class Server {
 		this.uri = URIUtils.stripUserInfo(uri);
 
 		connection = ConnectionFactory.getConnection(this.uri, params);
-		xmlUtils = XmlUtils.getInstance();
 
 		reader = new ResourcesReader(connection);
 		resources = null;
@@ -482,11 +478,8 @@ public final class Server {
 
 	void uploadData(URI location, byte[] data, String remoteName,
 			UserCredentials credentials) {
-		String contents = Base64.encodeBase64String(data);
-
-		connection.create(location,
-				xmlUtils.buildXMLFragment("upload", remoteName, contents)
-				.getBytes(), "application/xml", credentials);
+		connection.create(location, ResourcesWriter.upload(remoteName, data),
+				"application/xml", credentials);
 	}
 
 	void makeRunDir(String id, URI root, String name,

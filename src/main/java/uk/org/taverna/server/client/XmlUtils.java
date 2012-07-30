@@ -71,8 +71,6 @@ final class XmlUtils {
 				"<t2sr:value>%s</t2sr:value>"));
 		fragments.put("inputfile", String.format(fragments.get("input"),
 				"<t2sr:file>%s</t2sr:file>"));
-		fragments.put("upload", "<t2sr:upload xmlns:t2sr=\"" + restNS
-				+ "\" t2sr:name=\"%s\">\n  %s\n</t2sr:upload>");
 
 		// initialise compiled queries
 		queries = new HashMap<String, XPathWrapper>();
@@ -96,10 +94,6 @@ final class XmlUtils {
 
 	String buildXMLFragment(String key, String data) {
 		return String.format(fragments.get(key), data);
-	}
-
-	String buildXMLFragment(String key, String data1, String data2) {
-		return String.format(fragments.get(key), data1, data2);
 	}
 
 	String escapeXML(String data) {
