@@ -58,6 +58,8 @@ import org.w3c.dom.Element;
 
 import uk.org.taverna.server.client.connection.URIUtils;
 import uk.org.taverna.server.client.connection.UserCredentials;
+import uk.org.taverna.server.client.xml.Resources.Label;
+import uk.org.taverna.server.client.xml.RunResources;
 
 /**
  * The Run class represents a workflow run on a Taverna Server instance. It is
@@ -82,7 +84,7 @@ public final class Run {
 	private boolean baclavaIn;
 	private boolean baclavaOut;
 
-	private Map<String, URI> links;
+	private RunResources resources;
 
 	private final XmlUtils xmlUtils;
 
@@ -108,7 +110,7 @@ public final class Run {
 		xmlUtils = XmlUtils.getInstance();
 
 		this.credentials = credentials;
-		links = null;
+		resources = null;
 	}
 
 	/*
@@ -218,7 +220,7 @@ public final class Run {
 	 */
 	public void uploadData(byte[] data, String remoteName,
 			String remoteDirectory) {
-		URI uploadLocation = getLink("wdir");
+		URI uploadLocation = getLink(Label.WDIR);
 		if (remoteDirectory != null) {
 			uploadLocation = URIUtils
 					.appendToPath(uploadLocation, remoteDirectory);
@@ -300,8 +302,8 @@ public final class Run {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
 			uploadData(data, BACLAVA_IN_FILE);
-			server.setRunAttribute(this, getLink("baclava"), BACLAVA_IN_FILE,
-					"text/plain", credentials);
+			server.setRunAttribute(this, getLink(Label.BACLAVA),
+					BACLAVA_IN_FILE, "text/plain", credentials);
 
 			baclavaIn = true;
 		} else {
@@ -331,7 +333,7 @@ public final class Run {
 		if (baclavaIn) {
 			return true;
 		} else {
-			String test = server.getRunAttribute(this, getLink("baclava"),
+			String test = server.getRunAttribute(this, getLink(Label.BACLAVA),
 					"text/plain", credentials);
 
 			// if we get back the baclava input file name we are using it.
@@ -353,7 +355,7 @@ public final class Run {
 		if (baclavaOut) {
 			return true;
 		} else {
-			String test = server.getRunAttribute(this, getLink("output"),
+			String test = server.getRunAttribute(this, getLink(Label.OUTPUT),
 					"text/plain", credentials);
 
 			// if we get back the baclava output file name we are using it.
@@ -377,8 +379,8 @@ public final class Run {
 
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
-			server.setRunAttribute(this, getLink("output"), BACLAVA_OUT_FILE,
-					"text/plain", credentials);
+			server.setRunAttribute(this, getLink(Label.OUTPUT),
+					BACLAVA_OUT_FILE, "text/plain", credentials);
 
 			baclavaOut = true;
 		} else {
@@ -398,7 +400,7 @@ public final class Run {
 	public byte[] getBaclavaOutput() {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.FINISHED) {
-			URI baclavaLink = URIUtils.appendToPath(getLink("wdir"),
+			URI baclavaLink = URIUtils.appendToPath(getLink(Label.WDIR),
 					BACLAVA_OUT_FILE);
 			if (!baclavaOut) {
 				throw new AttributeNotFoundException(baclavaLink);
@@ -428,7 +430,7 @@ public final class Run {
 	public InputStream getBaclavaOutputStream() {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.FINISHED) {
-			URI baclavaLink = URIUtils.appendToPath(getLink("wdir"),
+			URI baclavaLink = URIUtils.appendToPath(getLink(Label.WDIR),
 					BACLAVA_OUT_FILE);
 			if (!baclavaOut) {
 				throw new AttributeNotFoundException(baclavaLink);
@@ -481,8 +483,8 @@ public final class Run {
 	 * @return the status of this Run.
 	 */
 	public RunStatus getStatus() {
-		return RunStatus.state(server.getRunAttribute(this, getLink("status"),
-				"text/plain", credentials));
+		return RunStatus.state(server.getRunAttribute(this,
+				getLink(Label.STATUS), "text/plain", credentials));
 	}
 
 	/**
@@ -529,7 +531,7 @@ public final class Run {
 			setAllInputs();
 		}
 
-		server.setRunAttribute(this, getLink("status"),
+		server.setRunAttribute(this, getLink(Label.STATUS),
 				RunStatus.RUNNING.status(), "text/plain", credentials);
 	}
 
@@ -540,7 +542,7 @@ public final class Run {
 	 */
 	public byte[] getWorkflow() {
 		if (workflow == null) {
-			workflow = server.getRunData(this, getLink("workflow"),
+			workflow = server.getRunData(this, getLink(Label.WORKFLOW),
 					"application/xml", credentials);
 		}
 
@@ -553,7 +555,7 @@ public final class Run {
 	 * @return the expiry time of this Run as a Date object.
 	 */
 	public Date getExpiry() {
-		return getTime("expiry");
+		return getTime(Label.EXPIRY);
 	}
 
 	/**
@@ -566,8 +568,8 @@ public final class Run {
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(time);
 		String expiry = DatatypeConverter.printDateTime(cal);
-		server.setRunAttribute(this, getLink("expiry"), expiry, "text/plain",
-				credentials);
+		server.setRunAttribute(this, getLink(Label.EXPIRY), expiry,
+				"text/plain", credentials);
 	}
 
 	/**
@@ -584,8 +586,8 @@ public final class Run {
 	 * @return the return code of the underlying Taverna Server process.
 	 */
 	public int getExitCode() {
-		return new Integer(server.getRunAttribute(this, getLink("exitcode"),
-				"text/plain", credentials));
+		return new Integer(server.getRunAttribute(this,
+				getLink(Label.EXITCODE), "text/plain", credentials));
 	}
 
 	/**
@@ -594,8 +596,8 @@ public final class Run {
 	 * @return the console output of the underlying Taverna Server process.
 	 */
 	public String getConsoleOutput() {
-		return server.getRunAttribute(this, getLink("stdout"), "text/plain",
-				credentials);
+		return server.getRunAttribute(this, getLink(Label.STDOUT),
+				"text/plain", credentials);
 	}
 
 	/**
@@ -604,8 +606,8 @@ public final class Run {
 	 * @return the console errors of the underlying Taverna Server process.
 	 */
 	public String getConsoleError() {
-		return server.getRunAttribute(this, getLink("stderr"), "text/plain",
-				credentials);
+		return server.getRunAttribute(this, getLink(Label.STDERR),
+				"text/plain", credentials);
 	}
 
 	/**
@@ -614,7 +616,7 @@ public final class Run {
 	 * @return the time that this Run was created.
 	 */
 	public Date getCreateTime() {
-		return getTime("createtime");
+		return getTime(Label.CREATE_TIME);
 	}
 
 	/**
@@ -623,7 +625,7 @@ public final class Run {
 	 * @return the time that this Run was started.
 	 */
 	public Date getStartTime() {
-		return getTime("starttime");
+		return getTime(Label.START_TIME);
 	}
 
 	/**
@@ -632,10 +634,10 @@ public final class Run {
 	 * @return the time that this Run finished.
 	 */
 	public Date getFinishTime() {
-		return getTime("finishtime");
+		return getTime(Label.FINISH_TIME);
 	}
 
-	private Date getTime(String time) {
+	private Date getTime(Label time) {
 		String dateTime = server.getRunAttribute(this, getLink(time),
 				"text/plain", credentials);
 		Calendar cal = DatatypeConverter.parseDateTime(dateTime);
@@ -657,7 +659,7 @@ public final class Run {
 	public InputStream getOutputZipStream() {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.FINISHED) {
-			URI uri = URIUtils.appendToPath(getLink("wdir"), "out");
+			URI uri = URIUtils.appendToPath(getLink(Label.WDIR), "out");
 
 			return server.getDataStream(uri, "application/zip", null,
 					credentials);
@@ -699,10 +701,10 @@ public final class Run {
 			String leaf = dir.substring(lastSlash + 1, dir.length());
 			String path = dir.substring(0, lastSlash);
 			server.makeRunDir(this,
-					URIUtils.appendToPath(getLink("wdir"), path), leaf,
+					URIUtils.appendToPath(getLink(Label.WDIR), path), leaf,
 					credentials);
 		} else {
-			server.makeRunDir(this, getLink("wdir"), dir, credentials);
+			server.makeRunDir(this, getLink(Label.WDIR), dir, credentials);
 		}
 	}
 
@@ -738,7 +740,7 @@ public final class Run {
 	}
 
 	private void setInputPort(InputPort port) {
-		URI path = URIUtils.appendToPath(getLink("inputs"),
+		URI path = URIUtils.appendToPath(getLink(Label.INPUT),
 				"/input/" + port.getName());
 		String value;
 
@@ -754,62 +756,20 @@ public final class Run {
 				credentials);
 	}
 
-	private Map<String, URI> getRunDescription(UserCredentials credentials) {
-		HashMap<String, URI> links = new HashMap<String, URI>();
+	private RunResources getRunResources() {
+		if (resources == null) {
+			resources = server.getResourcesReader().readRunResources(uri,
+					credentials);
+		}
 
-		// parse out the simple stuff
-		String description = server.getRunDescription(this, credentials);
-		Document doc = ParseUtil.parse(description);
-
-		links.put("expiry",
-				xmlUtils.evalXPathHref(doc, "//nsr:expiry"));
-		links.put("workflow",
-				xmlUtils.evalXPathHref(doc, "//nsr:creationWorkflow"));
-		links.put("status",
-				xmlUtils.evalXPathHref(doc, "//nsr:status"));
-		links.put("createtime",
-				xmlUtils.evalXPathHref(doc, "//nsr:createTime"));
-		links.put("starttime",
-				xmlUtils.evalXPathHref(doc, "//nsr:startTime"));
-		links.put("finishtime",
-				xmlUtils.evalXPathHref(doc, "//nsr:finishTime"));
-		links.put("wdir",
-				xmlUtils.evalXPathHref(doc, "//nsr:workingDirectory"));
-		links.put("inputs",
-				xmlUtils.evalXPathHref(doc, "//nsr:inputs"));
-		links.put("output",
-				xmlUtils.evalXPathHref(doc, "//nsr:output"));
-		links.put("securectx",
-				xmlUtils.evalXPathHref(doc, "//nsr:securityContext"));
-		links.put("listeners",
-				xmlUtils.evalXPathHref(doc, "//nsr:listeners"));
-
-		// get the inputs
-		String inputs = server.getRunAttribute(this, links.get("inputs"),
-				"application/xml", credentials);
-		doc = ParseUtil.parse(inputs);
-		links.put("baclava",
-				xmlUtils.evalXPathHref(doc, "//nsr:baclava"));
-		links.put("inputexp",
-				xmlUtils.evalXPathHref(doc, "//nsr:expected"));
-
-		// set io properties
-		links.put("io", URIUtils.appendToPath(links.get("listeners"), "/io"));
-		links.put("stdout",
-				URIUtils.appendToPath(links.get("io"), "/properties/stdout"));
-		links.put("stderr",
-				URIUtils.appendToPath(links.get("io"), "/properties/stderr"));
-		links.put("exitcode",
-				URIUtils.appendToPath(links.get("io"), "/properties/exitcode"));
-
-		return links;
+		return resources;
 	}
 
 	private Map<String, InputPort> getInputPortInfo() {
 		Map<String, InputPort> ports = new HashMap<String, InputPort>();
 
-		String portDesc = server.getRunAttribute(this, getLink("inputexp"),
-				"application/xml", credentials);
+		String portDesc = server.getRunAttribute(this,
+				getLink(Label.EXPECTED_INPUTS), "application/xml", credentials);
 		Document doc = ParseUtil.parse(portDesc);
 
 		for (Element e : xmlUtils.evalXPath(doc, "//port:input")) {
@@ -823,7 +783,7 @@ public final class Run {
 	private Map<String, OutputPort> getOutputPortInfo() {
 		Map<String, OutputPort> ports = new HashMap<String, OutputPort>();
 
-		String portDesc = server.getRunAttribute(this, getLink("output"),
+		String portDesc = server.getRunAttribute(this, getLink(Label.OUTPUT),
 				"application/xml", credentials);
 		Document doc = ParseUtil.parse(portDesc);
 
@@ -859,11 +819,7 @@ public final class Run {
 		}
 	}
 
-	private URI getLink(String link) {
-		if (links == null) {
-			links = getRunDescription(this.credentials);
-		}
-
-		return links.get(link);
+	private URI getLink(Label key) {
+		return getRunResources().get(key);
 	}
 }

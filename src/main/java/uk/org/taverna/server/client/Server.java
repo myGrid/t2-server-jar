@@ -466,16 +466,6 @@ public final class Server {
 		setRunAttribute(run.getIdentifier(), uri, value, type, credentials);
 	}
 
-	/*
-	 * This is a workaround until the connection stuff works with paths as
-	 * opposed to full URIs.
-	 */
-	String getRunDescription(Run run, UserCredentials credentials) {
-		return getRunAttribute(run,
-				URIUtils.appendToPath(getLink(Label.RUNS), run.getIdentifier()),
-				"application/xml", credentials);
-	}
-
 	void uploadData(URI location, byte[] data, String remoteName,
 			UserCredentials credentials) {
 		connection.create(location, ResourcesWriter.upload(remoteName, data),
@@ -504,6 +494,10 @@ public final class Server {
 	void makeRunDir(Run run, URI root, String name,
 			UserCredentials credentials) throws IOException {
 		makeRunDir(run.getIdentifier(), root, name, credentials);
+	}
+
+	ResourcesReader getResourcesReader() {
+		return reader;
 	}
 
 	private URI getLink(Label key) {

@@ -39,18 +39,25 @@ import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.io.IOUtils;
 
 import uk.org.taverna.server.client.connection.Connection;
+import uk.org.taverna.server.client.connection.URIUtils;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.xml.Resources.Label;
+import uk.org.taverna.server.client.xml.rest.ListenerDescription;
+import uk.org.taverna.server.client.xml.rest.Location;
 import uk.org.taverna.server.client.xml.rest.PolicyDescription;
+import uk.org.taverna.server.client.xml.rest.PropertyDescription;
+import uk.org.taverna.server.client.xml.rest.RunDescription;
 import uk.org.taverna.server.client.xml.rest.RunList;
 import uk.org.taverna.server.client.xml.rest.ServerDescription;
 import uk.org.taverna.server.client.xml.rest.TavernaRun;
+import uk.org.taverna.server.client.xml.rest.TavernaRunInputs;
 
 public final class ResourcesReader {
 
@@ -120,5 +127,50 @@ public final class ResourcesReader {
 		}
 
 		return runs;
+	}
+
+	public RunResources readRunResources(URI uri, UserCredentials credentials) {
+		Map<Label, URI> links = new HashMap<Label, URI>();
+
+		// Read run top-level description.
+		RunDescription rd = (RunDescription) read(uri, credentials);
+		String owner = rd.getOwner();
+		links.put(Label.WORKFLOW, rd.getCreationWorkflow().getHref());
+		links.put(Label.CREATE_TIME, rd.getCreateTime().getHref());
+		links.put(Label.START_TIME, rd.getStartTime().getHref());
+		links.put(Label.FINISH_TIME, rd.getFinishTime().getHref());
+		links.put(Label.STATUS, rd.getStatus().getHref());
+		links.put(Label.INPUT, rd.getInputs().getHref());
+		links.put(Label.OUTPUT, rd.getOutput().getHref());
+		links.put(Label.WDIR, rd.getWorkingDirectory().getHref());
+		links.put(Label.EXPIRY, rd.getExpiry().getHref());
+
+		// Read the inputs description.
+		JAXBElement<?> root = (JAXBElement<?>) read(links.get(Label.INPUT),
+				credentials);
+		TavernaRunInputs tri = (TavernaRunInputs) root.getValue();
+		links.put(Label.BACLAVA, tri.getBaclava().getHref());
+		links.put(Label.EXPECTED_INPUTS, tri.getExpected().getHref());
+
+		// Read the special IO listeners - this is kind of hard-coded for now.
+		for (Location loc : rd.getListeners().getListener()) {
+			URI u = loc.getHref();
+			if (URIUtils.extractFinalPathComponent(u).equalsIgnoreCase("io")) {
+				root = (JAXBElement<?>) read(u, credentials);
+				ListenerDescription ld = (ListenerDescription) root.getValue();
+
+				for (PropertyDescription pd : ld.getProperties().getProperty()) {
+					if (pd.getName().equalsIgnoreCase("stdout")) {
+						links.put(Label.STDOUT, pd.getHref());
+					} else if (pd.getName().equalsIgnoreCase("stderr")) {
+						links.put(Label.STDERR, pd.getHref());
+					} else if (pd.getName().equalsIgnoreCase("exitcode")) {
+						links.put(Label.EXITCODE, pd.getHref());
+					}
+				}
+			}
+		}
+
+		return new RunResources(links, owner);
 	}
 }
