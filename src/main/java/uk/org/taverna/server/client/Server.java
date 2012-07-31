@@ -49,8 +49,8 @@ import uk.org.taverna.server.client.connection.URIUtils;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.connection.params.ConnectionParams;
 import uk.org.taverna.server.client.xml.Resources.Label;
-import uk.org.taverna.server.client.xml.ResourcesReader;
-import uk.org.taverna.server.client.xml.ResourcesWriter;
+import uk.org.taverna.server.client.xml.XMLReader;
+import uk.org.taverna.server.client.xml.XMLWriter;
 import uk.org.taverna.server.client.xml.ServerResources;
 
 /**
@@ -81,7 +81,7 @@ public final class Server {
 	private final URI uri;
 	private final Map<String, Map<String, Run>> runs;
 
-	private final ResourcesReader reader;
+	private final XMLReader reader;
 	private ServerResources resources;
 
 	/**
@@ -95,7 +95,7 @@ public final class Server {
 
 		connection = ConnectionFactory.getConnection(this.uri, params);
 
-		reader = new ResourcesReader(connection);
+		reader = new XMLReader(connection);
 		resources = null;
 
 		// initialise run list
@@ -482,7 +482,7 @@ public final class Server {
 
 	void uploadData(URI location, byte[] data, String remoteName,
 			UserCredentials credentials) {
-		connection.create(location, ResourcesWriter.upload(remoteName, data),
+		connection.create(location, XMLWriter.upload(remoteName, data),
 				"application/xml", credentials);
 	}
 
@@ -494,7 +494,7 @@ public final class Server {
 		}
 
 		try {
-			connection.create(root, ResourcesWriter.mkdir(name),
+			connection.create(root, XMLWriter.mkdir(name),
 					"application/xml", credentials);
 		} catch (AttributeNotFoundException e) {
 			if (getRunsFromServer(credentials).containsKey(id)) {
@@ -510,7 +510,7 @@ public final class Server {
 		makeRunDir(run.getIdentifier(), root, name, credentials);
 	}
 
-	ResourcesReader getResourcesReader() {
+	XMLReader getXMLReader() {
 		return reader;
 	}
 

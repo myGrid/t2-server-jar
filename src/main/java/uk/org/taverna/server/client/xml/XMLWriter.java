@@ -45,7 +45,7 @@ import uk.org.taverna.server.client.xml.rest.MakeDirectory;
 import uk.org.taverna.server.client.xml.rest.ObjectFactory;
 import uk.org.taverna.server.client.xml.rest.UploadFile;
 
-public final class ResourcesWriter {
+public final class XMLWriter {
 
 	static byte[] write(JAXBElement<?> element) {
 		ByteArrayOutputStream os = new ByteArrayOutputStream();

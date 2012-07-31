@@ -65,13 +65,13 @@ import uk.org.taverna.server.client.xml.rest.ServerDescription;
 import uk.org.taverna.server.client.xml.rest.TavernaRun;
 import uk.org.taverna.server.client.xml.rest.TavernaRunInputs;
 
-public final class ResourcesReader {
+public final class XMLReader {
 
 	private final static String CTX_PATH = "uk.org.taverna.server.client.xml.rest:uk.org.taverna.server.client.xml.port";
 
 	private final Connection connection;
 
-	public ResourcesReader(Connection connection) {
+	public XMLReader(Connection connection) {
 		this.connection = connection;
 	}
 

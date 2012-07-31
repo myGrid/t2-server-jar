@@ -54,9 +54,9 @@ import org.apache.commons.lang.math.LongRange;
 import uk.org.taverna.server.client.connection.URIUtils;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.xml.Resources.Label;
-import uk.org.taverna.server.client.xml.ResourcesReader;
-import uk.org.taverna.server.client.xml.ResourcesWriter;
 import uk.org.taverna.server.client.xml.RunResources;
+import uk.org.taverna.server.client.xml.XMLReader;
+import uk.org.taverna.server.client.xml.XMLWriter;
 
 /**
  * The Run class represents a workflow run on a Taverna Server instance. It is
@@ -738,9 +738,9 @@ public final class Run {
 		byte[] value;
 
 		if (port.isFile()) {
-			value = ResourcesWriter.inputFile(port.getFile());
+			value = XMLWriter.inputFile(port.getFile());
 		} else {
-			value = ResourcesWriter.inputValue(port.getValue());
+			value = XMLWriter.inputValue(port.getValue());
 		}
 
 		server.setRunAttribute(this, path, value, "application/xml",
@@ -749,22 +749,22 @@ public final class Run {
 
 	private RunResources getRunResources() {
 		if (resources == null) {
-			resources = server.getResourcesReader().readRunResources(uri,
-					credentials);
+			resources = server.getXMLReader()
+					.readRunResources(uri, credentials);
 		}
 
 		return resources;
 	}
 
 	private Map<String, InputPort> getInputPortInfo() {
-		ResourcesReader reader = server.getResourcesReader();
+		XMLReader reader = server.getXMLReader();
 
 		return reader.readInputPortDescription(this,
 				getLink(Label.EXPECTED_INPUTS), credentials);
 	}
 
 	private Map<String, OutputPort> getOutputPortInfo() {
-		ResourcesReader reader = server.getResourcesReader();
+		XMLReader reader = server.getXMLReader();
 
 		return reader.readOutputPortDescription(this, getLink(Label.OUTPUT),
 				credentials);
