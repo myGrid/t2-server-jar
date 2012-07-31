@@ -46,6 +46,7 @@ import javax.xml.bind.Unmarshaller;
 import org.apache.commons.io.IOUtils;
 
 import uk.org.taverna.server.client.InputPort;
+import uk.org.taverna.server.client.OutputPort;
 import uk.org.taverna.server.client.Port;
 import uk.org.taverna.server.client.Run;
 import uk.org.taverna.server.client.connection.Connection;
@@ -53,6 +54,7 @@ import uk.org.taverna.server.client.connection.URIUtils;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.xml.Resources.Label;
 import uk.org.taverna.server.client.xml.port.InputDescription;
+import uk.org.taverna.server.client.xml.port.OutputDescription;
 import uk.org.taverna.server.client.xml.rest.ListenerDescription;
 import uk.org.taverna.server.client.xml.rest.Location;
 import uk.org.taverna.server.client.xml.rest.PolicyDescription;
@@ -187,6 +189,21 @@ public final class ResourcesReader {
 		Map<String, InputPort> ports = new HashMap<String, InputPort>();
 		for (uk.org.taverna.server.client.xml.port.InputPort ip : id.getInput()) {
 			InputPort port = Port.newInputPort(run, ip);
+			ports.put(port.getName(), port);
+		}
+
+		return ports;
+	}
+
+	public Map<String, OutputPort> readOutputPortDescription(Run run, URI uri,
+			UserCredentials credentials) {
+		JAXBElement<?> root = (JAXBElement<?>) read(uri, credentials);
+		OutputDescription id = (OutputDescription) root.getValue();
+
+		Map<String, OutputPort> ports = new HashMap<String, OutputPort>();
+		for (uk.org.taverna.server.client.xml.port.OutputPort ip : id
+				.getOutput()) {
+			OutputPort port = Port.newOutputPort(run, ip);
 			ports.put(port.getName(), port);
 		}
 

@@ -37,14 +37,13 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.sf.practicalxml.util.NodeListIterable;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrBuilder;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
-import uk.org.taverna.server.client.connection.URIUtils;
+import uk.org.taverna.server.client.xml.port.ErrorValue;
+import uk.org.taverna.server.client.xml.port.LeafValue;
+import uk.org.taverna.server.client.xml.port.ListValue;
+import uk.org.taverna.server.client.xml.port.Value;
 
 /**
  * 
@@ -54,15 +53,24 @@ public final class OutputPort extends Port {
 
 	private final PortValue value;
 
-	/**
-	 * 
-	 * @param run
-	 * @param xml
-	 */
-	OutputPort(Run run, Element xml) {
-		super(run, xml);
+	OutputPort(Run run, uk.org.taverna.server.client.xml.port.OutputPort port) {
+		super(run, port.getName(), port.getDepth());
 
-		value = parse((Element) xml.getFirstChild());
+		LeafValue v = port.getValue();
+		ListValue lv = port.getList();
+		ErrorValue ev = port.getError();
+
+		PortValue value = null;
+		if (v != null) {
+			value = new PortData(this, v.getHref(), v.getContentType(),
+					v.getContentByteLength());
+		} else if (lv != null) {
+			value = parse(lv);
+		} else if (ev != null) {
+			value = new PortError(this, ev.getHref());
+		}
+
+		this.value = value;
 	}
 
 	/**
@@ -131,32 +139,45 @@ public final class OutputPort extends Port {
 		return message.toString();
 	}
 
-	private PortValue parse(Element node) {
-		String name = node.getNodeName();
+	/*
+	 * This method has to parse the OutputPort structure by trying to cast to
+	 * each type that a port can be. Not pretty.
+	 * 
+	 * Even though we know that first time through this method we must have a
+	 * list we try to cast to a value first as this is what we will most often
+	 * have.
+	 */
+	private PortValue parse(Value value) {
+		try {
+			LeafValue lv = (LeafValue) value;
 
-		if (name.equalsIgnoreCase("port:value")) {
-			URI ref = URI.create(xmlUtils.getXlinkAttribute(node, "href"));
-			String type = xmlUtils.getPortAttribute(node, "contentType");
-			int size = Integer.parseInt(xmlUtils.getPortAttribute(node,
-					"contentByteLength"));
+			return new PortData(this, lv.getHref(), lv.getContentType(), lv.getContentByteLength());
+		} catch (ClassCastException e) {
+			// Ignore this error and try the next cast!
+		}
 
-			return new PortData(this, ref, type, size);
-		} else if (name.equalsIgnoreCase("port:list")) {
-			// FIXME: This really is faked bad! The XML doc should have the list
-			// ref in it re: http://dev.mygrid.org.uk/issues/browse/TAVSERV-260
-			URI ref = URIUtils.appendToPath(run.getServer().getURI(),
-					"rest/runs/" + run.getIdentifier() + "/wd/" + getName());
+		try {
+			ListValue lv = (ListValue) value;
+
 			List<PortValue> list = new ArrayList<PortValue>();
-			NodeListIterable nodes = new NodeListIterable(node.getChildNodes());
-			for (Node n : nodes) {
-				list.add(parse((Element) n));
+			for (Value v : lv.getValueOrListOrError()) {
+				list.add(parse(v));
 			}
 
-			return new PortList(this, ref, list);
-		} else {
-			URI ref = URI.create(xmlUtils.getXlinkAttribute(node, "href"));
-
-			return new PortError(this, ref);
+			return new PortList(this, lv.getHref(), list);
+		} catch (ClassCastException e) {
+			// Ignore this error and try the next cast!
 		}
+
+		try {
+			ErrorValue ev = (ErrorValue) value;
+
+			return new PortError(this, ev.getHref());
+		} catch (ClassCastException e) {
+			// Hmmm...
+		}
+
+		// We should NOT get here!
+		return null;
 	}
 }

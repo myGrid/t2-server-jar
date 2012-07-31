@@ -42,19 +42,14 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.DatatypeConverter;
 
-import net.sf.practicalxml.ParseUtil;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.math.LongRange;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import uk.org.taverna.server.client.connection.URIUtils;
 import uk.org.taverna.server.client.connection.UserCredentials;
@@ -88,8 +83,6 @@ public final class Run {
 
 	private RunResources resources;
 
-	private final XmlUtils xmlUtils;
-
 	private final UserCredentials credentials;
 
 	// Ports
@@ -108,8 +101,6 @@ public final class Run {
 		this.workflow = workflow;
 		this.baclavaIn = false;
 		this.baclavaOut = false;
-
-		xmlUtils = XmlUtils.getInstance();
 
 		this.credentials = credentials;
 		resources = null;
@@ -773,18 +764,10 @@ public final class Run {
 	}
 
 	private Map<String, OutputPort> getOutputPortInfo() {
-		Map<String, OutputPort> ports = new HashMap<String, OutputPort>();
+		ResourcesReader reader = server.getResourcesReader();
 
-		String portDesc = server.getRunAttribute(this, getLink(Label.OUTPUT),
-				"application/xml", credentials);
-		Document doc = ParseUtil.parse(portDesc);
-
-		for (Element e : xmlUtils.evalXPath(doc, "//port:output")) {
-			OutputPort port = new OutputPort(this, e);
-			ports.put(port.getName(), port);
-		}
-
-		return ports;
+		return reader.readOutputPortDescription(this, getLink(Label.OUTPUT),
+				credentials);
 	}
 
 	byte[] getOutputData(URI uri, LongRange range) {

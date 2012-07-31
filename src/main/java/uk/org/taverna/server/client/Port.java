@@ -32,7 +32,6 @@
 
 package uk.org.taverna.server.client;
 
-import org.w3c.dom.Element;
 
 /**
  * 
@@ -44,17 +43,7 @@ public abstract class Port {
 	protected final String name;
 	protected final int depth;
 
-	protected final XmlUtils xmlUtils;
-
-	protected Port(Run run, Element xml) {
-		this.xmlUtils = XmlUtils.getInstance();
-		this.run = run;
-		this.name = xmlUtils.getPortAttribute(xml, "name");
-		this.depth = Integer.parseInt(xmlUtils.getPortAttribute(xml, "depth"));
-	}
-
 	protected Port(Run run, String name, int depth) {
-		this.xmlUtils = XmlUtils.getInstance();
 		this.run = run;
 		this.name = name;
 		this.depth = depth;
@@ -63,6 +52,11 @@ public abstract class Port {
 	public static InputPort newInputPort(Run run,
 			uk.org.taverna.server.client.xml.port.InputPort port) {
 		return new InputPort(run, port);
+	}
+
+	public static OutputPort newOutputPort(Run run,
+			uk.org.taverna.server.client.xml.port.OutputPort port) {
+		return new OutputPort(run, port);
 	}
 
 	public Run getRun() {
