@@ -99,7 +99,8 @@ public class PortData extends PortValue {
 
 	@Override
 	public byte[] getData() {
-		return getData(new LongRange(0, 12));
+		// LongRange is inclusive so size is too long by one.
+		return getData(new LongRange(0, (size - 1)));
 	}
 
 	@Override
