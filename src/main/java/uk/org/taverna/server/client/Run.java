@@ -59,6 +59,7 @@ import org.w3c.dom.Element;
 import uk.org.taverna.server.client.connection.URIUtils;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.xml.Resources.Label;
+import uk.org.taverna.server.client.xml.ResourcesWriter;
 import uk.org.taverna.server.client.xml.RunResources;
 
 /**
@@ -742,14 +743,12 @@ public final class Run {
 	private void setInputPort(InputPort port) {
 		URI path = URIUtils.appendToPath(getLink(Label.INPUT),
 				"/input/" + port.getName());
-		String value;
+		byte[] value;
 
 		if (port.isFile()) {
-			String payload = xmlUtils.escapeXML(port.getFile().getPath());
-			value = xmlUtils.buildXMLFragment("inputfile", payload);
+			value = ResourcesWriter.inputFile(port.getFile());
 		} else {
-			String payload = xmlUtils.escapeXML(port.getValue());
-			value = xmlUtils.buildXMLFragment("inputvalue", payload);
+			value = ResourcesWriter.inputValue(port.getValue());
 		}
 
 		server.setRunAttribute(this, path, value, "application/xml",

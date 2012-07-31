@@ -466,6 +466,20 @@ public final class Server {
 		setRunAttribute(run.getIdentifier(), uri, value, type, credentials);
 	}
 
+	public void setRunAttribute(Run run, URI uri, byte[] value, String type,
+			UserCredentials credentials) {
+		String id = run.getIdentifier();
+		try {
+			connection.update(uri, value, type, credentials);
+		} catch (AttributeNotFoundException e) {
+			if (getRunsFromServer(credentials).containsKey(id)) {
+				throw e;
+			} else {
+				throw new RunNotFoundException(id);
+			}
+		}
+	}
+
 	void uploadData(URI location, byte[] data, String remoteName,
 			UserCredentials credentials) {
 		connection.create(location, ResourcesWriter.upload(remoteName, data),

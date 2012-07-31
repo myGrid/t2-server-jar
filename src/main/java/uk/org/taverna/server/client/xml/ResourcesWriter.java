@@ -33,12 +33,14 @@
 package uk.org.taverna.server.client.xml;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
+import uk.org.taverna.server.client.xml.rest.InputDescription;
 import uk.org.taverna.server.client.xml.rest.MakeDirectory;
 import uk.org.taverna.server.client.xml.rest.ObjectFactory;
 import uk.org.taverna.server.client.xml.rest.UploadFile;
@@ -77,6 +79,32 @@ public final class ResourcesWriter {
 
 		ObjectFactory factory = new ObjectFactory();
 		JAXBElement<UploadFile> element = factory.createUpload(uf);
+
+		return write(element);
+	}
+
+	public static byte[] inputValue(String value) {
+		InputDescription.Value idv = new InputDescription.Value();
+		idv.setValue(value);
+
+		InputDescription id = new InputDescription();
+		id.setValue(idv);
+
+		ObjectFactory factory = new ObjectFactory();
+		JAXBElement<InputDescription> element = factory.createRunInput(id);
+
+		return write(element);
+	}
+
+	public static byte[] inputFile(File file) {
+		InputDescription.File idf = new InputDescription.File();
+		idf.setValue(file.getPath());
+
+		InputDescription id = new InputDescription();
+		id.setFile(idf);
+
+		ObjectFactory factory = new ObjectFactory();
+		JAXBElement<InputDescription> element = factory.createRunInput(id);
 
 		return write(element);
 	}

@@ -59,19 +59,9 @@ final class XmlUtils {
 	private static final String portNS = "http://ns.taverna.org.uk/2010/port/";
 	private static final String xlinkNS = "http://www.w3.org/1999/xlink";
 
-	private final Map<String, String> fragments;
 	private final Map<String, XPathWrapper> queries;
 
 	private XmlUtils() {
-		// set up message fragments
-		fragments = new HashMap<String, String>();
-		fragments.put("input", "<t2sr:runInput xmlns:t2sr=\"" + restNS
-				+ "\">\n  %s\n</t2sr:runInput>");
-		fragments.put("inputvalue", String.format(fragments.get("input"),
-				"<t2sr:value>%s</t2sr:value>"));
-		fragments.put("inputfile", String.format(fragments.get("input"),
-				"<t2sr:file>%s</t2sr:file>"));
-
 		// initialise compiled queries
 		queries = new HashMap<String, XPathWrapper>();
 	}
@@ -90,10 +80,6 @@ final class XmlUtils {
 
 	URI evalXPathHref(Document doc, String expr) {
 		return URI.create(evalXPath(doc, expr, "xlink:href"));
-	}
-
-	String buildXMLFragment(String key, String data) {
-		return String.format(fragments.get(key), data);
 	}
 
 	String escapeXML(String data) {
