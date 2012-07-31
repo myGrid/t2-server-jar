@@ -35,8 +35,6 @@ package uk.org.taverna.server.client;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-import org.w3c.dom.Element;
-
 /**
  * 
  * @author Robert Haines
@@ -48,8 +46,8 @@ public final class InputPort extends Port {
 	private String filename;
 	private boolean remoteFile;
 
-	InputPort(Run run, Element xml) {
-		super(run, xml);
+	InputPort(Run run, uk.org.taverna.server.client.xml.port.InputPort port) {
+		super(run, port.getName(), port.getDepth());
 
 		value = null;
 		filename = null;

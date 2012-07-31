@@ -59,6 +59,7 @@ import org.w3c.dom.Element;
 import uk.org.taverna.server.client.connection.URIUtils;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.xml.Resources.Label;
+import uk.org.taverna.server.client.xml.ResourcesReader;
 import uk.org.taverna.server.client.xml.ResourcesWriter;
 import uk.org.taverna.server.client.xml.RunResources;
 
@@ -765,18 +766,10 @@ public final class Run {
 	}
 
 	private Map<String, InputPort> getInputPortInfo() {
-		Map<String, InputPort> ports = new HashMap<String, InputPort>();
+		ResourcesReader reader = server.getResourcesReader();
 
-		String portDesc = server.getRunAttribute(this,
-				getLink(Label.EXPECTED_INPUTS), "application/xml", credentials);
-		Document doc = ParseUtil.parse(portDesc);
-
-		for (Element e : xmlUtils.evalXPath(doc, "//port:input")) {
-			InputPort port = new InputPort(this, e);
-			ports.put(port.getName(), port);
-		}
-
-		return ports;
+		return reader.readInputPortDescription(this,
+				getLink(Label.EXPECTED_INPUTS), credentials);
 	}
 
 	private Map<String, OutputPort> getOutputPortInfo() {

@@ -53,6 +53,18 @@ public abstract class Port {
 		this.depth = Integer.parseInt(xmlUtils.getPortAttribute(xml, "depth"));
 	}
 
+	protected Port(Run run, String name, int depth) {
+		this.xmlUtils = XmlUtils.getInstance();
+		this.run = run;
+		this.name = name;
+		this.depth = depth;
+	}
+
+	public static InputPort newInputPort(Run run,
+			uk.org.taverna.server.client.xml.port.InputPort port) {
+		return new InputPort(run, port);
+	}
+
 	public Run getRun() {
 		return run;
 	}

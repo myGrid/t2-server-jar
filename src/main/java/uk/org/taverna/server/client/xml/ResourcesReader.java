@@ -45,10 +45,14 @@ import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.io.IOUtils;
 
+import uk.org.taverna.server.client.InputPort;
+import uk.org.taverna.server.client.Port;
+import uk.org.taverna.server.client.Run;
 import uk.org.taverna.server.client.connection.Connection;
 import uk.org.taverna.server.client.connection.URIUtils;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.xml.Resources.Label;
+import uk.org.taverna.server.client.xml.port.InputDescription;
 import uk.org.taverna.server.client.xml.rest.ListenerDescription;
 import uk.org.taverna.server.client.xml.rest.Location;
 import uk.org.taverna.server.client.xml.rest.PolicyDescription;
@@ -60,6 +64,8 @@ import uk.org.taverna.server.client.xml.rest.TavernaRun;
 import uk.org.taverna.server.client.xml.rest.TavernaRunInputs;
 
 public final class ResourcesReader {
+
+	private final static String CTX_PATH = "uk.org.taverna.server.client.xml.rest:uk.org.taverna.server.client.xml.port";
 
 	private final Connection connection;
 
@@ -73,8 +79,7 @@ public final class ResourcesReader {
 				credentials);
 
 		try {
-			JAXBContext context = JAXBContext
-					.newInstance("uk.org.taverna.server.client.xml.rest");
+			JAXBContext context = JAXBContext.newInstance(CTX_PATH);
 			Unmarshaller unmarshaller = context.createUnmarshaller();
 			resources = unmarshaller.unmarshal(is);
 		} catch (JAXBException e) {
@@ -172,5 +177,19 @@ public final class ResourcesReader {
 		}
 
 		return new RunResources(links, owner);
+	}
+
+	public Map<String, InputPort> readInputPortDescription(Run run, URI uri,
+			UserCredentials credentials) {
+		JAXBElement<?> root = (JAXBElement<?>) read(uri, credentials);
+		InputDescription id = (InputDescription) root.getValue();
+
+		Map<String, InputPort> ports = new HashMap<String, InputPort>();
+		for (uk.org.taverna.server.client.xml.port.InputPort ip : id.getInput()) {
+			InputPort port = Port.newInputPort(run, ip);
+			ports.put(port.getName(), port);
+		}
+
+		return ports;
 	}
 }
