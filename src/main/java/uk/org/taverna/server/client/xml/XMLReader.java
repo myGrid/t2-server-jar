@@ -50,6 +50,7 @@ import uk.org.taverna.server.client.OutputPort;
 import uk.org.taverna.server.client.Port;
 import uk.org.taverna.server.client.Run;
 import uk.org.taverna.server.client.connection.Connection;
+import uk.org.taverna.server.client.connection.MimeType;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.util.URIUtils;
 import uk.org.taverna.server.client.xml.Resources.Label;
@@ -77,8 +78,7 @@ public final class XMLReader {
 
 	public Object read(URI uri, UserCredentials credentials) {
 		Object resources = null;
-		InputStream is = connection.readStream(uri, "application/xml",
-				credentials);
+		InputStream is = connection.readStream(uri, MimeType.XML, credentials);
 
 		try {
 			JAXBContext context = JAXBContext.newInstance(CTX_PATH);

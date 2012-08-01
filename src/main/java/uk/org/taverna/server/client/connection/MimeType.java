@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012 The University of Manchester, UK.
+ * Copyright (c) 2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -32,44 +32,23 @@
 
 package uk.org.taverna.server.client.connection;
 
-import java.io.InputStream;
-import java.net.URI;
-
-import org.apache.commons.lang.math.LongRange;
-
 /**
+ * Internal mime-type mappings so that we don't pass around bare strings.
+ * 
+ * <b>Note:</b> These are not intended for use outside of this library. It is
+ * not a complete list and names have been shortened for convenience.
  * 
  * @author Robert Haines
  */
-public interface Connection {
-	public InputStream readStream(URI uri, MimeType type, LongRange range,
-			UserCredentials credentials);
+public enum MimeType {
 
-	public InputStream readStream(URI uri, MimeType type,
-			UserCredentials credentials);
+	ANY("*/*"), BYTES("application/octet-stream"), T2FLOW(
+			"application/vnd.taverna.t2flow+xml"), TEXT("text/plain"), XML(
+					"application/xml"), ZIP("application/zip");
 
-	public byte[] read(URI uri, MimeType type, LongRange range,
-			UserCredentials credentials);
+	public final String contentType;
 
-	public byte[] read(URI uri, MimeType type, UserCredentials credentials);
-
-	public boolean update(URI uri, InputStream content, long length,
-			MimeType type, UserCredentials credentials);
-
-	public boolean update(URI uri, byte[] content, MimeType type,
-			UserCredentials credentials);
-
-	public boolean update(URI uri, InputStream content, MimeType type,
-			UserCredentials credentials);
-
-	public boolean delete(URI uri, UserCredentials credentials);
-
-	public URI create(URI uri, InputStream content, long length, MimeType type,
-			UserCredentials credentials);
-
-	public URI create(URI uri, byte[] content, MimeType type,
-			UserCredentials credentials);
-
-	public URI create(URI uri, InputStream content, MimeType type,
-			UserCredentials credentials);
+	MimeType(String contentType) {
+		this.contentType = contentType;
+	}
 }

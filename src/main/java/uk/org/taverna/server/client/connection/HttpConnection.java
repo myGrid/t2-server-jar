@@ -82,7 +82,7 @@ public class HttpConnection extends AbstractConnection {
 	}
 
 	@Override
-	public URI create(URI uri, InputStream content, long length, String type,
+	public URI create(URI uri, InputStream content, long length, MimeType type,
 			UserCredentials credentials) {
 		HttpPost request = new HttpPost(uri);
 		URI location = null;
@@ -94,7 +94,7 @@ public class HttpConnection extends AbstractConnection {
 		HttpResponse response = null;
 		try {
 			InputStreamEntity entity = new InputStreamEntity(content, length);
-			entity.setContentType(type);
+			entity.setContentType(type.contentType);
 			request.setEntity(entity);
 
 			response = httpClient.execute(request, httpContext);
@@ -119,7 +119,7 @@ public class HttpConnection extends AbstractConnection {
 	}
 
 	@Override
-	public InputStream readStream(URI uri, String type, LongRange range,
+	public InputStream readStream(URI uri, MimeType type, LongRange range,
 			UserCredentials credentials) {
 		HttpEntity entity = get(uri, type, range, credentials);
 
@@ -134,13 +134,13 @@ public class HttpConnection extends AbstractConnection {
 		return stream;
 	}
 
-	private HttpEntity get(URI uri, String type, LongRange range,
+	private HttpEntity get(URI uri, MimeType type, LongRange range,
 			UserCredentials credentials) {
 		HttpGet request = new HttpGet(uri);
 		int success = HttpURLConnection.HTTP_OK;
 
 		if (type != null) {
-			request.addHeader("Accept", type);
+			request.addHeader("Accept", type.contentType);
 		}
 
 		if (range != null) {
@@ -176,7 +176,7 @@ public class HttpConnection extends AbstractConnection {
 	}
 
 	@Override
-	public byte[] read(URI uri, String type, LongRange range,
+	public byte[] read(URI uri, MimeType type, LongRange range,
 			UserCredentials credentials) {
 
 		HttpEntity entity = get(uri, type, range, credentials);
@@ -193,8 +193,7 @@ public class HttpConnection extends AbstractConnection {
 
 	@Override
 	public boolean update(URI uri, InputStream content, long length,
-			String type,
-			UserCredentials credentials) {
+			MimeType type, UserCredentials credentials) {
 		HttpPut request = new HttpPut(uri);
 
 		if (credentials != null) {
@@ -205,7 +204,7 @@ public class HttpConnection extends AbstractConnection {
 		try {
 			// StringEntity entity = new StringEntity(content, "UTF-8");
 			InputStreamEntity entity = new InputStreamEntity(content, length);
-			entity.setContentType(type);
+			entity.setContentType(type.contentType);
 			request.setEntity(entity);
 
 			response = httpClient.execute(request, httpContext);

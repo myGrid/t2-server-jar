@@ -43,38 +43,38 @@ import java.net.URI;
 public abstract class AbstractConnection implements Connection {
 
 	@Override
-	public URI create(URI uri, byte[] content, String type,
+	public URI create(URI uri, byte[] content, MimeType type,
 			UserCredentials credentials) {
 		return create(uri, new ByteArrayInputStream(content), content.length,
 				type, credentials);
 	}
 
 	@Override
-	public URI create(URI uri, InputStream content, String type,
+	public URI create(URI uri, InputStream content, MimeType type,
 			UserCredentials credentials) {
 		return create(uri, content, -1, type, credentials);
 	}
 
 	@Override
-	public InputStream readStream(URI uri, String type,
+	public InputStream readStream(URI uri, MimeType type,
 			UserCredentials credentials) {
 		return readStream(uri, type, null, credentials);
 	}
 
 	@Override
-	public byte[] read(URI uri, String type, UserCredentials credentials) {
+	public byte[] read(URI uri, MimeType type, UserCredentials credentials) {
 		return read(uri, type, null, credentials);
 	}
 
 	@Override
-	public boolean update(URI uri, byte[] content, String type,
+	public boolean update(URI uri, byte[] content, MimeType type,
 			UserCredentials credentials) {
 		return update(uri, new ByteArrayInputStream(content), content.length,
 				type, credentials);
 	}
 
 	@Override
-	public boolean update(URI uri, InputStream content, String type,
+	public boolean update(URI uri, InputStream content, MimeType type,
 			UserCredentials credentials) {
 		return update(uri, content, -1, type, credentials);
 	}

@@ -48,6 +48,7 @@ import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.math.LongRange;
 
+import uk.org.taverna.server.client.connection.MimeType;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.util.IOUtils;
 import uk.org.taverna.server.client.util.URIUtils;
@@ -294,7 +295,7 @@ public final class Run {
 		if (rs == RunStatus.INITIALIZED) {
 			uploadData(data, BACLAVA_IN_FILE);
 			server.setRunAttribute(this, getLink(Label.BACLAVA),
-					BACLAVA_IN_FILE, "text/plain", credentials);
+					BACLAVA_IN_FILE, MimeType.TEXT, credentials);
 
 			baclavaIn = true;
 		} else {
@@ -325,7 +326,7 @@ public final class Run {
 			return true;
 		} else {
 			String test = server.getRunAttribute(this, getLink(Label.BACLAVA),
-					"text/plain", credentials);
+					MimeType.TEXT, credentials);
 
 			// if we get back the baclava input file name we are using it.
 			if (test.equals(BACLAVA_IN_FILE)) {
@@ -347,7 +348,7 @@ public final class Run {
 			return true;
 		} else {
 			String test = server.getRunAttribute(this, getLink(Label.OUTPUT),
-					"text/plain", credentials);
+					MimeType.TEXT, credentials);
 
 			// if we get back the baclava output file name we are using it.
 			if (test.equals(BACLAVA_OUT_FILE)) {
@@ -371,7 +372,7 @@ public final class Run {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
 			server.setRunAttribute(this, getLink(Label.OUTPUT),
-					BACLAVA_OUT_FILE, "text/plain", credentials);
+					BACLAVA_OUT_FILE, MimeType.TEXT, credentials);
 
 			baclavaOut = true;
 		} else {
@@ -397,8 +398,8 @@ public final class Run {
 				throw new AttributeNotFoundException(baclavaLink);
 			}
 
-			return server.getRunData(this, baclavaLink,
-					"application/octet-stream", credentials);
+			return server.getRunData(this, baclavaLink, MimeType.BYTES,
+					credentials);
 		} else {
 			throw new RunStateException(rs, RunStatus.FINISHED);
 		}
@@ -427,8 +428,8 @@ public final class Run {
 				throw new AttributeNotFoundException(baclavaLink);
 			}
 
-			return server.getDataStream(baclavaLink,
-					"application/octet-stream", null, credentials);
+			return server.getDataStream(baclavaLink, MimeType.BYTES, null,
+					credentials);
 		} else {
 			throw new RunStateException(rs, RunStatus.FINISHED);
 		}
@@ -475,7 +476,7 @@ public final class Run {
 	 */
 	public RunStatus getStatus() {
 		return RunStatus.state(server.getRunAttribute(this,
-				getLink(Label.STATUS), "text/plain", credentials));
+				getLink(Label.STATUS), MimeType.TEXT, credentials));
 	}
 
 	/**
@@ -523,7 +524,7 @@ public final class Run {
 		}
 
 		server.setRunAttribute(this, getLink(Label.STATUS),
-				RunStatus.RUNNING.status(), "text/plain", credentials);
+				RunStatus.RUNNING.status(), MimeType.TEXT, credentials);
 	}
 
 	/**
@@ -534,7 +535,7 @@ public final class Run {
 	public byte[] getWorkflow() {
 		if (workflow == null) {
 			workflow = server.getRunData(this, getLink(Label.WORKFLOW),
-					"application/xml", credentials);
+					MimeType.XML, credentials);
 		}
 
 		return workflow;
@@ -560,7 +561,7 @@ public final class Run {
 		cal.setTime(time);
 		String expiry = DatatypeConverter.printDateTime(cal);
 		server.setRunAttribute(this, getLink(Label.EXPIRY), expiry,
-				"text/plain", credentials);
+				MimeType.TEXT, credentials);
 	}
 
 	/**
@@ -578,7 +579,7 @@ public final class Run {
 	 */
 	public int getExitCode() {
 		return new Integer(server.getRunAttribute(this,
-				getLink(Label.EXITCODE), "text/plain", credentials));
+				getLink(Label.EXITCODE), MimeType.TEXT, credentials));
 	}
 
 	/**
@@ -588,7 +589,7 @@ public final class Run {
 	 */
 	public String getConsoleOutput() {
 		return server.getRunAttribute(this, getLink(Label.STDOUT),
-				"text/plain", credentials);
+				MimeType.TEXT, credentials);
 	}
 
 	/**
@@ -598,7 +599,7 @@ public final class Run {
 	 */
 	public String getConsoleError() {
 		return server.getRunAttribute(this, getLink(Label.STDERR),
-				"text/plain", credentials);
+				MimeType.TEXT, credentials);
 	}
 
 	/**
@@ -630,7 +631,7 @@ public final class Run {
 
 	private Date getTime(Label time) {
 		String dateTime = server.getRunAttribute(this, getLink(time),
-				"text/plain", credentials);
+				MimeType.TEXT, credentials);
 		Calendar cal = DatatypeConverter.parseDateTime(dateTime);
 
 		return cal.getTime();
@@ -652,8 +653,7 @@ public final class Run {
 		if (rs == RunStatus.FINISHED) {
 			URI uri = URIUtils.appendToPath(getLink(Label.WDIR), "out");
 
-			return server.getDataStream(uri, "application/zip", null,
-					credentials);
+			return server.getDataStream(uri, MimeType.ZIP, null, credentials);
 		} else {
 			throw new RunStateException(rs, RunStatus.FINISHED);
 		}
@@ -741,8 +741,7 @@ public final class Run {
 			value = XMLWriter.inputValue(port.getValue());
 		}
 
-		server.setRunAttribute(this, path, value, "application/xml",
-				credentials);
+		server.setRunAttribute(this, path, value, MimeType.XML, credentials);
 	}
 
 	private RunResources getRunResources() {
@@ -769,13 +768,11 @@ public final class Run {
 	}
 
 	byte[] getOutputData(URI uri, LongRange range) {
-		return server.getData(uri, "application/octet-stream", range,
-				credentials);
+		return server.getData(uri, MimeType.BYTES, range, credentials);
 	}
 
 	InputStream getOutputDataStream(URI uri, LongRange range) {
-		return server.getDataStream(uri, "application/octet-stream", range,
-				credentials);
+		return server.getDataStream(uri, MimeType.BYTES, range, credentials);
 	}
 
 	private URI getLink(Label key) {

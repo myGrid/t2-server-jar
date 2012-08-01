@@ -45,6 +45,7 @@ import org.apache.commons.lang.math.LongRange;
 
 import uk.org.taverna.server.client.connection.Connection;
 import uk.org.taverna.server.client.connection.ConnectionFactory;
+import uk.org.taverna.server.client.connection.MimeType;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.connection.params.ConnectionParams;
 import uk.org.taverna.server.client.util.URIUtils;
@@ -264,7 +265,7 @@ public final class Server {
 	 * @return the maximum number of run that this server can host concurrently.
 	 */
 	public int getRunLimit(UserCredentials credentials) {
-		byte[] limit = connection.read(getLink(Label.RUNLIMIT), "text/plain",
+		byte[] limit = connection.read(getLink(Label.RUNLIMIT), MimeType.TEXT,
 				credentials);
 
 		return Integer.parseInt(new String(limit).trim());
@@ -279,7 +280,7 @@ public final class Server {
 	 */
 	URI initializeRun(byte[] workflow, UserCredentials credentials) {
 		URI location = connection.create(getLink(Label.RUNS), workflow,
-				"application/vnd.taverna.t2flow+xml", credentials);
+				MimeType.T2FLOW, credentials);
 
 		return location;
 	}
@@ -307,12 +308,12 @@ public final class Server {
 		return Run.create(this, workflow, credentials);
 	}
 
-	byte[] getData(URI uri, String type, LongRange range,
+	byte[] getData(URI uri, MimeType type, LongRange range,
 			UserCredentials credentials) {
 		return connection.read(uri, type, range, credentials);
 	}
 
-	InputStream getDataStream(URI uri, String type, LongRange range,
+	InputStream getDataStream(URI uri, MimeType type, LongRange range,
 			UserCredentials credentials) {
 		return connection.readStream(uri, type, range, credentials);
 	}
@@ -328,7 +329,7 @@ public final class Server {
 	 *            the mime type of the attribute being retrieved.
 	 * @return the data associated with the attribute.
 	 */
-	public byte[] getRunData(String id, URI uri, String type,
+	public byte[] getRunData(String id, URI uri, MimeType type,
 			UserCredentials credentials) {
 		return getRunData(id, uri, type, null, credentials);
 	}
@@ -346,8 +347,8 @@ public final class Server {
 	 * @param credentials
 	 * @return the data associated with the attribute.
 	 */
-	public byte[] getRunData(String id, URI uri, String type, LongRange range,
-			UserCredentials credentials) {
+	public byte[] getRunData(String id, URI uri, MimeType type,
+			LongRange range, UserCredentials credentials) {
 		try {
 			return connection.read(uri, type, range, credentials);
 		} catch (AttributeNotFoundException e) {
@@ -370,7 +371,7 @@ public final class Server {
 	 *            the mime type of the attribute being retrieved.
 	 * @return the data associated with the attribute.
 	 */
-	public byte[] getRunData(Run run, URI uri, String type,
+	public byte[] getRunData(Run run, URI uri, MimeType type,
 			UserCredentials credentials) {
 		return getRunData(run.getIdentifier(), uri, type, credentials);
 	}
@@ -384,7 +385,7 @@ public final class Server {
 	 * @param credentials
 	 * @return
 	 */
-	public byte[] getRunData(Run run, URI uri, String type, LongRange range,
+	public byte[] getRunData(Run run, URI uri, MimeType type, LongRange range,
 			UserCredentials credentials) {
 		return getRunData(run.getIdentifier(), uri, type, range, credentials);
 	}
@@ -400,7 +401,7 @@ public final class Server {
 	 *            the mime type of the attribute being retrieved.
 	 * @return the attribute as a String.
 	 */
-	public String getRunAttribute(String id, URI uri, String type,
+	public String getRunAttribute(String id, URI uri, MimeType type,
 			UserCredentials credentials) {
 		return new String(getRunData(id, uri, type, credentials));
 	}
@@ -416,7 +417,7 @@ public final class Server {
 	 *            the mime type of the attribute being retrieved.
 	 * @return the attribute as a String.
 	 */
-	public String getRunAttribute(Run run, URI uri, String type,
+	public String getRunAttribute(Run run, URI uri, MimeType type,
 			UserCredentials credentials) {
 		return new String(getRunData(run.getIdentifier(), uri, type, credentials));
 	}
@@ -436,7 +437,7 @@ public final class Server {
 	 *            the user credentials to use for authorization.
 	 */
 	public void setRunAttribute(String id, URI uri, String value,
-			String type, UserCredentials credentials) {
+			MimeType type, UserCredentials credentials) {
 		try {
 			connection.update(uri, value.getBytes(), type, credentials);
 		} catch (AttributeNotFoundException e) {
@@ -462,12 +463,12 @@ public final class Server {
 	 * @param credentials
 	 *            the user credentials to use for authorization.
 	 */
-	public void setRunAttribute(Run run, URI uri, String value, String type,
+	public void setRunAttribute(Run run, URI uri, String value, MimeType type,
 			UserCredentials credentials) {
 		setRunAttribute(run.getIdentifier(), uri, value, type, credentials);
 	}
 
-	public void setRunAttribute(Run run, URI uri, byte[] value, String type,
+	public void setRunAttribute(Run run, URI uri, byte[] value, MimeType type,
 			UserCredentials credentials) {
 		String id = run.getIdentifier();
 		try {
@@ -484,7 +485,7 @@ public final class Server {
 	void uploadData(URI location, byte[] data, String remoteName,
 			UserCredentials credentials) {
 		connection.create(location, XMLWriter.upload(remoteName, data),
-				"application/xml", credentials);
+				MimeType.XML, credentials);
 	}
 
 	void makeRunDir(String id, URI root, String name,
@@ -496,7 +497,8 @@ public final class Server {
 
 		try {
 			connection.create(root, XMLWriter.mkdir(name),
-					"application/xml", credentials);
+					MimeType.XML,
+					credentials);
 		} catch (AttributeNotFoundException e) {
 			if (getRunsFromServer(credentials).containsKey(id)) {
 				throw e;
