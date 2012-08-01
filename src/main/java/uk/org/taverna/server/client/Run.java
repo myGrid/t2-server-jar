@@ -567,8 +567,16 @@ public final class Run {
 	/**
 	 * Delete this Run.
 	 */
-	public void delete() {
-		server.deleteRun(this, credentials);
+	public boolean delete() {
+		try {
+			server.delete(uri, credentials);
+		} catch (AttributeNotFoundException e) {
+			// Ignore this. Delete is idempotent so deleting a run that has
+			// already been deleted or is for some other reason not there should
+			// happen silently.
+		}
+
+		return true;
 	}
 
 	/**

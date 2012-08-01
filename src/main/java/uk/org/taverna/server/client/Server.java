@@ -140,37 +140,16 @@ public final class Server {
 		return getRunsFromServer(credentials).values();
 	}
 
-	/**
-	 * Delete a Run from the server.
-	 * 
-	 * @param id
-	 *            The id of the run to delete.
-	 */
-	public void deleteRun(String id, UserCredentials credentials) {
-		try {
-			connection.delete(URIUtils.appendToPath(getLink(Label.RUNS), id),
-					credentials);
-		} catch (AccessForbiddenException e) {
-			if (getRunsFromServer(credentials).containsKey(id)) {
-				throw e;
-			} else {
-				throw new RunNotFoundException(id);
-			}
-		}
+	boolean delete(URI uri, UserCredentials credentials) {
+		return connection.delete(uri, credentials);
 	}
 
 	/**
-	 * Delete a Run from the server.
+	 * Delete all runs on this server instance. Only the runs owned by the
+	 * provided credentials will be deleted.
 	 * 
-	 * @param run
-	 *            The Run instance to delete.
-	 */
-	public void deleteRun(Run run, UserCredentials credentials) {
-		deleteRun(run.getIdentifier(), credentials);
-	}
-
-	/**
-	 * Delete all runs on this server instance.
+	 * @param credentials
+	 *            The credentials to authorize the deletion.
 	 */
 	public void deleteAllRuns(UserCredentials credentials) {
 		for (Run run : getRuns(credentials)) {
