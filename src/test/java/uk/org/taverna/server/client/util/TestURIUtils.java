@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package uk.org.taverna.server.client.connection;
+package uk.org.taverna.server.client.util;
 
 import static org.junit.Assert.assertTrue;
 
