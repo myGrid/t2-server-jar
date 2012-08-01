@@ -681,23 +681,23 @@ public final class Run {
 	}
 
 	/**
-	 * Create a directory in the workspace of this Run.
+	 * Create a directory in the workspace of this Run. At present you can only
+	 * create a directory one level deep.
 	 * 
 	 * @param dir
 	 *            the name of the directory to create.
-	 * @throws IOException
+	 * @return the {@link URI} of the created directory.
+	 * @throws IllegalArgumentException
+	 *             if an attempt to create a directory more than one level deep
+	 *             is made.
 	 */
-	public void mkdir(String dir) throws IOException {
+	public URI mkdir(String dir) {
 		if (dir.contains("/")) {
-			int lastSlash = dir.lastIndexOf("/");
-			String leaf = dir.substring(lastSlash + 1, dir.length());
-			String path = dir.substring(0, lastSlash);
-			server.makeRunDir(this,
-					URIUtils.appendToPath(getLink(Label.WDIR), path), leaf,
-					credentials);
-		} else {
-			server.makeRunDir(this, getLink(Label.WDIR), dir, credentials);
+			throw new IllegalArgumentException(
+					"Directories can only be created one level deep.");
 		}
+
+		return server.mkdir(getLink(Label.WDIR), dir, credentials);
 	}
 
 	/*

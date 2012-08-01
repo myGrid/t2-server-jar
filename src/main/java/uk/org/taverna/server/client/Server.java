@@ -331,29 +331,14 @@ public final class Server {
 				MimeType.XML, credentials);
 	}
 
-	void makeRunDir(String id, URI root, String name,
-			UserCredentials credentials) throws IOException {
+	URI mkdir(URI root, String name, UserCredentials credentials) {
 		if (name.contains("/")) {
 			throw new IllegalArgumentException(
 					"creation of subdirectories directly (" + name + ")");
 		}
 
-		try {
-			connection.create(root, XMLWriter.mkdir(name),
-					MimeType.XML,
-					credentials);
-		} catch (AttributeNotFoundException e) {
-			if (getRunsFromServer(credentials).containsKey(id)) {
-				throw e;
-			} else {
-				throw new RunNotFoundException(id);
-			}
-		}
-	}
-
-	void makeRunDir(Run run, URI root, String name,
-			UserCredentials credentials) throws IOException {
-		makeRunDir(run.getIdentifier(), root, name, credentials);
+		return connection.create(root, XMLWriter.mkdir(name), MimeType.XML,
+				credentials);
 	}
 
 	XMLReader getXMLReader() {
