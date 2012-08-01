@@ -116,8 +116,18 @@ public final class Server {
 	 * 
 	 * @return the Taverna Server version.
 	 */
-	public float getVersion() {
+	public String getVersion() {
 		return getServerResources().getVersion();
+	}
+
+	/**
+	 * Get the three components (major.minor.patch) of the remote Taverna Server
+	 * instance.
+	 * 
+	 * @return an int array containing the three version components.
+	 */
+	public int[] getVersionComponents() {
+		return getServerResources().getVersionComponents();
 	}
 
 	/**

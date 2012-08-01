@@ -37,27 +37,44 @@ import java.util.Map;
 
 public final class ServerResources extends AbstractResources {
 
+	private static final String SNAPSHOT = "-SNAPSHOT";
+
 	private final String version;
 	private final String revision;
 	private final String timestamp;
-	private final float floatVersion;
+	private final int[] versionComponents;
 
 	ServerResources(Map<Label, URI> links, String version, String revision,
 			String timestamp) {
 		super(links);
 
-		this.version = version;
 		this.revision = revision;
 		this.timestamp = timestamp;
-		this.floatVersion = Float.parseFloat(version.substring(0, 3));
+
+		// Parse out and rebuild the version string into a normalized
+		// major.minor.patch format. This is so that all version strings have
+		// three components - 2.4 will be converted to 2.4.0.
+		versionComponents = new int[3];
+		if (version.endsWith(SNAPSHOT)) {
+			version = version.replaceAll(SNAPSHOT, "");
+		}
+		String[] vs = version.split("\\.", 3);
+		versionComponents[0] = Integer.parseInt(vs[0]);
+		versionComponents[1] = Integer.parseInt(vs[1]);
+
+		try {
+			// We might not have a third component!
+			versionComponents[2] = Integer.parseInt(vs[2]);
+		} catch (IndexOutOfBoundsException e) {
+			versionComponents[2] = 0;
+		}
+
+		this.version = String.format("%d.%d.%d", versionComponents[0],
+				versionComponents[1], versionComponents[2]);
 	}
 
-	public String getVersionString() {
+	public String getVersion() {
 		return version;
-	}
-
-	public float getVersion() {
-		return floatVersion;
 	}
 
 	public String getRevision() {
@@ -66,5 +83,9 @@ public final class ServerResources extends AbstractResources {
 
 	public String getTimestamp() {
 		return timestamp;
+	}
+
+	public int[] getVersionComponents() {
+		return versionComponents;
 	}
 }
