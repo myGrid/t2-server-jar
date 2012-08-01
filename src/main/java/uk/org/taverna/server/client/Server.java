@@ -315,64 +315,14 @@ public final class Server {
 		return connection.readStream(uri, type, credentials);
 	}
 
-	/**
-	 * Set a run's attribute to a new value.
-	 * 
-	 * @param id
-	 *            the id of the run.
-	 * @param uri
-	 *            the full URI of the attribute to set.
-	 * @param value
-	 *            the new value of the attribute.
-	 * @param type
-	 *            the mime type of the attribute.
-	 * @param credentials
-	 *            the user credentials to use for authorization.
-	 */
-	public void setRunAttribute(String id, URI uri, String value,
-			MimeType type, UserCredentials credentials) {
-		try {
-			connection.update(uri, value.getBytes(), type, credentials);
-		} catch (AttributeNotFoundException e) {
-			if (getRunsFromServer(credentials).containsKey(id)) {
-				throw e;
-			} else {
-				throw new RunNotFoundException(id);
-			}
-		}
+	boolean setData(URI uri, byte[] data, MimeType type,
+			UserCredentials credentials) {
+		return connection.update(uri, data, type, credentials);
 	}
 
-	/**
-	 * Set a run's attribute to a new value.
-	 * 
-	 * @param run
-	 *            the Run instance.
-	 * @param uri
-	 *            the full URI of the attribute to set.
-	 * @param value
-	 *            the new value of the attribute.
-	 * @param type
-	 *            the mime type of the attribute.
-	 * @param credentials
-	 *            the user credentials to use for authorization.
-	 */
-	public void setRunAttribute(Run run, URI uri, String value, MimeType type,
-			UserCredentials credentials) {
-		setRunAttribute(run.getIdentifier(), uri, value, type, credentials);
-	}
-
-	public void setRunAttribute(Run run, URI uri, byte[] value, MimeType type,
-			UserCredentials credentials) {
-		String id = run.getIdentifier();
-		try {
-			connection.update(uri, value, type, credentials);
-		} catch (AttributeNotFoundException e) {
-			if (getRunsFromServer(credentials).containsKey(id)) {
-				throw e;
-			} else {
-				throw new RunNotFoundException(id);
-			}
-		}
+	boolean setData(URI uri, String data, UserCredentials credentials) {
+		return connection.update(uri, data.getBytes(), MimeType.TEXT,
+				credentials);
 	}
 
 	void uploadData(URI location, byte[] data, String remoteName,

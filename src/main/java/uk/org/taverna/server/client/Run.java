@@ -294,8 +294,7 @@ public final class Run {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
 			uploadData(data, BACLAVA_IN_FILE);
-			server.setRunAttribute(this, getLink(Label.BACLAVA),
-					BACLAVA_IN_FILE, MimeType.TEXT, credentials);
+			server.setData(getLink(Label.BACLAVA), BACLAVA_IN_FILE, credentials);
 
 			baclavaIn = true;
 		} else {
@@ -371,8 +370,7 @@ public final class Run {
 
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
-			server.setRunAttribute(this, getLink(Label.OUTPUT),
-					BACLAVA_OUT_FILE, MimeType.TEXT, credentials);
+			server.setData(getLink(Label.OUTPUT), BACLAVA_OUT_FILE, credentials);
 
 			baclavaOut = true;
 		} else {
@@ -522,8 +520,8 @@ public final class Run {
 			setAllInputs();
 		}
 
-		server.setRunAttribute(this, getLink(Label.STATUS),
-				RunStatus.RUNNING.status(), MimeType.TEXT, credentials);
+		server.setData(getLink(Label.STATUS), RunStatus.RUNNING.status(),
+				credentials);
 	}
 
 	/**
@@ -559,8 +557,7 @@ public final class Run {
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(time);
 		String expiry = DatatypeConverter.printDateTime(cal);
-		server.setRunAttribute(this, getLink(Label.EXPIRY), expiry,
-				MimeType.TEXT, credentials);
+		server.setData(getLink(Label.EXPIRY), expiry, credentials);
 	}
 
 	/**
@@ -745,7 +742,7 @@ public final class Run {
 			value = XMLWriter.inputValue(port.getValue());
 		}
 
-		server.setRunAttribute(this, path, value, MimeType.XML, credentials);
+		server.setData(path, value, MimeType.XML, credentials);
 	}
 
 	private RunResources getRunResources() {
