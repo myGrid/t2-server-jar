@@ -34,10 +34,8 @@ package uk.org.taverna.server.client;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -48,10 +46,10 @@ import java.util.Map;
 import javax.xml.bind.DatatypeConverter;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.math.LongRange;
 
 import uk.org.taverna.server.client.connection.UserCredentials;
+import uk.org.taverna.server.client.util.IOUtils;
 import uk.org.taverna.server.client.util.URIUtils;
 import uk.org.taverna.server.client.xml.Resources.Label;
 import uk.org.taverna.server.client.xml.RunResources;
@@ -458,7 +456,7 @@ public final class Run {
 	 * @see #requestBaclavaOutput()
 	 */
 	public void writeBaclavaOutputToFile(File file) throws IOException {
-		writeStreamToFile(getBaclavaOutputStream(), file);
+		IOUtils.writeStreamToFile(getBaclavaOutputStream(), file);
 	}
 
 	/**
@@ -678,7 +676,7 @@ public final class Run {
 	 * @see #getOutputZipStream()
 	 */
 	public void writeOutputToZipFile(File file) throws IOException {
-		writeStreamToFile(getOutputZipStream(), file);
+		IOUtils.writeStreamToFile(getOutputZipStream(), file);
 	}
 
 	/**
@@ -778,20 +776,6 @@ public final class Run {
 	InputStream getOutputDataStream(URI uri, LongRange range) {
 		return server.getDataStream(uri, "application/octet-stream", range,
 				credentials);
-	}
-
-	/*
-	 * This method just abstracts out the basic stream-to-file code.
-	 */
-	void writeStreamToFile(InputStream stream, File file) throws IOException {
-		OutputStream os = null;
-		try {
-			os = new FileOutputStream(file);
-			IOUtils.copyLarge(stream, os);
-		} finally {
-			IOUtils.closeQuietly(stream);
-			IOUtils.closeQuietly(os);
-		}
 	}
 
 	private URI getLink(Label key) {

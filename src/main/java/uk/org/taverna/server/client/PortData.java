@@ -42,6 +42,8 @@ import java.util.Arrays;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.math.LongRange;
 
+import uk.org.taverna.server.client.util.IOUtils;
+
 /**
  * 
  * @author Robert Haines
@@ -94,7 +96,7 @@ public class PortData extends PortValue {
 	@Override
 	public void writeDataToFile(File file) throws IOException {
 		InputStream is = getRun().getOutputDataStream(getReference(), null);
-		getRun().writeStreamToFile(is, file);
+		IOUtils.writeStreamToFile(is, file);
 	}
 
 	@Override
