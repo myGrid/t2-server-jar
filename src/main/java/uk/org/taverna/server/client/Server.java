@@ -292,113 +292,27 @@ public final class Server {
 		return connection.read(uri, type, range, credentials);
 	}
 
+	byte[] getData(URI uri, MimeType type, UserCredentials credentials) {
+		return connection.read(uri, type, credentials);
+	}
+
+	String getDataString(URI uri, LongRange range, UserCredentials credentials) {
+		return new String(connection.read(uri, MimeType.TEXT, range,
+				credentials));
+	}
+
+	String getDataString(URI uri, UserCredentials credentials) {
+		return new String(connection.read(uri, MimeType.TEXT, credentials));
+	}
+
 	InputStream getDataStream(URI uri, MimeType type, LongRange range,
 			UserCredentials credentials) {
 		return connection.readStream(uri, type, range, credentials);
 	}
 
-	/**
-	 * Read attribute data from a run.
-	 * 
-	 * @param id
-	 *            the id of the run.
-	 * @param uri
-	 *            the full URI of the attribute to get.
-	 * @param type
-	 *            the mime type of the attribute being retrieved.
-	 * @return the data associated with the attribute.
-	 */
-	public byte[] getRunData(String id, URI uri, MimeType type,
+	InputStream getDataStream(URI uri, MimeType type,
 			UserCredentials credentials) {
-		return getRunData(id, uri, type, null, credentials);
-	}
-
-	/**
-	 * Read attribute data from a run.
-	 * 
-	 * @param id
-	 *            the id of the run.
-	 * @param uri
-	 *            the full URI of the attribute to get.
-	 * @param type
-	 *            the mime type of the attribute being retrieved.
-	 * @param range
-	 * @param credentials
-	 * @return the data associated with the attribute.
-	 */
-	public byte[] getRunData(String id, URI uri, MimeType type,
-			LongRange range, UserCredentials credentials) {
-		try {
-			return connection.read(uri, type, range, credentials);
-		} catch (AttributeNotFoundException e) {
-			if (getRunsFromServer(credentials).containsKey(id)) {
-				throw e;
-			} else {
-				throw new RunNotFoundException(id);
-			}
-		}
-	}
-
-	/**
-	 * Read attribute data from a run.
-	 * 
-	 * @param run
-	 *            the Run instance.
-	 * @param uri
-	 *            the full URI of the attribute to get.
-	 * @param type
-	 *            the mime type of the attribute being retrieved.
-	 * @return the data associated with the attribute.
-	 */
-	public byte[] getRunData(Run run, URI uri, MimeType type,
-			UserCredentials credentials) {
-		return getRunData(run.getIdentifier(), uri, type, credentials);
-	}
-
-	/**
-	 * 
-	 * @param run
-	 * @param uri
-	 * @param type
-	 * @param range
-	 * @param credentials
-	 * @return
-	 */
-	public byte[] getRunData(Run run, URI uri, MimeType type, LongRange range,
-			UserCredentials credentials) {
-		return getRunData(run.getIdentifier(), uri, type, range, credentials);
-	}
-
-	/**
-	 * Read an attribute, of a specific type, of a run.
-	 * 
-	 * @param id
-	 *            the id of the run.
-	 * @param uri
-	 *            the full URI of the attribute to get.
-	 * @param type
-	 *            the mime type of the attribute being retrieved.
-	 * @return the attribute as a String.
-	 */
-	public String getRunAttribute(String id, URI uri, MimeType type,
-			UserCredentials credentials) {
-		return new String(getRunData(id, uri, type, credentials));
-	}
-
-	/**
-	 * Read an attribute, of a specific type, of a run.
-	 * 
-	 * @param run
-	 *            the Run instance.
-	 * @param uri
-	 *            the full URI of the attribute to get.
-	 * @param type
-	 *            the mime type of the attribute being retrieved.
-	 * @return the attribute as a String.
-	 */
-	public String getRunAttribute(Run run, URI uri, MimeType type,
-			UserCredentials credentials) {
-		return new String(getRunData(run.getIdentifier(), uri, type, credentials));
+		return connection.readStream(uri, type, credentials);
 	}
 
 	/**

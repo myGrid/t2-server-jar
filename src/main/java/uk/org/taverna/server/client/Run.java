@@ -325,8 +325,8 @@ public final class Run {
 		if (baclavaIn) {
 			return true;
 		} else {
-			String test = server.getRunAttribute(this, getLink(Label.BACLAVA),
-					MimeType.TEXT, credentials);
+			String test = server.getDataString(getLink(Label.BACLAVA),
+					credentials);
 
 			// if we get back the baclava input file name we are using it.
 			if (test.equals(BACLAVA_IN_FILE)) {
@@ -347,8 +347,8 @@ public final class Run {
 		if (baclavaOut) {
 			return true;
 		} else {
-			String test = server.getRunAttribute(this, getLink(Label.OUTPUT),
-					MimeType.TEXT, credentials);
+			String test = server.getDataString(getLink(Label.OUTPUT),
+					credentials);
 
 			// if we get back the baclava output file name we are using it.
 			if (test.equals(BACLAVA_OUT_FILE)) {
@@ -398,8 +398,7 @@ public final class Run {
 				throw new AttributeNotFoundException(baclavaLink);
 			}
 
-			return server.getRunData(this, baclavaLink, MimeType.BYTES,
-					credentials);
+			return server.getData(baclavaLink, MimeType.BYTES, credentials);
 		} else {
 			throw new RunStateException(rs, RunStatus.FINISHED);
 		}
@@ -475,8 +474,8 @@ public final class Run {
 	 * @return the status of this Run.
 	 */
 	public RunStatus getStatus() {
-		return RunStatus.state(server.getRunAttribute(this,
-				getLink(Label.STATUS), MimeType.TEXT, credentials));
+		return RunStatus.state(server.getDataString(getLink(Label.STATUS),
+				credentials));
 	}
 
 	/**
@@ -534,8 +533,8 @@ public final class Run {
 	 */
 	public byte[] getWorkflow() {
 		if (workflow == null) {
-			workflow = server.getRunData(this, getLink(Label.WORKFLOW),
-					MimeType.XML, credentials);
+			workflow = server.getData(getLink(Label.WORKFLOW), MimeType.XML,
+					credentials);
 		}
 
 		return workflow;
@@ -586,8 +585,8 @@ public final class Run {
 	 * @return the return code of the underlying Taverna Server process.
 	 */
 	public int getExitCode() {
-		return new Integer(server.getRunAttribute(this,
-				getLink(Label.EXITCODE), MimeType.TEXT, credentials));
+		return new Integer(server.getDataString(getLink(Label.EXITCODE),
+				credentials));
 	}
 
 	/**
@@ -596,8 +595,7 @@ public final class Run {
 	 * @return the console output of the underlying Taverna Server process.
 	 */
 	public String getConsoleOutput() {
-		return server.getRunAttribute(this, getLink(Label.STDOUT),
-				MimeType.TEXT, credentials);
+		return server.getDataString(getLink(Label.STDOUT), credentials);
 	}
 
 	/**
@@ -606,8 +604,7 @@ public final class Run {
 	 * @return the console errors of the underlying Taverna Server process.
 	 */
 	public String getConsoleError() {
-		return server.getRunAttribute(this, getLink(Label.STDERR),
-				MimeType.TEXT, credentials);
+		return server.getDataString(getLink(Label.STDERR), credentials);
 	}
 
 	/**
@@ -638,8 +635,7 @@ public final class Run {
 	}
 
 	private Date getTime(Label time) {
-		String dateTime = server.getRunAttribute(this, getLink(time),
-				MimeType.TEXT, credentials);
+		String dateTime = server.getDataString(getLink(time), credentials);
 		Calendar cal = DatatypeConverter.parseDateTime(dateTime);
 
 		return cal.getTime();
