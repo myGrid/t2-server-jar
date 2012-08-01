@@ -62,11 +62,6 @@ public abstract class AbstractConnection implements Connection {
 	}
 
 	@Override
-	public byte[] read(URI uri, UserCredentials credentials) {
-		return read(uri, null, null, credentials);
-	}
-
-	@Override
 	public byte[] read(URI uri, String type, UserCredentials credentials) {
 		return read(uri, type, null, credentials);
 	}
@@ -75,8 +70,7 @@ public abstract class AbstractConnection implements Connection {
 	public boolean update(URI uri, byte[] content, String type,
 			UserCredentials credentials) {
 		return update(uri, new ByteArrayInputStream(content), content.length,
-				type,
-				credentials);
+				type, credentials);
 	}
 
 	@Override

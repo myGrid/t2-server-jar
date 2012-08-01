@@ -49,9 +49,9 @@ import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.connection.params.ConnectionParams;
 import uk.org.taverna.server.client.util.URIUtils;
 import uk.org.taverna.server.client.xml.Resources.Label;
+import uk.org.taverna.server.client.xml.ServerResources;
 import uk.org.taverna.server.client.xml.XMLReader;
 import uk.org.taverna.server.client.xml.XMLWriter;
-import uk.org.taverna.server.client.xml.ServerResources;
 
 /**
  * The Server class represents a connection to a Taverna Server instance
@@ -264,9 +264,10 @@ public final class Server {
 	 * @return the maximum number of run that this server can host concurrently.
 	 */
 	public int getRunLimit(UserCredentials credentials) {
-		return Integer.parseInt(new String(connection.read(
-				getLink(Label.RUNLIMIT),
-				credentials)).trim());
+		byte[] limit = connection.read(getLink(Label.RUNLIMIT), "text/plain",
+				credentials);
+
+		return Integer.parseInt(new String(limit).trim());
 	}
 
 	/**

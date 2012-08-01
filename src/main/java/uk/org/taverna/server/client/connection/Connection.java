@@ -53,8 +53,6 @@ public interface Connection {
 
 	public byte[] read(URI uri, String type, UserCredentials credentials);
 
-	public byte[] read(URI uri, UserCredentials credentials);
-
 	public boolean update(URI uri, InputStream content, long length,
 			String type,
 			UserCredentials credentials);
