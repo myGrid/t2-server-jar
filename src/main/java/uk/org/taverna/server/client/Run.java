@@ -80,6 +80,8 @@ public final class Run {
 	private boolean baclavaIn;
 	private boolean baclavaOut;
 
+	private boolean deleted;
+
 	private RunResources resources;
 
 	private final UserCredentials credentials;
@@ -103,6 +105,8 @@ public final class Run {
 
 		this.credentials = credentials;
 		resources = null;
+
+		this.deleted = false;
 	}
 
 	/*
@@ -472,8 +476,12 @@ public final class Run {
 	 * @return the status of this Run.
 	 */
 	public RunStatus getStatus() {
-		return RunStatus.state(server.getDataString(getLink(Label.STATUS),
-				credentials));
+		if (deleted) {
+			return RunStatus.DELETED;
+		} else {
+			return RunStatus.state(server.getDataString(getLink(Label.STATUS),
+					credentials));
+		}
 	}
 
 	/**
@@ -501,6 +509,10 @@ public final class Run {
 	 */
 	public boolean isFinished() {
 		return getStatus() == RunStatus.FINISHED;
+	}
+
+	public boolean isDeleted() {
+		return deleted;
 	}
 
 	/**
@@ -570,6 +582,8 @@ public final class Run {
 			// Ignore this. Delete is idempotent so deleting a run that has
 			// already been deleted or is for some other reason not there should
 			// happen silently.
+		} finally {
+			deleted = true;
 		}
 
 		return true;
