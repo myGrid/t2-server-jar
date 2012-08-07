@@ -32,6 +32,7 @@
 
 package uk.org.taverna.server.client;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -213,16 +214,13 @@ public final class Run {
 	 * @param remoteDirectory
 	 *            The directory within the workspace in which to save the data.
 	 *            This directory must already exist.
+	 * @return the URI of the uploaded data on the remote server.
 	 */
-	public void uploadData(byte[] data, String remoteName,
+	public URI uploadData(byte[] data, String remoteName,
 			String remoteDirectory) {
-		URI uploadLocation = getLink(Label.WDIR);
-		if (remoteDirectory != null) {
-			uploadLocation = URIUtils
-					.appendToPath(uploadLocation, remoteDirectory);
-		}
 
-		server.uploadData(uploadLocation, data, remoteName, credentials);
+		return uploadData(new ByteArrayInputStream(data), remoteName,
+				remoteDirectory);
 	}
 
 	/**
@@ -232,9 +230,49 @@ public final class Run {
 	 *            The data to upload.
 	 * @param remoteName
 	 *            The name of the file to save the data in on the server.
+	 * @return the URI of the uploaded data on the remote server.
 	 */
-	public void uploadData(byte[] data, String remoteName) {
-		uploadData(data, remoteName, null);
+	public URI uploadData(byte[] data, String remoteName) {
+
+		return uploadData(data, remoteName, null);
+	}
+
+	/**
+	 * Upload data to a file in this Run instance's workspace on the server.
+	 * 
+	 * @param stream
+	 *            The stream with the data to be uploaded.
+	 * @param remoteName
+	 *            The name of the file to save the data in on the server.
+	 * @param remoteDirectory
+	 *            The directory within the workspace in which to save the data.
+	 *            This directory must already exist.
+	 * @return the URI of the uploaded data on the remote server.
+	 */
+	public URI uploadData(InputStream stream, String remoteName,
+			String remoteDirectory) {
+		URI uploadLocation = getLink(Label.WDIR);
+		if (remoteDirectory != null) {
+			uploadLocation = URIUtils.appendToPath(uploadLocation,
+					remoteDirectory);
+		}
+
+		return server.uploadData(uploadLocation, stream, remoteName,
+				credentials);
+	}
+
+	/**
+	 * Upload data to a file in this Run instance's workspace on the server.
+	 * 
+	 * @param stream
+	 *            The stream with the data to be uploaded.
+	 * @param remoteName
+	 *            The name of the file to save the data in on the server.
+	 * @return the URI of the uploaded data on the remote server.
+	 */
+	public URI uploadData(InputStream stream, String remoteName) {
+
+		return uploadData(stream, remoteName, null);
 	}
 
 	/**
@@ -247,18 +285,19 @@ public final class Run {
 	 * @param rename
 	 *            The name to use for the file when saving it in the workspace.
 	 * @return the name of the file as used on the server.
-	 * @throws IOException
+	 * @throws FileNotFoundException
+	 *             if the file does not exist or cannot be read.
 	 */
 	public String uploadFile(File file, String remoteDirectory, String rename)
-			throws IOException {
-		if (rename == null || rename.equals("")) {
-			rename = file.getName();
+			throws FileNotFoundException {
+
+		URI uploadLocation = getLink(Label.WDIR);
+		if (remoteDirectory != null) {
+			uploadLocation = URIUtils.appendToPath(uploadLocation,
+					remoteDirectory);
 		}
 
-		byte[] data = FileUtils.readFileToByteArray(file);
-		uploadData(data, rename, remoteDirectory);
-
-		return rename;
+		return server.uploadFile(uploadLocation, file, rename, credentials);
 	}
 
 	/**
@@ -314,8 +353,15 @@ public final class Run {
 	 * @throws IOException
 	 */
 	public void setBaclavaInput(File file) throws IOException {
-		byte[] data = FileUtils.readFileToByteArray(file);
-		setBaclavaInput(data);
+		RunStatus rs = getStatus();
+		if (rs == RunStatus.INITIALIZED) {
+			uploadFile(file, null, BACLAVA_IN_FILE);
+			server.setData(getLink(Label.BACLAVA), BACLAVA_IN_FILE, credentials);
+
+			baclavaIn = true;
+		} else {
+			throw new RunStateException(rs, RunStatus.INITIALIZED);
+		}
 	}
 
 	/**

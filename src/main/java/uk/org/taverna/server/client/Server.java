@@ -33,6 +33,8 @@
 package uk.org.taverna.server.client;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -41,6 +43,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.math.LongRange;
 
 import uk.org.taverna.server.client.connection.Connection;
@@ -339,10 +342,41 @@ public final class Server {
 		return (result != null) ? true : false;
 	}
 
-	void uploadData(URI location, byte[] data, String remoteName,
+	URI uploadData(URI uri, byte[] data, String remoteName,
 			UserCredentials credentials) {
-		connection.create(location, XMLWriter.upload(remoteName, data),
-				MimeType.XML, credentials);
+		uri = URIUtils.appendToPath(uri, remoteName);
+
+		return connection.update(uri, data, MimeType.BYTES, credentials);
+	}
+
+	URI uploadData(URI uri, InputStream stream, String remoteName,
+			UserCredentials credentials) {
+		uri = URIUtils.appendToPath(uri, remoteName);
+
+		return connection.update(uri, stream, MimeType.BYTES, credentials);
+	}
+
+	String uploadFile(URI uri, File file, String rename,
+			UserCredentials credentials) throws FileNotFoundException {
+		if (file.isDirectory()) {
+			throw new FileNotFoundException("File passed in is a directory.");
+		}
+
+		if (rename == null || rename.equals("")) {
+			rename = file.getName();
+		}
+
+		uri = URIUtils.appendToPath(uri, rename);
+
+		InputStream is = new FileInputStream(file);
+		try {
+			connection.update(uri, is, file.length(), MimeType.BYTES,
+					credentials);
+		} finally {
+			IOUtils.closeQuietly(is);
+		}
+
+		return rename;
 	}
 
 	URI mkdir(URI root, String name, UserCredentials credentials) {
