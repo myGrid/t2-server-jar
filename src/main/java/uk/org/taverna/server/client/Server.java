@@ -327,12 +327,16 @@ public final class Server {
 
 	boolean setData(URI uri, byte[] data, MimeType type,
 			UserCredentials credentials) {
-		return connection.update(uri, data, type, credentials);
+		URI result = connection.update(uri, data, type, credentials);
+
+		return (result != null) ? true : false;
 	}
 
 	boolean setData(URI uri, String data, UserCredentials credentials) {
-		return connection.update(uri, data.getBytes(), MimeType.TEXT,
+		URI result = connection.update(uri, data.getBytes(), MimeType.TEXT,
 				credentials);
+
+		return (result != null) ? true : false;
 	}
 
 	void uploadData(URI location, byte[] data, String remoteName,

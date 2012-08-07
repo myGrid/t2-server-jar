@@ -53,13 +53,13 @@ public interface Connection {
 
 	public byte[] read(URI uri, MimeType type, UserCredentials credentials);
 
-	public boolean update(URI uri, InputStream content, long length,
+	public URI update(URI uri, InputStream content, long length,
 			MimeType type, UserCredentials credentials);
 
-	public boolean update(URI uri, byte[] content, MimeType type,
+	public URI update(URI uri, byte[] content, MimeType type,
 			UserCredentials credentials);
 
-	public boolean update(URI uri, InputStream content, MimeType type,
+	public URI update(URI uri, InputStream content, MimeType type,
 			UserCredentials credentials);
 
 	public boolean delete(URI uri, UserCredentials credentials);

@@ -67,14 +67,14 @@ public abstract class AbstractConnection implements Connection {
 	}
 
 	@Override
-	public boolean update(URI uri, byte[] content, MimeType type,
+	public URI update(URI uri, byte[] content, MimeType type,
 			UserCredentials credentials) {
 		return update(uri, new ByteArrayInputStream(content), content.length,
 				type, credentials);
 	}
 
 	@Override
-	public boolean update(URI uri, InputStream content, MimeType type,
+	public URI update(URI uri, InputStream content, MimeType type,
 			UserCredentials credentials) {
 		return update(uri, content, -1, type, credentials);
 	}

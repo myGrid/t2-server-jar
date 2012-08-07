@@ -192,7 +192,7 @@ public class HttpConnection extends AbstractConnection {
 	}
 
 	@Override
-	public boolean update(URI uri, InputStream content, long length,
+	public URI update(URI uri, InputStream content, long length,
 			MimeType type, UserCredentials credentials) {
 		HttpPut request = new HttpPut(uri);
 
@@ -202,15 +202,28 @@ public class HttpConnection extends AbstractConnection {
 
 		HttpResponse response = null;
 		try {
-			// StringEntity entity = new StringEntity(content, "UTF-8");
 			InputStreamEntity entity = new InputStreamEntity(content, length);
 			entity.setContentType(type.contentType);
 			request.setEntity(entity);
 
 			response = httpClient.execute(request, httpContext);
 
+			/*
+			 * There are three possible "success" responses from the server:
+			 * 
+			 * 1) 200 (OK) - returned when we have set a parameter.
+			 * 
+			 * 2) 201 (Created) - returned when we have uploaded new data.
+			 * 
+			 * 3) 204 (No Content) - returned when we have modified data.
+			 */
 			if (isSuccess(response, HttpURLConnection.HTTP_OK)) {
-				return true;
+				return uri;
+			} else if (isSuccess(response, HttpURLConnection.HTTP_CREATED)) {
+				return URI
+						.create(response.getHeaders("location")[0].getValue());
+			} else if (isSuccess(response, HttpURLConnection.HTTP_NO_CONTENT)) {
+				return uri;
 			} else {
 				error(response, uri);
 			}
@@ -224,7 +237,7 @@ public class HttpConnection extends AbstractConnection {
 			HttpClientUtils.closeQuietly(response);
 		}
 
-		return false;
+		return null;
 	}
 
 	@Override
