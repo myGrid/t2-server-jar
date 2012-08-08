@@ -35,11 +35,9 @@ package uk.org.taverna.server.client;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.net.URI;
 import java.util.AbstractList;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrBuilder;
 
 /**
@@ -51,20 +49,20 @@ public abstract class PortValue extends AbstractList<PortValue> {
 	public static final String PORT_ERROR_TYPE = "application/x-error";
 	public static final String PORT_LIST_TYPE = "application/x-list";
 
-	private final Run run;
-	private final URI reference;
-	private final String type;
+	protected final Run run;
+	protected final URI reference;
+	protected final String contentType;
 	protected final long size;
 
 	PortValue(Port parent, URI reference, String type, long size) {
 		this.run = parent.getRun();
 		this.reference = reference;
-		this.type = type;
+		this.contentType = type;
 		this.size = size;
 	}
 
 	public String getContentType() {
-		return type;
+		return contentType;
 	}
 
 	public abstract byte[] getData();
@@ -97,13 +95,14 @@ public abstract class PortValue extends AbstractList<PortValue> {
 	}
 
 	public String toString(int indent) {
-		String spaces = StringUtils.repeat(" ", indent);
 		StrBuilder message = new StrBuilder();
-		PrintWriter pw = new PrintWriter(message.asWriter());
 
-		pw.format("%sReference:    %s\n", spaces, reference.toASCIIString());
-		pw.format("%sContent type: %s\n", spaces, type);
-		pw.format("%sData size:    %d", spaces, getDataSize());
+		message.appendPadding(indent, ' ');
+		message.appendln(reference.toASCIIString());
+		message.appendPadding(indent, ' ');
+		message.appendln(contentType);
+		message.appendPadding(indent, ' ');
+		message.append(getDataSize());
 
 		return message.toString();
 	}

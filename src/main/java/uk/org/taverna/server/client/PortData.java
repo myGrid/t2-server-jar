@@ -90,12 +90,12 @@ public class PortData extends PortValue {
 
 	@Override
 	public InputStream getDataStream() {
-		return getRun().getOutputDataStream(getReference(), null);
+		return run.getOutputDataStream(reference, null);
 	}
 
 	@Override
 	public void writeDataToFile(File file) throws IOException {
-		InputStream is = getRun().getOutputDataStream(getReference(), null);
+		InputStream is = run.getOutputDataStream(reference, null);
 		IOUtils.writeStreamToFile(is, file);
 	}
 
@@ -129,7 +129,7 @@ public class PortData extends PortValue {
 
 		// Return empty data if this value is empty.
 		if (getDataSize() == 0
-				|| getContentType().equalsIgnoreCase("application/x-empty")) {
+				|| contentType.equalsIgnoreCase("application/x-empty")) {
 			return EMPTY_DATA;
 		}
 
@@ -159,7 +159,7 @@ public class PortData extends PortValue {
 			// we either have some data, at one end of range or either side of
 			// it, or none. dataGot can be null here.
 			// In both cases we download what we need.
-			byte[] newData = getRun().getOutputData(getReference(), need[0]);
+			byte[] newData = run.getOutputData(reference, need[0]);
 			if (dataGot == null) {
 				// This is the only data we have, return it all.
 				dataGot = range;
@@ -194,8 +194,8 @@ public class PortData extends PortValue {
 			// We definitely have some data and it is in the middle of the
 			// range requested. dataGot cannot be null here.
 			dataGot = range;
-			byte[] data1 = getRun().getOutputData(getReference(), need[0]);
-			byte[] data2 = getRun().getOutputData(getReference(), need[1]);
+			byte[] data1 = run.getOutputData(reference, need[0]);
+			byte[] data2 = run.getOutputData(reference, need[1]);
 			data = ArrayUtils.addAll(data1, data);
 			data = ArrayUtils.addAll(data, data2);
 			cache = new SoftReference<byte[]>(data);

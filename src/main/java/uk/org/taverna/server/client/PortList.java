@@ -34,11 +34,9 @@ package uk.org.taverna.server.client;
 
 import java.io.File;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.net.URI;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrBuilder;
 
 /**
@@ -112,15 +110,17 @@ public final class PortList extends PortValue {
 
 	@Override
 	public String toString(int indent) {
-		String spaces = StringUtils.repeat(" ", indent);
 		StrBuilder message = new StrBuilder();
-		PrintWriter pw = new PrintWriter(message.asWriter());
 
-		pw.format("%s%s\n%s[\n", spaces, getReference(), spaces);
+		message.appendPadding(indent, ' ');
+		message.appendln(reference.toASCIIString());
+		message.appendPadding(indent, ' ');
+		message.appendln("[");
 		for (PortValue p : list) {
-			pw.format("%s\n", p.toString(indent + 1));
+			message.appendln(p.toString(indent + 1));
 		}
-		pw.format("%s]", spaces);
+		message.appendPadding(indent, ' ');
+		message.append("]");
 
 		return message.toString();
 	}

@@ -32,12 +32,10 @@
 
 package uk.org.taverna.server.client;
 
-import java.io.PrintWriter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrBuilder;
 
 import uk.org.taverna.server.client.xml.port.ErrorValue;
@@ -128,13 +126,13 @@ public final class OutputPort extends Port {
 	}
 
 	public String toString(int indent) {
-		String spaces = StringUtils.repeat(" ", indent);
 		StrBuilder message = new StrBuilder();
-		PrintWriter pw = new PrintWriter(message.asWriter());
 
-		pw.format("%s%s", spaces, getName());
-		pw.format("%s (depth %s) {\n", spaces, getDepth());
-		pw.format("%s%s\n}", spaces, value.toString(indent + 1));
+		message.appendPadding(indent, ' ');
+		message.appendln(name + " (depth " + depth + ") {");
+		message.appendPadding(indent, ' ');
+		message.appendln(value.toString(indent + 1));
+		message.append("}");
 
 		return message.toString();
 	}
