@@ -43,6 +43,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.math.LongRange;
 
@@ -165,9 +166,13 @@ public final class Server {
 	 *            The credentials to authorize the deletion.
 	 */
 	public void deleteAllRuns(UserCredentials credentials) {
+		// Calling getRuns() updates the user's run cache...
 		for (Run run : getRuns(credentials)) {
 			run.delete();
 		}
+
+		// ... so we can clear it here now we've deleted them all.
+		runs.remove(credentials.getUsername());
 	}
 
 	private Map<String, Run> getRunsFromServer(UserCredentials credentials) {
@@ -176,11 +181,7 @@ public final class Server {
 		Map<String, URI> runList = reader.readRunList(uri, credentials);
 
 		// Get this user's run cache.
-		Map<String, Run> userRuns = runs.get(credentials.getUsername());
-		if (userRuns == null) {
-			userRuns = new HashMap<String, Run>();
-			runs.put(credentials.getUsername(), userRuns);
-		}
+		Map<String, Run> userRuns = getUserRunCache(credentials.getUsername());
 
 		// Add new runs to the user's run cache.
 		for (String id : runList.keySet()) {
@@ -200,6 +201,16 @@ public final class Server {
 		}
 
 		assert (userRuns.size() == runList.size());
+
+		return userRuns;
+	}
+
+	private Map<String, Run> getUserRunCache(String user) {
+		Map<String, Run> userRuns = runs.get(user);
+		if (userRuns == null) {
+			userRuns = new HashMap<String, Run>();
+			runs.put(user, userRuns);
+		}
 
 		return userRuns;
 	}
@@ -285,7 +296,12 @@ public final class Server {
 	 * @return a new Run instance.
 	 */
 	public Run createRun(byte[] workflow, UserCredentials credentials) {
-		return Run.create(this, workflow, credentials);
+		Run run = Run.create(this, workflow, credentials);
+
+		getUserRunCache(credentials.getUsername())
+		.put(run.getIdentifier(), run);
+
+		return run;
 	}
 
 	/**
@@ -294,10 +310,13 @@ public final class Server {
 	 * @param workflow
 	 *            the workflow file to be run.
 	 * @return a new Run instance.
+	 * @throws IOException
+	 *             on IO errors.
 	 */
 	public Run createRun(File workflow, UserCredentials credentials)
 			throws IOException {
-		return Run.create(this, workflow, credentials);
+
+		return createRun(FileUtils.readFileToByteArray(workflow), credentials);
 	}
 
 	byte[] getData(URI uri, MimeType type, LongRange range,
