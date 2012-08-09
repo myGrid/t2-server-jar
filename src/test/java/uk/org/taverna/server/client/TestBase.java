@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012 The University of Manchester, UK.
+ * Copyright (c) 2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -32,53 +32,52 @@
 
 package uk.org.taverna.server.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.fail;
 
+import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 
-import org.junit.AfterClass;
-import org.junit.Test;
+import org.apache.commons.io.IOUtils;
+import org.junit.BeforeClass;
 
-public class TestServer extends TestBase {
+import uk.org.taverna.server.client.connection.HttpBasicCredentials;
+import uk.org.taverna.server.client.connection.UserCredentials;
 
-	@Test
-	public void testServer() {
-		Server server = new Server(serverURI);
-		assertNotNull("Server instance", server);
+public abstract class TestBase {
 
-		Server other = new Server(serverURI);
-		assertNotNull("Other Server instance", other);
-		assertNotSame("Server objects should not be the same", other, server);
+	// Workflow files.
+	protected final static String WKF_PASS = "/workflows/pass_through.t2flow";
 
-		URI uri = server.getURI();
-		assertEquals(serverURI, uri);
-	}
+	// Common resources.
+	protected static URI serverURI;
+	protected static UserCredentials user1;
 
-	@Test
-	public void testServerRunCreation() {
-		Server server = new Server(serverURI);
-		byte[] workflow = loadWorkflow(WKF_PASS);
+	@BeforeClass
+	public static void getConfiguration() {
+		String address = System.getProperty("SERVER");
+		String creds1 = System.getProperty("USER1", "taverna:taverna");
 
-		server.createRun(workflow, user1);
-	}
-
-	@Test(expected = AccessForbiddenException.class)
-	public void testServerLimits() {
-		Server server = new Server(serverURI);
-		int limit = server.getRunLimit(user1);
-		byte[] workflow = loadWorkflow(WKF_PASS);
-
-		// Add 1 here so we are sure to go over the limit!
-		for (int i = 0; i < (limit + 1); i++) {
-			server.createRun(workflow, user1);
+		if (address == null) {
+			fail("Invalid configuration. Make sure SERVER is set.");
 		}
+
+		try {
+			serverURI = new URI(address);
+		} catch (URISyntaxException e) {
+			fail("Invalid configuration. SERVER is not a valid URI.");
+		}
+		user1 = new HttpBasicCredentials(creds1);
 	}
 
-	@AfterClass
-	public static void deleteAll() {
-		Server server = new Server(serverURI);
-		server.deleteAllRuns(user1);
+	protected byte[] loadWorkflow(String filename) {
+		try {
+			InputStream is = getClass().getResourceAsStream(filename);
+			return IOUtils.toByteArray(is);
+		} catch (Exception e) {
+			fail("Could not open workflow: " + filename);
+		}
+
+		return null;
 	}
 }
