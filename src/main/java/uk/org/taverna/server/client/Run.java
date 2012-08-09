@@ -770,18 +770,16 @@ public final class Run {
 		for (InputPort port : getInputPorts().values()) {
 			if (!port.isSet()) {
 				missingPorts.add(port.getName());
-			}
-
-			if (port.isFile()) {
-				// If we're using a local file upload it first then set the
-				// port to use a remote file.
-				if (!port.isRemoteFile()) {
-					String file = uploadFile(port.getFile());
-					port.setRemoteFile(file);
+			} else {
+				if (port.isFile()) {
+					// If we're using a local file upload it first then set the
+					// port to use a remote file.
+					if (!port.isRemoteFile()) {
+						String file = uploadFile(port.getFile());
+						port.setRemoteFile(file);
+					}
 				}
 
-				setInputPort(port);
-			} else {
 				setInputPort(port);
 			}
 		}
