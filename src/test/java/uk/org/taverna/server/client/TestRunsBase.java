@@ -32,13 +32,30 @@
 
 package uk.org.taverna.server.client;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
-@RunWith(Suite.class)
-@SuiteClasses({ uk.org.taverna.server.client.util.TestURIUtils.class,
-		TestServer.class, TestRun.class, TestRunPermissions.class })
-public class TestAll {
+public abstract class TestRunsBase extends TestBase {
 
+	protected static Server server;
+
+	@BeforeClass
+	public static void setup() {
+		server = new Server(serverURI);
+	}
+
+	@AfterClass
+	public static void deleteAll() {
+		server.deleteAllRuns(user1);
+	}
+
+	// Helper method to wait until a run finishes.
+	protected void wait(Run run) {
+		while (run.getStatus() == RunStatus.RUNNING) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+			}
+		}
+	}
 }

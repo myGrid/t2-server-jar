@@ -41,13 +41,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Set;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class TestRun extends TestBase {
-
-	private static Server server;
+public class TestRun extends TestRunsBase {
 
 	// Some inputs.
 	private final static String INPUT_XML = "<hello><yes>hello</yes><no>everybody</no><yes>world</yes></hello>";
@@ -56,11 +52,6 @@ public class TestRun extends TestBase {
 	// Some input files.
 	private final static String INPUT_IN_FILE = "/inputs/in.txt";
 	private final static String INPUT_BACLAVA_FILE = "/inputs/empty_list_input.baclava";
-
-	@BeforeClass
-	public static void setup() {
-		server = new Server(serverURI);
-	}
 
 	@Test
 	public void testConnection() {
@@ -231,20 +222,5 @@ public class TestRun extends TestBase {
 
 		OutputPort out = run.getOutputPort("OUT");
 		assertTrue("OUT is an error", out.isError());
-	}
-
-	@AfterClass
-	public static void deleteAll() {
-		server.deleteAllRuns(user1);
-	}
-
-	// Helper method to wait until a run finishes.
-	private void wait(Run run) {
-		while (run.getStatus() == RunStatus.RUNNING) {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-			}
-		}
 	}
 }

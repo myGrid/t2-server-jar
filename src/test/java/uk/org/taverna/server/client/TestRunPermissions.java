@@ -32,13 +32,19 @@
 
 package uk.org.taverna.server.client;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-@RunWith(Suite.class)
-@SuiteClasses({ uk.org.taverna.server.client.util.TestURIUtils.class,
-		TestServer.class, TestRun.class, TestRunPermissions.class })
-public class TestAll {
+import org.junit.Test;
 
+public class TestRunPermissions extends TestRunsBase {
+
+	@Test
+	public void testOwnership() {
+		byte[] workflow = loadResource(WKF_PASS_FILE);
+		Run run = server.createRun(workflow, user1);
+
+		assertTrue("Correct run owner", run.isOwner());
+		assertEquals("Correct run owner", user1.getUsername(), run.getOwner());
+	}
 }
