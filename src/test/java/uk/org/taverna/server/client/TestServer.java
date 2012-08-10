@@ -59,7 +59,7 @@ public class TestServer extends TestBase {
 	@Test
 	public void testServerRunCreation() {
 		Server server = new Server(serverURI);
-		byte[] workflow = loadWorkflow(WKF_PASS);
+		byte[] workflow = loadResource(WKF_PASS_FILE);
 
 		server.createRun(workflow, user1);
 	}
@@ -68,7 +68,7 @@ public class TestServer extends TestBase {
 	public void testServerLimits() {
 		Server server = new Server(serverURI);
 		int limit = server.getRunLimit(user1);
-		byte[] workflow = loadWorkflow(WKF_PASS);
+		byte[] workflow = loadResource(WKF_PASS_FILE);
 
 		// Add 1 here so we are sure to go over the limit!
 		for (int i = 0; i < (limit + 1); i++) {

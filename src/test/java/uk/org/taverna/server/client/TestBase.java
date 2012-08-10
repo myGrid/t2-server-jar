@@ -34,9 +34,11 @@ package uk.org.taverna.server.client;
 
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.BeforeClass;
@@ -47,7 +49,11 @@ import uk.org.taverna.server.client.connection.UserCredentials;
 public abstract class TestBase {
 
 	// Workflow files.
-	protected final static String WKF_PASS = "/workflows/pass_through.t2flow";
+	protected final static String WKF_PASS_FILE = "/workflows/pass_through.t2flow";
+	protected final static String WKF_XML_FILE = "/workflows/xml_xpath.t2flow";
+	protected final static String WKF_LISTS_FILE = "/workflows/empty_list.t2flow";
+	protected final static String WKF_FAIL_FILE = "/workflows/always_fail.t2flow";
+	protected final static String WKF_ERRORS_FILE = "/workflows/list_with_errors.t2flow";
 
 	// Common resources.
 	protected static URI serverURI;
@@ -70,12 +76,26 @@ public abstract class TestBase {
 		user1 = new HttpBasicCredentials(creds1);
 	}
 
-	protected byte[] loadWorkflow(String filename) {
+	protected byte[] loadResource(String filename) {
+		InputStream is = null;
 		try {
-			InputStream is = getClass().getResourceAsStream(filename);
+			is = getClass().getResourceAsStream(filename);
 			return IOUtils.toByteArray(is);
 		} catch (Exception e) {
-			fail("Could not open workflow: " + filename);
+			fail("Could not open resource: " + filename);
+		} finally {
+			IOUtils.closeQuietly(is);
+		}
+
+		return null;
+	}
+
+	protected File getResourceFile(String filename) {
+		try {
+			URL fileURL = getClass().getResource(filename);
+			return new File(fileURL.toURI());
+		} catch (Exception e) {
+			fail("Could not get file: " + filename);
 		}
 
 		return null;
