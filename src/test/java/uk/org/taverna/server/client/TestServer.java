@@ -35,8 +35,10 @@ package uk.org.taverna.server.client;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 
 import java.net.URI;
+import java.util.Collection;
 
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -57,11 +59,22 @@ public class TestServer extends TestBase {
 	}
 
 	@Test
-	public void testServerRunCreation() {
+	public void testServerRunCreationAndCaching() {
 		Server server = new Server(serverURI);
 		byte[] workflow = loadResource(WKF_PASS_FILE);
 
-		server.createRun(workflow, user1);
+		Collection<Run> runs = server.getRuns(user1);
+		int number = runs.size();
+		Run run = server.createRun(workflow, user1);
+
+		// Make sure that the run cache changes size when runs are added and
+		// deleted. This also checks that run deletions do not cause any
+		// exceptions when removing things from the cache.
+		runs = server.getRuns(user1);
+		assertTrue("One more run", number == (runs.size() - 1));
+		run.delete();
+		runs = server.getRuns(user1);
+		assertTrue("One less run", number == runs.size());
 	}
 
 	@Test(expected = AccessForbiddenException.class)

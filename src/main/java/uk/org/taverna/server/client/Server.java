@@ -41,6 +41,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
@@ -191,11 +192,14 @@ public final class Server {
 		}
 
 		// Any ids in the runs list that aren't in the map we've just got from
-		// the server are dead and can be removed.
+		// the server are dead and can be removed. Note that we have to use an
+		// iterator here because we may be removing things as we go.
 		if (userRuns.size() > runList.size()) {
-			for (String i : userRuns.keySet()) {
+			Iterator<String> iterator = userRuns.keySet().iterator();
+			while (iterator.hasNext()) {
+				String i = iterator.next();
 				if (!runList.containsKey(i)) {
-					userRuns.remove(i);
+					iterator.remove();
 				}
 			}
 		}
