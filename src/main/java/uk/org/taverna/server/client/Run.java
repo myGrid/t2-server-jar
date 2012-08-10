@@ -517,6 +517,29 @@ public final class Run {
 	}
 
 	/**
+	 * Get the owner of this run.
+	 * 
+	 * @return the username of the owner of this run.
+	 */
+	public String getOwner() {
+		return getRunResources().getOwner();
+	}
+
+	/**
+	 * Are the credentials being used to access this run those of the owner? The
+	 * owner of the run can give other users certain access rights to their runs
+	 * but only the owner can change these rights - or even see what they are.
+	 * Sometimes it is useful to know if the user accessing the run is actually
+	 * the owner of it or not.
+	 * 
+	 * @return whether the user credentials of this Run instance are those of
+	 *         the owner of the run as the remote server understands it.
+	 */
+	public boolean isOwner() {
+		return credentials.getUsername().equals(getOwner());
+	}
+
+	/**
 	 * Get the status of this Run.
 	 * 
 	 * @return the status of this Run.
