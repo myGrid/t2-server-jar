@@ -49,6 +49,7 @@ import uk.org.taverna.server.client.InputPort;
 import uk.org.taverna.server.client.OutputPort;
 import uk.org.taverna.server.client.Port;
 import uk.org.taverna.server.client.Run;
+import uk.org.taverna.server.client.RunPermission;
 import uk.org.taverna.server.client.connection.Connection;
 import uk.org.taverna.server.client.connection.MimeType;
 import uk.org.taverna.server.client.connection.UserCredentials;
@@ -56,12 +57,16 @@ import uk.org.taverna.server.client.util.URIUtils;
 import uk.org.taverna.server.client.xml.Resources.Label;
 import uk.org.taverna.server.client.xml.port.InputDescription;
 import uk.org.taverna.server.client.xml.port.OutputDescription;
+import uk.org.taverna.server.client.xml.rest.LinkedPermissionDescription;
 import uk.org.taverna.server.client.xml.rest.ListenerDescription;
 import uk.org.taverna.server.client.xml.rest.Location;
+import uk.org.taverna.server.client.xml.rest.Permission;
+import uk.org.taverna.server.client.xml.rest.PermissionsDescription;
 import uk.org.taverna.server.client.xml.rest.PolicyDescription;
 import uk.org.taverna.server.client.xml.rest.PropertyDescription;
 import uk.org.taverna.server.client.xml.rest.RunDescription;
 import uk.org.taverna.server.client.xml.rest.RunList;
+import uk.org.taverna.server.client.xml.rest.SecurityDescriptor;
 import uk.org.taverna.server.client.xml.rest.ServerDescription;
 import uk.org.taverna.server.client.xml.rest.TavernaRun;
 import uk.org.taverna.server.client.xml.rest.TavernaRunInputs;
@@ -151,6 +156,7 @@ public final class XMLReader {
 		links.put(Label.OUTPUT, rd.getOutput().getHref());
 		links.put(Label.WDIR, rd.getWorkingDirectory().getHref());
 		links.put(Label.EXPIRY, rd.getExpiry().getHref());
+		links.put(Label.SECURITY_CTX, rd.getSecurityContext().getHref());
 
 		// Read the inputs description.
 		JAXBElement<?> root = (JAXBElement<?>) read(links.get(Label.INPUT),
@@ -176,6 +182,15 @@ public final class XMLReader {
 					}
 				}
 			}
+		}
+
+		// Read the security context iff we are the owner of the run
+		if (credentials.getUsername().equals(owner)) {
+			root = (JAXBElement<?>) read(links.get(Label.SECURITY_CTX),
+					credentials);
+			SecurityDescriptor sd = (SecurityDescriptor) root.getValue();
+
+			links.put(Label.PERMISSIONS, sd.getPermissions().getHref());
 		}
 
 		return new RunResources(links, owner);
@@ -208,5 +223,19 @@ public final class XMLReader {
 		}
 
 		return ports;
+	}
+
+	public Map<String, RunPermission> readRunPermissions(URI uri,
+			UserCredentials credentials) {
+		JAXBElement<?> root = (JAXBElement<?>) read(uri, credentials);
+		PermissionsDescription pd = (PermissionsDescription) root.getValue();
+
+		Map<String, RunPermission> perms = new HashMap<String, RunPermission>();
+		for (LinkedPermissionDescription lpd : pd.getPermission()) {
+			Permission perm = lpd.getPermission();
+			perms.put(lpd.getUserName(), RunPermission.fromString(perm.value()));
+		}
+
+		return perms;
 	}
 }

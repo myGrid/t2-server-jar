@@ -58,11 +58,13 @@ public abstract class TestBase {
 	// Common resources.
 	protected static URI serverURI;
 	protected static UserCredentials user1;
+	protected static UserCredentials user2;
 
 	@BeforeClass
 	public static void getConfiguration() {
 		String address = System.getProperty("SERVER");
 		String creds1 = System.getProperty("USER1", "taverna:taverna");
+		String creds2 = System.getProperty("USER2");
 
 		if (address == null) {
 			fail("Invalid configuration. Make sure SERVER is set.");
@@ -73,7 +75,11 @@ public abstract class TestBase {
 		} catch (URISyntaxException e) {
 			fail("Invalid configuration. SERVER is not a valid URI.");
 		}
+
 		user1 = new HttpBasicCredentials(creds1);
+		if (creds2 != null) {
+			user2 = new HttpBasicCredentials(creds2);
+		}
 	}
 
 	protected byte[] loadResource(String filename) {

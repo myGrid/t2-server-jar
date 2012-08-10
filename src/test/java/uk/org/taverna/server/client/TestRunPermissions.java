@@ -33,18 +33,135 @@
 package uk.org.taverna.server.client;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeNotNull;
 
+import java.io.IOException;
+
+import org.junit.Before;
 import org.junit.Test;
 
 public class TestRunPermissions extends TestRunsBase {
 
+	private Run run;
+
+	@Before
+	public void createRun() {
+		// Catch the case where USER2 is not passed in. All tests here will be
+		// skipped silently if user2 is null.
+		assumeNotNull(user2);
+
+		byte[] workflow = loadResource(WKF_PASS_FILE);
+		run = server.createRun(workflow, user1);
+	}
+
 	@Test
 	public void testOwnership() {
-		byte[] workflow = loadResource(WKF_PASS_FILE);
-		Run run = server.createRun(workflow, user1);
-
 		assertTrue("Correct run owner", run.isOwner());
 		assertEquals("Correct run owner", user1.getUsername(), run.getOwner());
+
+		String id = run.getIdentifier();
+		Run run1 = server.getRun(id, user2);
+		assertNull("Can't list runs without permission", run1);
+
+		run.setPermission(user2.getUsername(), RunPermission.READ);
+		run1 = server.getRun(id, user2);
+
+		assertFalse("Not the owner", run1.isOwner());
+		assertEquals("Still the same owner", user1.getUsername(),
+				run1.getOwner());
+
+		boolean caught = false;
+		try {
+			run1.getPermissions();
+		} catch (AuthorizationException e) {
+			caught = true;
+		}
+		assertTrue("Only the owner can list permissions", caught);
+	}
+
+	@Test
+	public void testReadPermission() {
+		run.setPermission(user2.getUsername(), RunPermission.READ);
+		String id = run.getIdentifier();
+		Run run1 = server.getRun(id, user2);
+
+		boolean caught = false;
+		try {
+			run1.getInputPort("IN").setValue("Hello");
+			run1.start();
+		} catch (AccessForbiddenException e) {
+			caught = true;
+		} catch (IOException e) {
+			fail("AccessForbiddenException not caught");
+		}
+		assertTrue("AccessForbiddenException not caught", caught);
+
+		run.getInputPort("IN").setValue("Hello, World!");
+		try {
+			run.start();
+		} catch (IOException e) {
+			fail("Could not start run");
+		}
+		wait(run);
+
+		run1.getOutputPort("OUT").getData();
+
+		caught = false;
+		try {
+			run1.delete();
+		} catch (AccessForbiddenException e) {
+			caught = true;
+		}
+		assertTrue("Cannot delete run", caught);
+	}
+
+	@Test
+	public void testUpdatePermission() {
+		run.setPermission(user2.getUsername(), RunPermission.UPDATE);
+		String id = run.getIdentifier();
+		Run run1 = server.getRun(id, user2);
+
+		run1.getInputPort("IN").setValue("Hello");
+
+		try {
+			run1.start();
+		} catch (IOException e) {
+			fail("AccessForbiddenException not caught");
+		}
+		wait(run1);
+
+		run1.getOutputPort("OUT").getData();
+
+		boolean caught = false;
+		try {
+			run1.delete();
+		} catch (AccessForbiddenException e) {
+			caught = true;
+		}
+		assertTrue("Cannot delete run", caught);
+	}
+
+	@Test
+	public void testDeletePermission() {
+		run.setPermission(user2.getUsername(), RunPermission.DELETE);
+		String id = run.getIdentifier();
+		Run run1 = server.getRun(id, user2);
+
+		run1.getInputPort("IN").setValue("Hello");
+
+		try {
+			run1.start();
+		} catch (IOException e) {
+			fail("AccessForbiddenException not caught");
+		}
+		wait(run1);
+
+		run1.getOutputPort("OUT").getData();
+
+		run1.delete();
 	}
 }

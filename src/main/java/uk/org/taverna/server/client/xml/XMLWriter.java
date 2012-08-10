@@ -40,9 +40,12 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
+import uk.org.taverna.server.client.RunPermission;
 import uk.org.taverna.server.client.xml.rest.InputDescription;
 import uk.org.taverna.server.client.xml.rest.MakeDirectory;
 import uk.org.taverna.server.client.xml.rest.ObjectFactory;
+import uk.org.taverna.server.client.xml.rest.Permission;
+import uk.org.taverna.server.client.xml.rest.PermissionDescription;
 
 public final class XMLWriter {
 
@@ -93,6 +96,18 @@ public final class XMLWriter {
 
 		ObjectFactory factory = new ObjectFactory();
 		JAXBElement<InputDescription> element = factory.createRunInput(id);
+
+		return write(element);
+	}
+
+	public static byte[] runPermission(String username, RunPermission permission) {
+		PermissionDescription pd = new PermissionDescription();
+		pd.setUserName(username);
+		pd.setPermission(Permission.fromValue(permission.permission));
+
+		ObjectFactory factory = new ObjectFactory();
+		JAXBElement<PermissionDescription> element = factory
+				.createPermissionUpdate(pd);
 
 		return write(element);
 	}

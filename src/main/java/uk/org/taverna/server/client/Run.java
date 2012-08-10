@@ -722,6 +722,79 @@ public final class Run {
 	}
 
 	/**
+	 * Get all the permissions set for this run. Only the owner of a run may
+	 * query its permissions.
+	 * 
+	 * @return a map of username to permission for each user.
+	 * @throws AuthorizationException
+	 *             if the credentials in this Run are not the owner's.
+	 * @see {@link RunPermission}
+	 */
+	public Map<String, RunPermission> getPermissions() {
+		if (!isOwner()) {
+			throw new AuthorizationException(credentials.getUsername());
+		}
+
+		XMLReader reader = server.getXMLReader();
+
+		Map<String, RunPermission> perms = reader.readRunPermissions(
+				getLink(Label.PERMISSIONS), credentials);
+
+		return perms;
+	}
+
+	/**
+	 * Return the permission granted to user for this run, if any. Only the
+	 * owner of a run may query its permissions.
+	 * 
+	 * @param username
+	 *            The username of the user to query.
+	 * @return the permission the user has been granted, if any.
+	 * @throws AuthorizationException
+	 *             if the credentials in this Run are not the owner's.
+	 * @see {@link RunPermission}
+	 */
+	public RunPermission getPermission(String username) {
+		if (!isOwner()) {
+			throw new AuthorizationException(credentials.getUsername());
+		}
+
+		return getPermissions().get(username);
+	}
+
+	/**
+	 * Grant the specified user the stated permission.
+	 * 
+	 * To revoke a permission for a user, simply set the permission for that
+	 * user to <code>RunPermission.NONE</code> or <code>null</code>.
+	 * 
+	 * Only the owner of a run may grant or revoke permissions on it.
+	 * 
+	 * @param username
+	 *            The user to grant permissions to.
+	 * @param permission
+	 *            The permission to grant.
+	 * @return the URI of the created permission resource on the server.
+	 * @throws AuthorizationException
+	 *             if the credentials in this Run are not the owner's.
+	 * @see {@link RunPermission}
+	 */
+	public URI setPermission(String username, RunPermission permission) {
+		if (!isOwner()) {
+			throw new AuthorizationException(credentials.getUsername());
+		}
+
+		if (permission == null) {
+			permission = RunPermission.NONE;
+		}
+
+		byte[] content = XMLWriter.runPermission(username, permission);
+
+		return server.createResource(getLink(Label.PERMISSIONS), content,
+				credentials);
+	}
+
+	/**
 	 * Get an input stream that can be used to stream all the output data of
 	 * this run in zip format.
 	 * 

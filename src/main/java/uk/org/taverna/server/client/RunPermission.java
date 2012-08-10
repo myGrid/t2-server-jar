@@ -30,24 +30,30 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package uk.org.taverna.server.client.xml;
+package uk.org.taverna.server.client;
 
-import java.net.URI;
 
-public interface Resources {
-	public enum Label {
-		// Server
-		RUNS, FEED, POLICY, RUNLIMIT, PERMITTED_WORKFLOWS, PERMITTED_LISTENERS, ENABLED_NOTIFICATIONS,
+/**
+ * Permissions that can be granted to users so that they can operate on Runs.
+ * 
+ * @author Robert Haines
+ */
+public enum RunPermission {
 
-		// Run
-		WORKFLOW, CREATE_TIME, START_TIME, FINISH_TIME, STATUS, WDIR, INPUT, OUTPUT, EXPIRY, BACLAVA, EXPECTED_INPUTS, SECURITY_CTX,
+	NONE("none"), READ("read"), UPDATE("update"), DELETE("destroy");
 
-		// Special Listeners
-		STDOUT, STDERR, EXITCODE,
+	public final String permission;
 
-		// Security context
-		PERMISSIONS;
+	private RunPermission(String permission) {
+		this.permission = permission;
 	}
 
-	public URI get(Label key);
+	public static RunPermission fromString(String string) {
+		for (RunPermission c : RunPermission.values()) {
+			if (c.permission.equals(string)) {
+				return c;
+			}
+		}
+		throw new IllegalArgumentException(string);
+	}
 }
