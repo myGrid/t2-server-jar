@@ -46,7 +46,7 @@ public interface Resources {
 		STDOUT, STDERR, EXITCODE,
 
 		// Security context
-		PERMISSIONS;
+		PERMISSIONS, CREDENTIALS;
 	}
 
 	public URI get(Label key);

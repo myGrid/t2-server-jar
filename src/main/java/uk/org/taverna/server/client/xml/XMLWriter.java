@@ -34,6 +34,7 @@ package uk.org.taverna.server.client.xml;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.net.URI;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -41,9 +42,12 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
 import uk.org.taverna.server.client.RunPermission;
+import uk.org.taverna.server.client.xml.rest.Credential;
 import uk.org.taverna.server.client.xml.rest.InputDescription;
+import uk.org.taverna.server.client.xml.rest.KeyPairCredential;
 import uk.org.taverna.server.client.xml.rest.MakeDirectory;
 import uk.org.taverna.server.client.xml.rest.ObjectFactory;
+import uk.org.taverna.server.client.xml.rest.PasswordCredential;
 import uk.org.taverna.server.client.xml.rest.Permission;
 import uk.org.taverna.server.client.xml.rest.PermissionDescription;
 
@@ -108,6 +112,40 @@ public final class XMLWriter {
 		ObjectFactory factory = new ObjectFactory();
 		JAXBElement<PermissionDescription> element = factory
 				.createPermissionUpdate(pd);
+
+		return write(element);
+	}
+
+	public static byte[] runServiceUserPassCredential(URI uri, String username,
+			String password) {
+		PasswordCredential pc = new PasswordCredential();
+		pc.setServiceURI(uri);
+		pc.setUsername(username);
+		pc.setPassword(password);
+
+		Credential cred = new Credential();
+		cred.setUserpass(pc);
+
+		ObjectFactory factory = new ObjectFactory();
+		JAXBElement<Credential> element = factory.createCredential(cred);
+
+		return write(element);
+	}
+
+	public static byte[] runServiceKeyPairCredential(URI uri, String filename,
+			String type, String name, String password) {
+		KeyPairCredential kpc = new KeyPairCredential();
+		kpc.setServiceURI(uri);
+		kpc.setCredentialFile(filename);
+		kpc.setCredentialName(name);
+		kpc.setFileType(type);
+		kpc.setUnlockPassword(password);
+
+		Credential cred = new Credential();
+		cred.setKeypair(kpc);
+
+		ObjectFactory factory = new ObjectFactory();
+		JAXBElement<Credential> element = factory.createCredential(cred);
 
 		return write(element);
 	}

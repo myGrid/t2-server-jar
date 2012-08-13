@@ -57,6 +57,9 @@ import uk.org.taverna.server.client.util.URIUtils;
 import uk.org.taverna.server.client.xml.Resources.Label;
 import uk.org.taverna.server.client.xml.port.InputDescription;
 import uk.org.taverna.server.client.xml.port.OutputDescription;
+import uk.org.taverna.server.client.xml.rest.Credential;
+import uk.org.taverna.server.client.xml.rest.CredentialDescriptor;
+import uk.org.taverna.server.client.xml.rest.CredentialList;
 import uk.org.taverna.server.client.xml.rest.LinkedPermissionDescription;
 import uk.org.taverna.server.client.xml.rest.ListenerDescription;
 import uk.org.taverna.server.client.xml.rest.Location;
@@ -191,6 +194,7 @@ public final class XMLReader {
 			SecurityDescriptor sd = (SecurityDescriptor) root.getValue();
 
 			links.put(Label.PERMISSIONS, sd.getPermissions().getHref());
+			links.put(Label.CREDENTIALS, sd.getCredentials().getHref());
 		}
 
 		return new RunResources(links, owner);
@@ -237,5 +241,23 @@ public final class XMLReader {
 		}
 
 		return perms;
+	}
+
+	public Map<URI, URI> readRunServiceCredentials(URI uri,
+			UserCredentials credentials) {
+		JAXBElement<?> root = (JAXBElement<?>) read(uri, credentials);
+		CredentialList cl = (CredentialList) root.getValue();
+
+		Map<URI, URI> creds = new HashMap<URI, URI>();
+		for (Credential cred : cl.getCredential()) {
+			CredentialDescriptor cd = cred.getUserpass();
+			if (cd == null) {
+				cd = cred.getKeypair();
+			}
+
+			creds.put(cd.getServiceURI(), cd.getHref());
+		}
+
+		return creds;
 	}
 }

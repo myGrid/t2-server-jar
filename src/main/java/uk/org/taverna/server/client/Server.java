@@ -327,6 +327,10 @@ public final class Server {
 		return connection.create(uri, content, MimeType.XML, credentials);
 	}
 
+	URI updateResource(URI uri, byte[] content, UserCredentials credentials) {
+		return connection.update(uri, content, MimeType.XML, credentials);
+	}
+
 	byte[] getData(URI uri, MimeType type, LongRange range,
 			UserCredentials credentials) {
 		return connection.read(uri, type, range, credentials);

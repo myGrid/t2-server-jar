@@ -38,7 +38,8 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({ uk.org.taverna.server.client.util.TestURIUtils.class,
-		TestServer.class, TestRun.class, TestRunPermissions.class })
+		TestServer.class, TestRun.class, TestRunPermissions.class,
+		TestSecureWorkflows.class })
 public class TestAll {
 
 }

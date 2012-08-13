@@ -43,6 +43,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -68,11 +69,15 @@ import uk.org.taverna.server.client.xml.XMLWriter;
 public final class Run {
 
 	/*
-	 * Internal names to use for storing baclava input and output in files on
+	 * Internal names to use for storing various input and output in files on
 	 * the server.
 	 */
 	private static final String BACLAVA_IN_FILE = "in.baclava";
 	private static final String BACLAVA_OUT_FILE = "out.baclava";
+	private static final String KEYPAIR_PREFIX = "keypair-";
+
+	private static final String DEFAULT_CERTIFICATE_ALIAS = "Imported Certificate";
+	private static final String DEFAULT_KEYPAIR_TYPE = "pkcs12";
 
 	private final URI uri;
 	private final Server server;
@@ -792,6 +797,177 @@ public final class Run {
 
 		return server.createResource(getLink(Label.PERMISSIONS), content,
 				credentials);
+	}
+
+	/**
+	 * Get all the credentials that have been provided for this run.
+	 * 
+	 * Only the owner of a run may query credentials that have been provided for
+	 * it.
+	 * 
+	 * @return A {@link Map} of service URI to credential resource URI.
+	 */
+	public Map<URI, URI> getServiceCredentials() {
+		if (!isOwner()) {
+			throw new AuthorizationException(credentials.getUsername());
+		}
+
+		XMLReader reader = server.getXMLReader();
+
+		Map<URI, URI> creds = reader.readRunServiceCredentials(
+				getLink(Label.CREDENTIALS), credentials);
+
+		return creds;
+	}
+
+	/**
+	 * Get the credential resource URI that Taverna Server is using to provide
+	 * credentials for the supplied service URI.
+	 * 
+	 * @param serviceURI
+	 *            The service URI to query.
+	 * @return The credential resource that is being used for the specified
+	 *         service URI.
+	 */
+	public URI getServiceCredential(URI serviceURI) {
+		return getServiceCredentials().get(serviceURI);
+	}
+
+	/**
+	 * Provide a username and password credential for the secure service at the
+	 * specified URI.
+	 * 
+	 * Only the owner of a run may supply credentials for it.
+	 * 
+	 * @param serviceURI
+	 *            The URI of the service that this credential is for.
+	 * @param username
+	 *            The username of this credential.
+	 * @param password
+	 *            The password of this credential.
+	 * @return The URI to the credential resource on the remote Taverna Server.
+	 */
+	public URI setServiceCredential(URI serviceURI, String username,
+			String password) {
+		if (!isOwner()) {
+			throw new AuthorizationException(credentials.getUsername());
+		}
+
+		// Is this a new credential or an update to an existing one?
+		URI credURI = getServiceCredential(serviceURI);
+
+		byte[] content = XMLWriter.runServiceUserPassCredential(serviceURI,
+				username, password);
+
+		if (credURI == null) {
+			return server.createResource(getLink(Label.CREDENTIALS), content,
+					credentials);
+		} else {
+			return server.updateResource(credURI, content, credentials);
+		}
+	}
+
+	/**
+	 * Provide a client certificate credential for the secure service at the
+	 * specified URI. You will need to provide the password to unlock the
+	 * private key.
+	 * 
+	 * Only the owner of a run may supply credentials for it.
+	 * 
+	 * @param serviceURI
+	 *            The URI of the service that this credential is for.
+	 * @param keypair
+	 *            The file with the credential in it.
+	 * @param password
+	 *            The password to unlock the credential.
+	 * @return The URI to the credential resource on the remote Taverna Server.
+	 * @throws IOException
+	 *             if there was a problem reading the credential file.
+	 */
+	public URI setServiceCredential(URI serviceURI, File keypair,
+			String password) throws IOException {
+
+		String remoteName = uploadFile(keypair);
+
+		return setServiceKeyPairCredential(serviceURI, remoteName, password,
+				DEFAULT_CERTIFICATE_ALIAS);
+	}
+
+	/**
+	 * Provide a client certificate credential for the secure service at the
+	 * specified URI. You will need to provide the password to unlock the
+	 * private key.
+	 * 
+	 * @param serviceURI
+	 *            The URI of the service that this credential is for.
+	 * @param keypair
+	 *            The stream with the credential in it.
+	 * @param password
+	 *            The password to unlock the credential.
+	 * @return The URI to the credential resource on the remote Taverna Server.
+	 */
+	public URI setServiceCredential(URI serviceURI, InputStream keypair,
+			String password) {
+
+		String remoteFile = KEYPAIR_PREFIX + UUID.randomUUID();
+
+		uploadData(keypair, remoteFile);
+
+		return setServiceKeyPairCredential(serviceURI, remoteFile, password,
+				DEFAULT_CERTIFICATE_ALIAS);
+
+	}
+
+	private URI setServiceKeyPairCredential(URI serviceURI, String remoteFile,
+			String password, String alias) {
+		if (!isOwner()) {
+			throw new AuthorizationException(credentials.getUsername());
+		}
+
+		// Is this a new credential or an update to an existing one?
+		URI credURI = getServiceCredential(serviceURI);
+
+		byte[] content = XMLWriter.runServiceKeyPairCredential(serviceURI,
+				remoteFile, DEFAULT_KEYPAIR_TYPE, alias, password);
+
+		if (credURI == null) {
+			return server.createResource(getLink(Label.CREDENTIALS), content,
+					credentials);
+		} else {
+			return server.updateResource(credURI, content, credentials);
+		}
+	}
+
+	/**
+	 * Delete the credential that has been provided for the specified service.
+	 * 
+	 * Only the owner of a run may delete its credentials.
+	 * 
+	 * @param serviceURI
+	 *            The service for which to delete the credential.
+	 * @return true if the operation succeeded, false otherwise.
+	 */
+	public boolean deleteServiceCredential(URI serviceURI) {
+		if (!isOwner()) {
+			throw new AuthorizationException(credentials.getUsername());
+		}
+
+		return server.delete(getServiceCredential(serviceURI), credentials);
+	}
+
+	/**
+	 * Delete all credentials associated with this workflow run.
+	 * 
+	 * Only the owner of a run may delete its credentials.
+	 * 
+	 * @return true if the operation succeeded, false otherwise.
+	 */
+	public boolean deleteAllServiceCredentials() {
+		if (!isOwner()) {
+			throw new AuthorizationException(credentials.getUsername());
+		}
+
+		return server.delete(getLink(Label.CREDENTIALS), credentials);
 	}
 
 	/**
