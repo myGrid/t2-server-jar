@@ -96,4 +96,28 @@ public final class URIUtils {
 		String path = uri.getPath();
 		return path.substring(path.lastIndexOf("/") + 1);
 	}
+
+	/**
+	 * Set the query part of a URI.
+	 * 
+	 * @param uri
+	 *            the URI to receive a new query part.
+	 * @param query
+	 *            the query to set (with or without the leading ?).
+	 * @return the new URI with its query part set.
+	 */
+	public static URI setQuery(URI uri, String query) {
+		if (query.startsWith("?")) {
+			query = query.substring(1);
+		}
+
+		try {
+			return new URIBuilder(uri).setQuery(query).build();
+		} catch (URISyntaxException e) {
+			throw new IllegalArgumentException(
+					"Either a bad URI was passed in (" + uri
+					+ ") or an query was appended to it (" + query
+					+ ")");
+		}
+	}
 }
