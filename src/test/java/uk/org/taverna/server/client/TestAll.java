@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012 The University of Manchester, UK.
+ * Copyright (c) 2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -32,53 +32,13 @@
 
 package uk.org.taverna.server.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
 
-import java.net.URI;
+@RunWith(Suite.class)
+@SuiteClasses({ uk.org.taverna.server.client.util.TestURIUtils.class,
+	TestServer.class, TestRun.class })
+public class TestAll {
 
-import org.junit.AfterClass;
-import org.junit.Test;
-
-public class TestServer extends TestBase {
-
-	@Test
-	public void testServer() {
-		Server server = new Server(serverURI);
-		assertNotNull("Server instance", server);
-
-		Server other = new Server(serverURI);
-		assertNotNull("Other Server instance", other);
-		assertNotSame("Server objects should not be the same", other, server);
-
-		URI uri = server.getURI();
-		assertEquals(serverURI, uri);
-	}
-
-	@Test
-	public void testServerRunCreation() {
-		Server server = new Server(serverURI);
-		byte[] workflow = loadResource(WKF_PASS_FILE);
-
-		server.createRun(workflow, user1);
-	}
-
-	@Test(expected = AccessForbiddenException.class)
-	public void testServerLimits() {
-		Server server = new Server(serverURI);
-		int limit = server.getRunLimit(user1);
-		byte[] workflow = loadResource(WKF_PASS_FILE);
-
-		// Add 1 here so we are sure to go over the limit!
-		for (int i = 0; i < (limit + 1); i++) {
-			server.createRun(workflow, user1);
-		}
-	}
-
-	@AfterClass
-	public static void deleteAll() {
-		Server server = new Server(serverURI);
-		server.deleteAllRuns(user1);
-	}
 }
