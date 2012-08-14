@@ -344,14 +344,9 @@ public final class Server {
 		return new String(connection.read(uri, MimeType.TEXT, credentials));
 	}
 
-	InputStream getDataStream(URI uri, MimeType type, LongRange range,
+	InputStream readResourceAsStream(URI uri, MimeType type, LongRange range,
 			UserCredentials credentials) {
 		return connection.readStream(uri, type, range, credentials);
-	}
-
-	InputStream getDataStream(URI uri, MimeType type,
-			UserCredentials credentials) {
-		return connection.readStream(uri, type, credentials);
 	}
 
 	boolean setData(URI uri, byte[] data, MimeType type,

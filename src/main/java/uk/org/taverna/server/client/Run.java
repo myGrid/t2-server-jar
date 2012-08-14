@@ -482,8 +482,8 @@ public final class Run {
 				throw new AttributeNotFoundException(baclavaLink);
 			}
 
-			return server.getDataStream(baclavaLink, MimeType.BYTES, null,
-					credentials);
+			return server.readResourceAsStream(baclavaLink, MimeType.BYTES,
+					null, credentials);
 		} else {
 			throw new RunStateException(rs, RunStatus.FINISHED);
 		}
@@ -1101,7 +1101,8 @@ public final class Run {
 		if (rs == RunStatus.FINISHED) {
 			URI uri = URIUtils.appendToPath(getLink(Label.WDIR), "out");
 
-			return server.getDataStream(uri, MimeType.ZIP, null, credentials);
+			return server.readResourceAsStream(uri, MimeType.ZIP, null,
+					credentials);
 		} else {
 			throw new RunStateException(rs, RunStatus.FINISHED);
 		}
@@ -1218,7 +1219,8 @@ public final class Run {
 	}
 
 	InputStream getOutputDataStream(URI uri, LongRange range) {
-		return server.getDataStream(uri, MimeType.BYTES, range, credentials);
+		return server.readResourceAsStream(uri, MimeType.BYTES, range,
+				credentials);
 	}
 
 	private URI getLink(Label key) {
