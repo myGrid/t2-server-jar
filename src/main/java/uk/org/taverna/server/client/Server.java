@@ -299,7 +299,7 @@ public final class Server {
 		Run run = Run.create(this, workflow, credentials);
 
 		getUserRunCache(credentials.getUsername())
-		.put(run.getIdentifier(), run);
+				.put(run.getIdentifier(), run);
 
 		return run;
 	}
@@ -353,13 +353,6 @@ public final class Server {
 	InputStream readResourceAsStream(URI uri, MimeType type, LongRange range,
 			UserCredentials credentials) {
 		return connection.readStream(uri, type, range, credentials);
-	}
-
-	URI uploadData(URI uri, byte[] data, String remoteName,
-			UserCredentials credentials) {
-		uri = URIUtils.appendToPath(uri, remoteName);
-
-		return connection.update(uri, data, MimeType.BYTES, credentials);
 	}
 
 	URI uploadData(URI uri, InputStream stream, String remoteName,
