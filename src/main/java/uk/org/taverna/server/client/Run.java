@@ -344,7 +344,8 @@ public final class Run {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
 			uploadData(data, BACLAVA_IN_FILE);
-			server.setData(getLink(Label.BACLAVA), BACLAVA_IN_FILE, credentials);
+			server.updateResource(getLink(Label.BACLAVA), BACLAVA_IN_FILE,
+					credentials);
 
 			baclavaIn = true;
 		} else {
@@ -363,7 +364,8 @@ public final class Run {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
 			uploadFile(file, null, BACLAVA_IN_FILE);
-			server.setData(getLink(Label.BACLAVA), BACLAVA_IN_FILE, credentials);
+			server.updateResource(getLink(Label.BACLAVA), BACLAVA_IN_FILE,
+					credentials);
 
 			baclavaIn = true;
 		} else {
@@ -427,7 +429,8 @@ public final class Run {
 
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
-			server.setData(getLink(Label.OUTPUT), BACLAVA_OUT_FILE, credentials);
+			server.updateResource(getLink(Label.OUTPUT), BACLAVA_OUT_FILE,
+					credentials);
 
 			baclavaOut = true;
 		} else {
@@ -609,8 +612,8 @@ public final class Run {
 			setAllInputs();
 		}
 
-		server.setData(getLink(Label.STATUS), RunStatus.RUNNING.status(),
-				credentials);
+		server.updateResource(getLink(Label.STATUS),
+				RunStatus.RUNNING.status(), credentials);
 	}
 
 	/**
@@ -646,7 +649,7 @@ public final class Run {
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(time);
 		String expiry = DatatypeConverter.printDateTime(cal);
-		server.setData(getLink(Label.EXPIRY), expiry, credentials);
+		server.updateResource(getLink(Label.EXPIRY), expiry, credentials);
 	}
 
 	/**
@@ -1189,7 +1192,7 @@ public final class Run {
 			value = XMLWriter.inputValue(port.getValue());
 		}
 
-		server.setData(path, value, MimeType.XML, credentials);
+		server.updateResource(path, value, credentials);
 	}
 
 	private RunResources getRunResources() {

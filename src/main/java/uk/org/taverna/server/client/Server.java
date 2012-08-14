@@ -327,6 +327,11 @@ public final class Server {
 		return connection.update(uri, content, MimeType.XML, credentials);
 	}
 
+	URI updateResource(URI uri, String content, UserCredentials credentials) {
+		return connection.update(uri, content.getBytes(), MimeType.TEXT,
+				credentials);
+	}
+
 	boolean deleteResource(URI uri, UserCredentials credentials) {
 		return connection.delete(uri, credentials);
 	}
@@ -348,20 +353,6 @@ public final class Server {
 	InputStream readResourceAsStream(URI uri, MimeType type, LongRange range,
 			UserCredentials credentials) {
 		return connection.readStream(uri, type, range, credentials);
-	}
-
-	boolean setData(URI uri, byte[] data, MimeType type,
-			UserCredentials credentials) {
-		URI result = connection.update(uri, data, type, credentials);
-
-		return (result != null) ? true : false;
-	}
-
-	boolean setData(URI uri, String data, UserCredentials credentials) {
-		URI result = connection.update(uri, data.getBytes(), MimeType.TEXT,
-				credentials);
-
-		return (result != null) ? true : false;
 	}
 
 	URI uploadData(URI uri, byte[] data, String remoteName,
