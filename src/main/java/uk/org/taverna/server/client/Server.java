@@ -331,12 +331,13 @@ public final class Server {
 		return connection.delete(uri, credentials);
 	}
 
-	byte[] getData(URI uri, MimeType type, LongRange range,
+	byte[] readResourceAsBytes(URI uri, MimeType type, LongRange range,
 			UserCredentials credentials) {
 		return connection.read(uri, type, range, credentials);
 	}
 
-	byte[] getData(URI uri, MimeType type, UserCredentials credentials) {
+	byte[] readResourceAsBytes(URI uri, MimeType type,
+			UserCredentials credentials) {
 		return connection.read(uri, type, credentials);
 	}
 

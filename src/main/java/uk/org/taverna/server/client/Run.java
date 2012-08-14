@@ -453,7 +453,8 @@ public final class Run {
 				throw new AttributeNotFoundException(baclavaLink);
 			}
 
-			return server.getData(baclavaLink, MimeType.BYTES, credentials);
+			return server.readResourceAsBytes(baclavaLink, MimeType.BYTES,
+					credentials);
 		} else {
 			throw new RunStateException(rs, RunStatus.FINISHED);
 		}
@@ -619,8 +620,8 @@ public final class Run {
 	 */
 	public byte[] getWorkflow() {
 		if (workflow == null) {
-			workflow = server.getData(getLink(Label.WORKFLOW), MimeType.XML,
-					credentials);
+			workflow = server.readResourceAsBytes(getLink(Label.WORKFLOW),
+					MimeType.XML, credentials);
 		}
 
 		return workflow;
@@ -1215,7 +1216,8 @@ public final class Run {
 	}
 
 	byte[] getOutputData(URI uri, LongRange range) {
-		return server.getData(uri, MimeType.BYTES, range, credentials);
+		return server.readResourceAsBytes(uri, MimeType.BYTES, range,
+				credentials);
 	}
 
 	InputStream getOutputDataStream(URI uri, LongRange range) {
