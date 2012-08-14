@@ -55,15 +55,22 @@ public class TestSecureWorkflows extends TestRunsBase {
 	private final static String WKF_DIGEST_HTTPS = "/workflows/secure/digest-https.t2flow";
 	private final static String WKF_WS_HTTP = "/workflows/secure/ws-http.t2flow";
 	private final static String WKF_WS_HTTPS = "/workflows/secure/ws-https.t2flow";
+	private final static String WKF_CLIENT_HTTPS = "/workflows/secure/client-https.t2flow";
 
 	// Credentials
 	private final static String HEATER_PK = "/credentials/heater-pk.pem";
+	private final static String USER_PK = "/credentials/user-cert.p12";
+	private final static String USERNAME = "testuser";
+	private final static String PASSWORD = "testpasswd";
+	private final static String CERTPASS = "testcert";
 
 	// Service endpoints
 	private final static URI HEATER_HTTP = URI
 			.create("http://heater.cs.man.ac.uk:7070/");
 	private final static URI HEATER_HTTPS = URI
 			.create("https://heater.cs.man.ac.uk:7443/");
+	private final static URI HEATER_CAUTH = URI
+			.create("https://heater.cs.man.ac.uk:7444/");
 
 	// SOAP methods
 	private final static String WS1 = "axis/services/HelloService-PlaintextPassword";
@@ -71,10 +78,6 @@ public class TestSecureWorkflows extends TestRunsBase {
 	private final static String WS3 = "axis/services/HelloService-PlaintextPassword-Timestamp";
 	private final static String WS4 = "axis/services/HelloService-DigestPassword-Timestamp";
 	private final static String WS[] = { WS1, WS2, WS3, WS4 };
-
-	// Credentials
-	private final static String USERNAME = "testuser";
-	private final static String PASSWORD = "testpasswd";
 
 	@Test
 	public void testNoCreds() {
@@ -122,6 +125,35 @@ public class TestSecureWorkflows extends TestRunsBase {
 	@Test
 	public void testWSCredsHTTPS() {
 		testSOAP(WKF_WS_HTTPS);
+	}
+
+	@Test
+	public void testClientCertAuthHTTPS() {
+		byte[] workflow = loadResource(WKF_CLIENT_HTTPS);
+		Run run = server.createRun(workflow, user1);
+
+		InputStream keypair = getResourceStream(USER_PK);
+		run.setServiceCredential(HEATER_CAUTH, keypair, CERTPASS);
+
+		File certificate = getResourceFile(HEATER_PK);
+		try {
+			run.setTrustedIdentity(certificate);
+		} catch (IOException e) {
+			fail("Could not load server public key file.");
+		}
+
+		try {
+			run.start();
+		} catch (Exception e) {
+			fail("Failed to start run.");
+		}
+
+		assertTrue("Run has finished", run.isRunning());
+		wait(run);
+		assertTrue("Run has finished", run.isFinished());
+
+		assertTrue("Run has an output",
+				run.getOutputPort("out").getDataSize() > 0);
 	}
 
 	private void testREST(String filename) {
