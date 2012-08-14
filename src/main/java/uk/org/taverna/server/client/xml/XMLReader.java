@@ -34,6 +34,7 @@ package uk.org.taverna.server.client.xml;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,6 +74,8 @@ import uk.org.taverna.server.client.xml.rest.SecurityDescriptor;
 import uk.org.taverna.server.client.xml.rest.ServerDescription;
 import uk.org.taverna.server.client.xml.rest.TavernaRun;
 import uk.org.taverna.server.client.xml.rest.TavernaRunInputs;
+import uk.org.taverna.server.client.xml.rest.TrustDescriptor;
+import uk.org.taverna.server.client.xml.rest.TrustList;
 
 public final class XMLReader {
 
@@ -195,6 +198,7 @@ public final class XMLReader {
 
 			links.put(Label.PERMISSIONS, sd.getPermissions().getHref());
 			links.put(Label.CREDENTIALS, sd.getCredentials().getHref());
+			links.put(Label.TRUSTS, sd.getTrusts().getHref());
 		}
 
 		return new RunResources(links, owner);
@@ -259,5 +263,17 @@ public final class XMLReader {
 		}
 
 		return creds;
+	}
+
+	public List<URI> readRunTrustedIdentities(URI uri, UserCredentials credentials) {
+		JAXBElement<?> root = (JAXBElement<?>) read(uri, credentials);
+		TrustList tl = (TrustList) root.getValue();
+
+		List<URI> trusts = new ArrayList<URI>();
+		for (TrustDescriptor td : tl.getTrust()) {
+			trusts.add(td.getHref());
+		}
+
+		return trusts;
 	}
 }

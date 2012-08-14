@@ -82,10 +82,20 @@ public abstract class TestBase {
 		}
 	}
 
+	protected InputStream getResourceStream(String filename) {
+		InputStream is = getClass().getResourceAsStream(filename);
+
+		if (is == null) {
+			fail("Could not open resource: " + filename);
+		}
+
+		return is;
+	}
+
 	protected byte[] loadResource(String filename) {
 		InputStream is = null;
 		try {
-			is = getClass().getResourceAsStream(filename);
+			is = getResourceStream(filename);
 			return IOUtils.toByteArray(is);
 		} catch (Exception e) {
 			fail("Could not open resource: " + filename);

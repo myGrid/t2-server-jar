@@ -36,8 +36,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import uk.org.taverna.server.client.util.URIUtils;
@@ -46,12 +50,20 @@ public class TestSecureWorkflows extends TestRunsBase {
 
 	// Secure workflows
 	private final static String WKF_BASIC_HTTP = "/workflows/secure/basic-http.t2flow";
+	private final static String WKF_BASIC_HTTPS = "/workflows/secure/basic-https.t2flow";
 	private final static String WKF_DIGEST_HTTP = "/workflows/secure/digest-http.t2flow";
+	private final static String WKF_DIGEST_HTTPS = "/workflows/secure/digest-https.t2flow";
 	private final static String WKF_WS_HTTP = "/workflows/secure/ws-http.t2flow";
+	private final static String WKF_WS_HTTPS = "/workflows/secure/ws-https.t2flow";
+
+	// Credentials
+	private final static String HEATER_PK = "/credentials/heater-pk.pem";
 
 	// Service endpoints
 	private final static URI HEATER_HTTP = URI
 			.create("http://heater.cs.man.ac.uk:7070/");
+	private final static URI HEATER_HTTPS = URI
+			.create("https://heater.cs.man.ac.uk:7443/");
 
 	// SOAP methods
 	private final static String WS1 = "axis/services/HelloService-PlaintextPassword";
@@ -84,23 +96,88 @@ public class TestSecureWorkflows extends TestRunsBase {
 
 	@Test
 	public void testHTTPBasicAuth() {
-		testRestHTTP(WKF_BASIC_HTTP);
+		testREST(WKF_BASIC_HTTP);
+	}
+
+	@Test
+	public void testHTTPSBasicAuth() {
+		testREST(WKF_BASIC_HTTPS);
 	}
 
 	@Test
 	public void testHTTPDigestAuth() {
-		testRestHTTP(WKF_DIGEST_HTTP);
+		testREST(WKF_DIGEST_HTTP);
+	}
+
+	@Test
+	public void testHTTPSDigestAuth() {
+		testREST(WKF_DIGEST_HTTPS);
 	}
 
 	@Test
 	public void testWSCredsHTTP() {
-		byte[] workflow = loadResource(WKF_WS_HTTP);
+		testSOAP(WKF_WS_HTTP);
+	}
+
+	@Test
+	public void testWSCredsHTTPS() {
+		testSOAP(WKF_WS_HTTPS);
+	}
+
+	private void testREST(String filename) {
+		byte[] workflow = loadResource(filename);
+		Run run = server.createRun(workflow, user1);
+
+		// We can test either HTTP or HTTPS services.
+		if (filename.contains("https")) {
+			run.setServiceCredential(HEATER_HTTPS, USERNAME, PASSWORD);
+
+			File certificate = getResourceFile(HEATER_PK);
+			try {
+				run.setTrustedIdentity(certificate);
+			} catch (IOException e) {
+				fail("Could not load server public key file.");
+			}
+		} else {
+			run.setServiceCredential(HEATER_HTTP, USERNAME, PASSWORD);
+		}
+
+		try {
+			run.start();
+		} catch (Exception e) {
+			fail("Failed to start run.");
+		}
+
+		assertTrue("Run has finished", run.isRunning());
+		wait(run);
+		assertTrue("Run has finished", run.isFinished());
+
+		assertTrue("Run has an output",
+				run.getOutputPort("out").getDataSize() > 0);
+	}
+
+	private void testSOAP(String filename) {
+		byte[] workflow = loadResource(filename);
 		Run run = server.createRun(workflow, user1);
 		URI uri;
 
-		for (String ws : WS) {
-			uri = buildWSURI(HEATER_HTTP, ws);
-			run.setServiceCredential(uri, USERNAME, PASSWORD);
+		if (filename.contains("https")) {
+			for (String ws : WS) {
+				uri = buildWSURI(HEATER_HTTPS, ws);
+				run.setServiceCredential(uri, USERNAME, PASSWORD);
+			}
+
+			InputStream certificate = getResourceStream(HEATER_PK);
+			try {
+				run.setTrustedIdentity(certificate);
+			} finally {
+				IOUtils.closeQuietly(certificate);
+			}
+		} else {
+			for (String ws : WS) {
+				uri = buildWSURI(HEATER_HTTP, ws);
+				run.setServiceCredential(uri, USERNAME, PASSWORD);
+			}
 		}
 
 		try {
@@ -121,26 +198,6 @@ public class TestSecureWorkflows extends TestRunsBase {
 				.getOutputPort("out_plaintext_timestamp").getDataAsString());
 		assertEquals("Timestamped digest output", "Hello David!", run
 				.getOutputPort("out_digest_timestamp").getDataAsString());
-	}
-
-	private void testRestHTTP(String filename) {
-		byte[] workflow = loadResource(filename);
-		Run run = server.createRun(workflow, user1);
-
-		run.setServiceCredential(HEATER_HTTP, USERNAME, PASSWORD);
-
-		try {
-			run.start();
-		} catch (Exception e) {
-			fail("Failed to start run.");
-		}
-
-		assertTrue("Run has finished", run.isRunning());
-		wait(run);
-		assertTrue("Run has finished", run.isFinished());
-
-		assertTrue("Run has an output",
-				run.getOutputPort("out").getDataSize() > 0);
 	}
 
 	private URI buildWSURI(URI uri, String path) {

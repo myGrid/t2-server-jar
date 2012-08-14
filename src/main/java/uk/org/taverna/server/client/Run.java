@@ -75,9 +75,11 @@ public final class Run {
 	private static final String BACLAVA_IN_FILE = "in.baclava";
 	private static final String BACLAVA_OUT_FILE = "out.baclava";
 	private static final String KEYPAIR_PREFIX = "keypair-";
+	private static final String TRUST_PREFIX = "trust-";
 
 	private static final String DEFAULT_CERTIFICATE_ALIAS = "Imported Certificate";
 	private static final String DEFAULT_KEYPAIR_TYPE = "pkcs12";
+	private static final String DEFAULT_CERTIFICATE_TYPE = "x509";
 
 	private final URI uri;
 	private final Server server;
@@ -968,6 +970,117 @@ public final class Run {
 		}
 
 		return server.delete(getLink(Label.CREDENTIALS), credentials);
+	}
+
+	/**
+	 * Return a list of all the URIs of trusted identities (for example, a
+	 * server public key for peer verification) that have been registered for
+	 * this run. At present there is no way to differentiate between trusted
+	 * identities without noting the URI returned when originally uploaded.
+	 * 
+	 * Only the owner of a run may query its trusted identities.
+	 * 
+	 * @return the list of trusted identities registered for this run.
+	 */
+	public List<URI> getTrustedIdentities() {
+		if (!isOwner()) {
+			throw new AuthorizationException(credentials.getUsername());
+		}
+
+		XMLReader reader = server.getXMLReader();
+
+		List<URI> trusts = reader.readRunTrustedIdentities(
+				getLink(Label.TRUSTS), credentials);
+
+		return trusts;
+	}
+
+	/**
+	 * Add a trusted identity (server public key) to verify peers when using
+	 * https connections to Web Services. The URI of the trusted identity on the
+	 * server is returned.
+	 * 
+	 * Only the owner of a run may add a trusted identity.
+	 * 
+	 * @param certificate
+	 *            The public key file to use as a trusted identity.
+	 * @return The URI of the uploaded trusted identity resource.
+	 * @throws IOException
+	 *             if the specified file cannot be opened for any reason.
+	 */
+	public URI setTrustedIdentity(File certificate) throws IOException {
+		if (!isOwner()) {
+			throw new AuthorizationException(credentials.getUsername());
+		}
+
+		String remoteFile = uploadFile(certificate);
+
+		return setTrustedIdentity(remoteFile);
+	}
+
+	/**
+	 * Add a trusted identity (server public key) to verify peers when using
+	 * https connections to Web Services. The URI of the trusted identity on the
+	 * server is returned.
+	 * 
+	 * Only the owner of a run may add a trusted identity.
+	 * 
+	 * @param certificate
+	 *            The public key to use as a trusted identity.
+	 * @return The URI of the uploaded trusted identity resource.
+	 */
+	public URI setTrustedIdentity(InputStream certificate) {
+		if (!isOwner()) {
+			throw new AuthorizationException(credentials.getUsername());
+		}
+
+		String remoteFile = TRUST_PREFIX + UUID.randomUUID();
+
+		uploadData(certificate, remoteFile);
+
+		return setTrustedIdentity(remoteFile);
+	}
+
+	private URI setTrustedIdentity(String remoteFile) {
+		byte[] content = XMLWriter.runTrustedIdentity(remoteFile,
+				DEFAULT_CERTIFICATE_TYPE);
+
+		return server.createResource(getLink(Label.TRUSTS), content,
+				credentials);
+	}
+
+	/**
+	 * Delete the trusted identity resource at the specified URI from the remote
+	 * server.
+	 * 
+	 * Only the owner of a run may delete a trusted identity.
+	 * 
+	 * @param uri
+	 *            The URI of the trusted identity to delete.
+	 * @return true on success, false otherwise.
+	 */
+	public boolean deleteTrustedIdentity(URI uri) {
+		if (!isOwner()) {
+			throw new AuthorizationException(credentials.getUsername());
+		}
+
+		return server.delete(uri, credentials);
+	}
+
+	/**
+	 * Delete all of the trusted identities that have been registered for use by
+	 * this run.
+	 * 
+	 * Only the owner of a run may delete trusted identities.
+	 * 
+	 * @return true on success, false otherwise.
+	 */
+	public boolean deleteAllTrustedIdentities() {
+		if (!isOwner()) {
+			throw new AuthorizationException(credentials.getUsername());
+		}
+
+		return server.delete(getLink(Label.TRUSTS), credentials);
 	}
 
 	/**

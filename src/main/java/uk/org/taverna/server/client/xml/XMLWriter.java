@@ -50,6 +50,7 @@ import uk.org.taverna.server.client.xml.rest.ObjectFactory;
 import uk.org.taverna.server.client.xml.rest.PasswordCredential;
 import uk.org.taverna.server.client.xml.rest.Permission;
 import uk.org.taverna.server.client.xml.rest.PermissionDescription;
+import uk.org.taverna.server.client.xml.rest.TrustDescriptor;
 
 public final class XMLWriter {
 
@@ -146,6 +147,18 @@ public final class XMLWriter {
 
 		ObjectFactory factory = new ObjectFactory();
 		JAXBElement<Credential> element = factory.createCredential(cred);
+
+		return write(element);
+	}
+
+	public static byte[] runTrustedIdentity(String filename, String type) {
+		TrustDescriptor td = new TrustDescriptor();
+		td.setCertificateFile(filename);
+		td.setFileType(type);
+
+		ObjectFactory factory = new ObjectFactory();
+		JAXBElement<TrustDescriptor> element = factory
+				.createTrustedIdentity(td);
 
 		return write(element);
 	}
