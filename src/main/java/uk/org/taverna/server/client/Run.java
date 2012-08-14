@@ -653,7 +653,7 @@ public final class Run {
 	 */
 	public boolean delete() {
 		try {
-			server.delete(uri, credentials);
+			server.deleteResource(uri, credentials);
 		} catch (AttributeNotFoundException e) {
 			// Ignore this. Delete is idempotent so deleting a run that has
 			// already been deleted or is for some other reason not there should
@@ -954,7 +954,8 @@ public final class Run {
 			throw new AuthorizationException(credentials.getUsername());
 		}
 
-		return server.delete(getServiceCredential(serviceURI), credentials);
+		return server.deleteResource(getServiceCredential(serviceURI),
+				credentials);
 	}
 
 	/**
@@ -969,7 +970,7 @@ public final class Run {
 			throw new AuthorizationException(credentials.getUsername());
 		}
 
-		return server.delete(getLink(Label.CREDENTIALS), credentials);
+		return server.deleteResource(getLink(Label.CREDENTIALS), credentials);
 	}
 
 	/**
@@ -1064,7 +1065,7 @@ public final class Run {
 			throw new AuthorizationException(credentials.getUsername());
 		}
 
-		return server.delete(uri, credentials);
+		return server.deleteResource(uri, credentials);
 	}
 
 	/**
@@ -1080,7 +1081,7 @@ public final class Run {
 			throw new AuthorizationException(credentials.getUsername());
 		}
 
-		return server.delete(getLink(Label.TRUSTS), credentials);
+		return server.deleteResource(getLink(Label.TRUSTS), credentials);
 	}
 
 	/**

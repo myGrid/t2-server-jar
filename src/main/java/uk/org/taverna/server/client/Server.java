@@ -155,10 +155,6 @@ public final class Server {
 		return getRunsFromServer(credentials).values();
 	}
 
-	boolean delete(URI uri, UserCredentials credentials) {
-		return connection.delete(uri, credentials);
-	}
-
 	/**
 	 * Delete all runs on this server instance. Only the runs owned by the
 	 * provided credentials will be deleted.
@@ -329,6 +325,10 @@ public final class Server {
 
 	URI updateResource(URI uri, byte[] content, UserCredentials credentials) {
 		return connection.update(uri, content, MimeType.XML, credentials);
+	}
+
+	boolean deleteResource(URI uri, UserCredentials credentials) {
+		return connection.delete(uri, credentials);
 	}
 
 	byte[] getData(URI uri, MimeType type, LongRange range,
