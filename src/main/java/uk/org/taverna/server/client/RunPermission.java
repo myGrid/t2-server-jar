@@ -32,14 +32,28 @@
 
 package uk.org.taverna.server.client;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
 
-@RunWith(Suite.class)
-@SuiteClasses({ uk.org.taverna.server.client.util.TestURIUtils.class,
-		TestServer.class, TestRun.class, TestRunPermissions.class,
-		TestSecureWorkflows.class })
-public class TestAll {
+/**
+ * Permissions that can be granted to users so that they can operate on Runs.
+ * 
+ * @author Robert Haines
+ */
+public enum RunPermission {
 
+	NONE("none"), READ("read"), UPDATE("update"), DELETE("destroy");
+
+	public final String permission;
+
+	private RunPermission(String permission) {
+		this.permission = permission;
+	}
+
+	public static RunPermission fromString(String string) {
+		for (RunPermission c : RunPermission.values()) {
+			if (c.permission.equals(string)) {
+				return c;
+			}
+		}
+		throw new IllegalArgumentException(string);
+	}
 }

@@ -32,6 +32,7 @@
 
 package uk.org.taverna.server.client.util;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.net.URI;
@@ -104,5 +105,23 @@ public class TestURIUtils {
 
 		end = URIUtils.extractFinalPathComponent(pathSlashHTTP);
 		assertTrue(end.isEmpty());
+	}
+
+	@Test
+	public void testSetQuery() {
+		final String query = "query";
+		final String qquery = "?query";
+
+		URI uri = URIUtils.setQuery(standardHTTP, query);
+		assertEquals(query, uri.getQuery());
+		assertEquals("", uri.getPath());
+
+		uri = URIUtils.setQuery(standardHTTP, qquery);
+		assertEquals(query, uri.getQuery());
+		assertEquals("", uri.getPath());
+
+		uri = URIUtils.setQuery(pathSlashHTTP, qquery);
+		assertEquals(query, uri.getQuery());
+		assertEquals("/path/", uri.getPath());
 	}
 }
