@@ -381,7 +381,7 @@ public final class Run {
 		if (baclavaIn) {
 			return true;
 		} else {
-			String test = server.getDataString(getLink(Label.BACLAVA),
+			String test = server.readResourceAsString(getLink(Label.BACLAVA),
 					credentials);
 
 			// if we get back the baclava input file name we are using it.
@@ -403,7 +403,7 @@ public final class Run {
 		if (baclavaOut) {
 			return true;
 		} else {
-			String test = server.getDataString(getLink(Label.OUTPUT),
+			String test = server.readResourceAsString(getLink(Label.OUTPUT),
 					credentials);
 
 			// if we get back the baclava output file name we are using it.
@@ -555,8 +555,8 @@ public final class Run {
 		if (deleted) {
 			return RunStatus.DELETED;
 		} else {
-			return RunStatus.state(server.getDataString(getLink(Label.STATUS),
-					credentials));
+			return RunStatus.state(server.readResourceAsString(
+					getLink(Label.STATUS), credentials));
 		}
 	}
 
@@ -672,7 +672,7 @@ public final class Run {
 	 * @return the return code of the underlying Taverna Server process.
 	 */
 	public int getExitCode() {
-		return new Integer(server.getDataString(getLink(Label.EXITCODE),
+		return new Integer(server.readResourceAsString(getLink(Label.EXITCODE),
 				credentials));
 	}
 
@@ -682,7 +682,7 @@ public final class Run {
 	 * @return the console output of the underlying Taverna Server process.
 	 */
 	public String getConsoleOutput() {
-		return server.getDataString(getLink(Label.STDOUT), credentials);
+		return server.readResourceAsString(getLink(Label.STDOUT), credentials);
 	}
 
 	/**
@@ -691,7 +691,7 @@ public final class Run {
 	 * @return the console errors of the underlying Taverna Server process.
 	 */
 	public String getConsoleError() {
-		return server.getDataString(getLink(Label.STDERR), credentials);
+		return server.readResourceAsString(getLink(Label.STDERR), credentials);
 	}
 
 	/**
@@ -722,7 +722,8 @@ public final class Run {
 	}
 
 	private Date getTime(Label time) {
-		String dateTime = server.getDataString(getLink(time), credentials);
+		String dateTime = server.readResourceAsString(getLink(time),
+				credentials);
 		Calendar cal = DatatypeConverter.parseDateTime(dateTime);
 
 		return cal.getTime();

@@ -340,12 +340,7 @@ public final class Server {
 		return connection.read(uri, type, credentials);
 	}
 
-	String getDataString(URI uri, LongRange range, UserCredentials credentials) {
-		return new String(connection.read(uri, MimeType.TEXT, range,
-				credentials));
-	}
-
-	String getDataString(URI uri, UserCredentials credentials) {
+	String readResourceAsString(URI uri, UserCredentials credentials) {
 		return new String(connection.read(uri, MimeType.TEXT, credentials));
 	}
 
