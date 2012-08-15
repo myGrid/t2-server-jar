@@ -38,22 +38,46 @@ package uk.org.taverna.server.client;
  * @author Robert Haines
  */
 public enum RunStatus {
-	INITIALIZED("Initialized"), RUNNING("Operating"), FINISHED("Finished"), STOPPED(
-			"Stopped"), DELETED("Deleted"), UNDEFINED("unknown");
-
-	private final String status;
-
-	RunStatus(String status) {
-		this.status = status;
-	}
 
 	/**
-	 * Get the String representation of this instance.
-	 * 
-	 * @return the String representation of this instance.
+	 * Used to represent a Run in the Initialized state.
 	 */
-	public String status() {
-		return this.status;
+	INITIALIZED("Initialized"),
+
+	/**
+	 * Used to represent a Run in the Running state.
+	 */
+	RUNNING("Operating"),
+
+	/**
+	 * Used to represent a Run in the Finished state.
+	 */
+	FINISHED("Finished"),
+
+	/**
+	 * Used to represent a Run in the Stopped state. This state is currently
+	 * unused.
+	 */
+	STOPPED("Stopped"),
+
+	/**
+	 * Used to represent a Run that has been deleted from the server.
+	 */
+	DELETED("Deleted"),
+
+	/**
+	 * Used to represent a Run in an undefined, or unknown state. This state is
+	 * currently unused.
+	 */
+	UNDEFINED("unknown");
+
+	/**
+	 * The String representation of this status.
+	 */
+	public final String status;
+
+	private RunStatus(String status) {
+		this.status = status;
 	}
 
 	/**
@@ -62,14 +86,17 @@ public enum RunStatus {
 	 * @param status
 	 *            the status to convert.
 	 * @return the converted status.
+	 * @throws IllegalArgumentException
+	 *             if there is no such status.
 	 */
-	public static RunStatus state(String status) {
+	public static RunStatus fromString(String status) {
 		for (RunStatus rs : RunStatus.values()) {
-			if (rs.status().equals(status)) {
+			if (rs.status.equals(status)) {
 				return rs;
 			}
 		}
 
-		return RunStatus.UNDEFINED;
+		throw new IllegalArgumentException("There is no such status as '"
+				+ status + "'");
 	}
 }

@@ -559,7 +559,7 @@ public final class Run {
 		if (deleted) {
 			return RunStatus.DELETED;
 		} else {
-			return RunStatus.state(server.readResourceAsString(
+			return RunStatus.fromString(server.readResourceAsString(
 					getLink(Label.STATUS), credentials));
 		}
 	}
@@ -612,8 +612,8 @@ public final class Run {
 			setAllInputs();
 		}
 
-		server.updateResource(getLink(Label.STATUS),
-				RunStatus.RUNNING.status(), credentials);
+		server.updateResource(getLink(Label.STATUS), RunStatus.RUNNING.status,
+				credentials);
 	}
 
 	/**
