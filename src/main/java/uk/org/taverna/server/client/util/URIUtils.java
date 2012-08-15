@@ -46,6 +46,9 @@ import org.apache.http.client.utils.URIBuilder;
  */
 public final class URIUtils {
 
+	private URIUtils() {
+	}
+
 	/**
 	 * Strip any user info from a URI.
 	 * 

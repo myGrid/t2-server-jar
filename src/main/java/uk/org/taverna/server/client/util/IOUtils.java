@@ -46,6 +46,9 @@ import java.io.OutputStream;
  */
 public final class IOUtils {
 
+	private IOUtils() {
+	}
+
 	/**
 	 * Write an {@link InputStream} directly to a file.
 	 * 
