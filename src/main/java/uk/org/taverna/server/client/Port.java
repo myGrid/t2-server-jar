@@ -32,7 +32,6 @@
 
 package uk.org.taverna.server.client;
 
-
 /**
  * 
  * @author Robert Haines
@@ -49,9 +48,8 @@ public abstract class Port {
 		this.depth = depth;
 	}
 
-	public static InputPort newInputPort(Run run,
-			uk.org.taverna.server.client.xml.port.InputPort port) {
-		return new InputPort(run, port);
+	public static InputPort newInputPort(Run run, String name, int depth) {
+		return new InputPort(run, name, depth);
 	}
 
 	public static OutputPort newOutputPort(Run run,

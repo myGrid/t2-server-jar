@@ -211,7 +211,8 @@ public final class XMLReader {
 
 		Map<String, InputPort> ports = new HashMap<String, InputPort>();
 		for (uk.org.taverna.server.client.xml.port.InputPort ip : id.getInput()) {
-			InputPort port = Port.newInputPort(run, ip);
+			InputPort port = Port
+					.newInputPort(run, ip.getName(), ip.getDepth());
 			ports.put(port.getName(), port);
 		}
 

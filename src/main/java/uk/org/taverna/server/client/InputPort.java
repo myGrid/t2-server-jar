@@ -46,8 +46,8 @@ public final class InputPort extends Port {
 	private String filename;
 	private boolean remoteFile;
 
-	InputPort(Run run, uk.org.taverna.server.client.xml.port.InputPort port) {
-		super(run, port.getName(), port.getDepth());
+	InputPort(Run run, String name, int depth) {
+		super(run, name, depth);
 
 		value = null;
 		filename = null;
