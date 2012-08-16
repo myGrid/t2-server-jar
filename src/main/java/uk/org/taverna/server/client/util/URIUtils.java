@@ -56,7 +56,7 @@ public final class URIUtils {
 	 *            the URI to strip.
 	 * @return the stripped URI.
 	 */
-	public static URI stripUserInfo(URI uri) {
+	public static URI stripUserInfo(final URI uri) {
 		try {
 			return new URIBuilder(uri).setUserInfo(null).build();
 		} catch (URISyntaxException e) {
@@ -73,7 +73,7 @@ public final class URIUtils {
 	 *            the extra path to be appended to the URI.
 	 * @return the new URI with the extended path.
 	 */
-	public static URI appendToPath(URI uri, String extraPath) {
+	public static URI appendToPath(final URI uri, final String extraPath) {
 		try {
 			return new URIBuilder(uri).setPath(uri.getPath() + "/" + extraPath)
 					.build().normalize();
@@ -95,7 +95,7 @@ public final class URIUtils {
 	 * @param uri
 	 * @return
 	 */
-	public static String extractFinalPathComponent(URI uri) {
+	public static String extractFinalPathComponent(final URI uri) {
 		String path = uri.getPath();
 		return path.substring(path.lastIndexOf("/") + 1);
 	}
@@ -109,18 +109,18 @@ public final class URIUtils {
 	 *            the query to set (with or without the leading ?).
 	 * @return the new URI with its query part set.
 	 */
-	public static URI setQuery(URI uri, String query) {
-		if (query.startsWith("?")) {
-			query = query.substring(1);
+	public static URI setQuery(final URI uri, String query) {
+		String q = query;
+		if (q.startsWith("?")) {
+			q = q.substring(1);
 		}
 
 		try {
-			return new URIBuilder(uri).setQuery(query).build();
+			return new URIBuilder(uri).setQuery(q).build();
 		} catch (URISyntaxException e) {
 			throw new IllegalArgumentException(
 					"Either a bad URI was passed in (" + uri
-					+ ") or an query was appended to it (" + query
-					+ ")");
+							+ ") or a bad query was appended to it (" + q + ")");
 		}
 	}
 }

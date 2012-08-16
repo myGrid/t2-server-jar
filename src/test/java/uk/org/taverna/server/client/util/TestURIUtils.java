@@ -33,6 +33,7 @@
 package uk.org.taverna.server.client.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.net.URI;
@@ -119,6 +120,7 @@ public class TestURIUtils {
 		uri = URIUtils.setQuery(standardHTTP, qquery);
 		assertEquals(query, uri.getQuery());
 		assertEquals("", uri.getPath());
+		assertFalse("Query passed in is unchanged", query.equals(qquery));
 
 		uri = URIUtils.setQuery(pathSlashHTTP, qquery);
 		assertEquals(query, uri.getQuery());
