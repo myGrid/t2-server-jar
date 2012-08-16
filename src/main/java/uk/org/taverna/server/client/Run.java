@@ -515,7 +515,12 @@ public final class Run {
 	 * @see #requestBaclavaOutput()
 	 */
 	public void writeBaclavaOutputToFile(File file) throws IOException {
-		IOUtils.writeStreamToFile(getBaclavaOutputStream(), file);
+		InputStream is = getBaclavaOutputStream();
+		try {
+			IOUtils.writeStreamToFile(is, file);
+		} finally {
+			org.apache.commons.io.IOUtils.closeQuietly(is);
+		}
 	}
 
 	/**
@@ -1134,7 +1139,12 @@ public final class Run {
 	 * @see #getOutputZipStream()
 	 */
 	public void writeOutputToZipFile(File file) throws IOException {
-		IOUtils.writeStreamToFile(getOutputZipStream(), file);
+		InputStream is = getOutputZipStream();
+		try {
+			IOUtils.writeStreamToFile(is, file);
+		} finally {
+			org.apache.commons.io.IOUtils.closeQuietly(is);
+		}
 	}
 
 	/**

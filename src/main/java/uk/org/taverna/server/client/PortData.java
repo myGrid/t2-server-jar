@@ -96,7 +96,11 @@ public class PortData extends PortValue {
 	@Override
 	public void writeDataToFile(File file) throws IOException {
 		InputStream is = run.getOutputDataStream(reference, null);
-		IOUtils.writeStreamToFile(is, file);
+		try {
+			IOUtils.writeStreamToFile(is, file);
+		} finally {
+			org.apache.commons.io.IOUtils.closeQuietly(is);
+		}
 	}
 
 	@Override

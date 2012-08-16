@@ -52,6 +52,9 @@ public final class IOUtils {
 	/**
 	 * Write an {@link InputStream} directly to a file.
 	 * 
+	 * This method does not close the {@link InputStream} when it is finished
+	 * with it.
+	 * 
 	 * @param stream
 	 *            the {@link InputStream} to copy from.
 	 * @param file
@@ -66,7 +69,6 @@ public final class IOUtils {
 			os = new FileOutputStream(file);
 			org.apache.commons.io.IOUtils.copyLarge(stream, os);
 		} finally {
-			org.apache.commons.io.IOUtils.closeQuietly(stream);
 			org.apache.commons.io.IOUtils.closeQuietly(os);
 		}
 	}
