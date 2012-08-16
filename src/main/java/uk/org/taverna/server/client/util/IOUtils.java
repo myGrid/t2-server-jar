@@ -43,6 +43,7 @@ import java.io.OutputStream;
  * Commons IO.
  * 
  * @author Robert Haines
+ * @since 0.9.0
  */
 public final class IOUtils {
 
@@ -50,10 +51,10 @@ public final class IOUtils {
 	}
 
 	/**
-	 * Write an {@link InputStream} directly to a file.
+	 * Write data from an {@link InputStream} directly into a file.
 	 * 
-	 * This method does not close the {@link InputStream} when it is finished
-	 * with it.
+	 * <b>This method does not close the {@link InputStream} when it is finished
+	 * with it.</b>
 	 * 
 	 * @param stream
 	 *            the {@link InputStream} to copy from.
