@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012 The University of Manchester, UK.
+ * Copyright (c) 2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -32,37 +32,30 @@
 
 package uk.org.taverna.server.client.connection;
 
-import org.apache.http.HttpRequest;
-import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.Credentials;
-import org.apache.http.impl.auth.AuthSchemeBase;
-import org.apache.http.protocol.HttpContext;
+import uk.org.taverna.server.client.ServerException;
 
 /**
+ * This exception is thrown when there is an internal (HTTP protocol level)
+ * problem with authentication.
  * 
  * @author Robert Haines
+ * @since 0.9.0
  */
-public abstract class UserCredentials {
+public final class AuthenticationFailureException extends ServerException {
+	private static final long serialVersionUID = 1L;
 
-	protected final AuthSchemeBase authenticator;
-	protected final Credentials credentials;
+	private static final String MESSAGE = "User '%s' authentication failed: %s";
 
-	protected UserCredentials(AuthSchemeBase scheme, Credentials credentials) {
-		authenticator = scheme;
-		this.credentials = credentials;
-	}
-
-	public void authenticate(HttpRequest request, HttpContext context) {
-		try {
-			request.addHeader(authenticator.authenticate(credentials, request,
-					context));
-		} catch (AuthenticationException e) {
-			throw new AuthenticationFailureException(getUsername(),
-					e.getMessage());
-		}
-	}
-
-	public String getUsername() {
-		return credentials.getUserPrincipal().getName();
+	/**
+	 * Construct this exception with the username for which authentication
+	 * failed and the message from the underlying HTTP Client library.
+	 * 
+	 * @param username
+	 *            the name of the user for which authentication failed.
+	 * @param message
+	 *            the message from the underlying HTTP Client library.
+	 */
+	public AuthenticationFailureException(String username, String message) {
+		super(String.format(MESSAGE, username, message));
 	}
 }
