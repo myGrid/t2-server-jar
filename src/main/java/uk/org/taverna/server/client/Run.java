@@ -746,13 +746,13 @@ public final class Run {
 	 * query its permissions.
 	 * 
 	 * @return a map of username to permission for each user.
-	 * @throws AuthorizationException
+	 * @throws IllegalUserAccessException
 	 *             if the credentials in this Run are not the owner's.
 	 * @see {@link RunPermission}
 	 */
 	public Map<String, RunPermission> getPermissions() {
 		if (!isOwner()) {
-			throw new AuthorizationException(credentials.getUsername());
+			throw new IllegalUserAccessException(credentials.getUsername());
 		}
 
 		XMLReader reader = server.getXMLReader();
@@ -770,13 +770,13 @@ public final class Run {
 	 * @param username
 	 *            The username of the user to query.
 	 * @return the permission the user has been granted, if any.
-	 * @throws AuthorizationException
+	 * @throws IllegalUserAccessException
 	 *             if the credentials in this Run are not the owner's.
 	 * @see {@link RunPermission}
 	 */
 	public RunPermission getPermission(String username) {
 		if (!isOwner()) {
-			throw new AuthorizationException(credentials.getUsername());
+			throw new IllegalUserAccessException(credentials.getUsername());
 		}
 
 		return getPermissions().get(username);
@@ -795,13 +795,13 @@ public final class Run {
 	 * @param permission
 	 *            The permission to grant.
 	 * @return the URI of the created permission resource on the server.
-	 * @throws AuthorizationException
+	 * @throws IllegalUserAccessException
 	 *             if the credentials in this Run are not the owner's.
 	 * @see {@link RunPermission}
 	 */
 	public URI setPermission(String username, RunPermission permission) {
 		if (!isOwner()) {
-			throw new AuthorizationException(credentials.getUsername());
+			throw new IllegalUserAccessException(credentials.getUsername());
 		}
 
 		if (permission == null) {
@@ -821,10 +821,12 @@ public final class Run {
 	 * it.
 	 * 
 	 * @return A {@link Map} of service URI to credential resource URI.
+	 * @throws IllegalUserAccessException
+	 *             if the credentials in this Run are not the owner's.
 	 */
 	public Map<URI, URI> getServiceCredentials() {
 		if (!isOwner()) {
-			throw new AuthorizationException(credentials.getUsername());
+			throw new IllegalUserAccessException(credentials.getUsername());
 		}
 
 		XMLReader reader = server.getXMLReader();
@@ -843,6 +845,8 @@ public final class Run {
 	 *            The service URI to query.
 	 * @return The credential resource that is being used for the specified
 	 *         service URI.
+	 * @throws IllegalUserAccessException
+	 *             if the credentials in this Run are not the owner's.
 	 */
 	public URI getServiceCredential(URI serviceURI) {
 		return getServiceCredentials().get(serviceURI);
@@ -861,11 +865,13 @@ public final class Run {
 	 * @param password
 	 *            The password of this credential.
 	 * @return The URI to the credential resource on the remote Taverna Server.
+	 * @throws IllegalUserAccessException
+	 *             if the credentials in this Run are not the owner's.
 	 */
 	public URI setServiceCredential(URI serviceURI, String username,
 			String password) {
 		if (!isOwner()) {
-			throw new AuthorizationException(credentials.getUsername());
+			throw new IllegalUserAccessException(credentials.getUsername());
 		}
 
 		// Is this a new credential or an update to an existing one?
@@ -898,9 +904,14 @@ public final class Run {
 	 * @return The URI to the credential resource on the remote Taverna Server.
 	 * @throws IOException
 	 *             if there was a problem reading the credential file.
+	 * @throws IllegalUserAccessException
+	 *             if the credentials in this Run are not the owner's.
 	 */
 	public URI setServiceCredential(URI serviceURI, File keypair,
 			String password) throws IOException {
+		if (!isOwner()) {
+			throw new IllegalUserAccessException(credentials.getUsername());
+		}
 
 		String remoteName = uploadFile(keypair);
 
@@ -920,9 +931,14 @@ public final class Run {
 	 * @param password
 	 *            The password to unlock the credential.
 	 * @return The URI to the credential resource on the remote Taverna Server.
+	 * @throws IllegalUserAccessException
+	 *             if the credentials in this Run are not the owner's.
 	 */
 	public URI setServiceCredential(URI serviceURI, InputStream keypair,
 			String password) {
+		if (!isOwner()) {
+			throw new IllegalUserAccessException(credentials.getUsername());
+		}
 
 		String remoteFile = KEYPAIR_PREFIX + UUID.randomUUID();
 
@@ -935,10 +951,6 @@ public final class Run {
 
 	private URI setServiceKeyPairCredential(URI serviceURI, String remoteFile,
 			String password, String alias) {
-		if (!isOwner()) {
-			throw new AuthorizationException(credentials.getUsername());
-		}
-
 		// Is this a new credential or an update to an existing one?
 		URI credURI = getServiceCredential(serviceURI);
 
@@ -961,10 +973,12 @@ public final class Run {
 	 * @param serviceURI
 	 *            The service for which to delete the credential.
 	 * @return true if the operation succeeded, false otherwise.
+	 * @throws IllegalUserAccessException
+	 *             if the credentials in this Run are not the owner's.
 	 */
 	public boolean deleteServiceCredential(URI serviceURI) {
 		if (!isOwner()) {
-			throw new AuthorizationException(credentials.getUsername());
+			throw new IllegalUserAccessException(credentials.getUsername());
 		}
 
 		return server.deleteResource(getServiceCredential(serviceURI),
@@ -977,10 +991,12 @@ public final class Run {
 	 * Only the owner of a run may delete its credentials.
 	 * 
 	 * @return true if the operation succeeded, false otherwise.
+	 * @throws IllegalUserAccessException
+	 *             if the credentials in this Run are not the owner's.
 	 */
 	public boolean deleteAllServiceCredentials() {
 		if (!isOwner()) {
-			throw new AuthorizationException(credentials.getUsername());
+			throw new IllegalUserAccessException(credentials.getUsername());
 		}
 
 		return server.deleteResource(getLink(ResourceLabel.CREDENTIALS),
@@ -996,10 +1012,12 @@ public final class Run {
 	 * Only the owner of a run may query its trusted identities.
 	 * 
 	 * @return the list of trusted identities registered for this run.
+	 * @throws IllegalUserAccessException
+	 *             if the credentials in this Run are not the owner's.
 	 */
 	public List<URI> getTrustedIdentities() {
 		if (!isOwner()) {
-			throw new AuthorizationException(credentials.getUsername());
+			throw new IllegalUserAccessException(credentials.getUsername());
 		}
 
 		XMLReader reader = server.getXMLReader();
@@ -1022,10 +1040,12 @@ public final class Run {
 	 * @return The URI of the uploaded trusted identity resource.
 	 * @throws IOException
 	 *             if the specified file cannot be opened for any reason.
+	 * @throws IllegalUserAccessException
+	 *             if the credentials in this Run are not the owner's.
 	 */
 	public URI setTrustedIdentity(File certificate) throws IOException {
 		if (!isOwner()) {
-			throw new AuthorizationException(credentials.getUsername());
+			throw new IllegalUserAccessException(credentials.getUsername());
 		}
 
 		String remoteFile = uploadFile(certificate);
@@ -1043,10 +1063,12 @@ public final class Run {
 	 * @param certificate
 	 *            The public key to use as a trusted identity.
 	 * @return The URI of the uploaded trusted identity resource.
+	 * @throws IllegalUserAccessException
+	 *             if the credentials in this Run are not the owner's.
 	 */
 	public URI setTrustedIdentity(InputStream certificate) {
 		if (!isOwner()) {
-			throw new AuthorizationException(credentials.getUsername());
+			throw new IllegalUserAccessException(credentials.getUsername());
 		}
 
 		String remoteFile = TRUST_PREFIX + UUID.randomUUID();
@@ -1073,10 +1095,12 @@ public final class Run {
 	 * @param uri
 	 *            The URI of the trusted identity to delete.
 	 * @return true on success, false otherwise.
+	 * @throws IllegalUserAccessException
+	 *             if the credentials in this Run are not the owner's.
 	 */
 	public boolean deleteTrustedIdentity(URI uri) {
 		if (!isOwner()) {
-			throw new AuthorizationException(credentials.getUsername());
+			throw new IllegalUserAccessException(credentials.getUsername());
 		}
 
 		return server.deleteResource(uri, credentials);
@@ -1089,10 +1113,12 @@ public final class Run {
 	 * Only the owner of a run may delete trusted identities.
 	 * 
 	 * @return true on success, false otherwise.
+	 * @throws IllegalUserAccessException
+	 *             if the credentials in this Run are not the owner's.
 	 */
 	public boolean deleteAllTrustedIdentities() {
 		if (!isOwner()) {
-			throw new AuthorizationException(credentials.getUsername());
+			throw new IllegalUserAccessException(credentials.getUsername());
 		}
 
 		return server
