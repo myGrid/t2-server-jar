@@ -30,27 +30,46 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package uk.org.taverna.server.client;
+package uk.org.taverna.server.client.connection;
 
+import java.net.HttpURLConnection;
 import java.net.URI;
 
 /**
- * This exception is thrown if the server returns a forbidden error code (403).
+ * This exception is thrown if the server returns an internal error code (50x).
  * 
  * @author Robert Haines
  */
-public class AccessForbiddenException extends ServerException {
+public final class InternalServerException extends ServerResponseException {
 	private static final long serialVersionUID = 1L;
 
+	private static final String MESSAGE = "The server has suffered an internal error while accessing the requested resource";
+
+	private final String message;
+
 	/**
-	 * Construct the exception with the specified attribute path.
+	 * Construct the exception with the specified {@link URI} that was accessed
+	 * and the message from the server passed in.
 	 * 
-	 * @param path
+	 * @param uri
+	 *            the resource that was accessed when this error occurred.
+	 * @param message
+	 *            the error message from the server.
 	 */
-	public AccessForbiddenException(URI uri) {
-		super(
-				"Access to "
-						+ uri
-						+ " is forbidden. Either you do not have the required credentials or the server does not allow the requested operation");
+	public InternalServerException(URI uri, String message) {
+		super(uri, HttpURLConnection.HTTP_INTERNAL_ERROR, MESSAGE);
+
+		this.message = message;
+	}
+
+	/**
+	 * Get the error message that accompanies this response. It may hold further
+	 * details of what went wrong.
+	 * 
+	 * @return the message from the server about the internal error that it
+	 *         suffered.
+	 */
+	public String getErrorMessage() {
+		return message;
 	}
 }

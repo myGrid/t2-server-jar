@@ -30,25 +30,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package uk.org.taverna.server.client;
+package uk.org.taverna.server.client.connection;
 
+import java.net.HttpURLConnection;
 import java.net.URI;
 
 /**
- * This exception is thrown if the server returns a not found error code (404).
+ * This exception is thrown if the server returns an unauthorized error code
+ * (401).
  * 
  * @author Robert Haines
  */
-public final class AttributeNotFoundException extends ServerException {
+public class AuthorizationException extends ServerResponseException {
 	private static final long serialVersionUID = 1L;
 
+	private static final String MESSAGE = "Authorization is required to access the requested resource";
+
 	/**
-	 * Construct the exception with the specified attribute path.
+	 * Construct the exception with the specified {@link URI} that was accessed.
 	 * 
 	 * @param uri
-	 *            the URI at which an attribute could not be found.
+	 *            the address that requires authorization.
 	 */
-	public AttributeNotFoundException(URI uri) {
-		super("Could not find attribute at " + uri);
+	public AuthorizationException(URI uri) {
+		super(uri, HttpURLConnection.HTTP_UNAUTHORIZED, MESSAGE);
 	}
 }

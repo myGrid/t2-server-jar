@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,23 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package uk.org.taverna.server.client;
+package uk.org.taverna.server.client.connection;
+
+import java.net.HttpURLConnection;
+import java.net.URI;
 
 /**
- * This exception is thrown if the server returns an unexpected status code for
- * the operation performed.
+ * This exception is thrown if the server returns a forbidden error code (403).
  * 
  * @author Robert Haines
  */
-public final class UnexpectedResponseException extends ServerException {
+public class AccessForbiddenException extends ServerResponseException {
 	private static final long serialVersionUID = 1L;
 
+	private static final String MESSAGE = "The server does not allow access to the requested resource";
+
 	/**
-	 * Construct the exception with the message from the server passed in.
+	 * Construct the exception with the specified {@link URI} that was accessed.
 	 * 
-	 * @param message
+	 * @param uri
+	 *            the address that access was forbidden to.
 	 */
-	public UnexpectedResponseException(String message) {
-		super("Unexpected server response: " + message);
+	public AccessForbiddenException(URI uri) {
+		super(uri, HttpURLConnection.HTTP_FORBIDDEN, MESSAGE);
 	}
 }

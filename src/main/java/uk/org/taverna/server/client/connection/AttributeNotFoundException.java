@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,24 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package uk.org.taverna.server.client;
+package uk.org.taverna.server.client.connection;
+
+import java.net.HttpURLConnection;
+import java.net.URI;
 
 /**
- * This exception is thrown if the server returns an internal error code (50x).
+ * This exception is thrown if the server returns a not found error code (404).
  * 
  * @author Robert Haines
  */
-public final class InternalServerException extends ServerException {
+public final class AttributeNotFoundException extends ServerResponseException {
 	private static final long serialVersionUID = 1L;
 
+	private static final String MESSAGE = "Could not find resource";
+
 	/**
-	 * Construct the exception with the message from the server passed in.
+	 * Construct the exception with the specified {@link URI} that was accessed.
 	 * 
-	 * @param message
+	 * @param uri
+	 *            the address at which an attribute could not be found.
 	 */
-	public InternalServerException(String message) {
-		super(
-				"There has been an internal error with the server or one of the messages received from it. Please let us know about this error if it keeps occuring.\n\nThe actual error that caused this problem is: "
-						+ message);
+	public AttributeNotFoundException(URI uri) {
+		super(uri, HttpURLConnection.HTTP_NOT_FOUND, MESSAGE);
 	}
 }

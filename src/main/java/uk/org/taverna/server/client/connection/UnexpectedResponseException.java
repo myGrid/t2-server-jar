@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,22 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package uk.org.taverna.server.client;
+package uk.org.taverna.server.client.connection;
+
+import java.net.URI;
 
 /**
+ * This exception is thrown if the server returns an unexpected status code for
+ * the operation performed.
+ * 
  * @author Robert Haines
  */
-public class AuthorizationException extends ServerException {
+public final class UnexpectedResponseException extends ServerResponseException {
 	private static final long serialVersionUID = 1L;
 
-	/**
-	 * @param message
-	 */
-	public AuthorizationException() {
-		super("User is not authorized to perform that operation.");
-	}
+	private static final String MESSAGE = "Unexpected server response on access to resource";
 
-	public AuthorizationException(String user) {
-		super("User '" + user + "'is not authorized to perform that operation.");
+	/**
+	 * Construct the exception with the specified {@link URI} that was accessed,
+	 * the status code of the response and the short reason message connected
+	 * with the status code.
+	 * 
+	 * @param uri
+	 *            the address that was accessed to produce this unexpected
+	 *            response.
+	 * @param statusCode
+	 *            the status code of this response.
+	 * @param reason
+	 *            the short reason message connected with this response.
+	 */
+	public UnexpectedResponseException(URI uri, int statusCode, String reason) {
+		super(uri, statusCode, MESSAGE + " - " + reason);
 	}
 }

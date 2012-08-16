@@ -50,6 +50,7 @@ import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.math.LongRange;
 
+import uk.org.taverna.server.client.connection.AttributeNotFoundException;
 import uk.org.taverna.server.client.connection.MimeType;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.util.IOUtils;

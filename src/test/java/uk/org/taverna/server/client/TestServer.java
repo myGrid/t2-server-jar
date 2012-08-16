@@ -43,6 +43,8 @@ import java.util.Collection;
 import org.junit.AfterClass;
 import org.junit.Test;
 
+import uk.org.taverna.server.client.connection.AccessForbiddenException;
+
 public class TestServer extends TestBase {
 
 	@Test

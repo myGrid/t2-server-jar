@@ -44,6 +44,8 @@ import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
 
+import uk.org.taverna.server.client.connection.AccessForbiddenException;
+
 public class TestRunPermissions extends TestRunsBase {
 
 	private Run run;
@@ -77,7 +79,7 @@ public class TestRunPermissions extends TestRunsBase {
 		boolean caught = false;
 		try {
 			run1.getPermissions();
-		} catch (AuthorizationException e) {
+		} catch (IllegalUserAccessException e) {
 			caught = true;
 		}
 		assertTrue("Only the owner can list permissions", caught);
@@ -130,7 +132,7 @@ public class TestRunPermissions extends TestRunsBase {
 		try {
 			run1.start();
 		} catch (IOException e) {
-			fail("AccessForbiddenException not caught");
+			fail("Could not start run");
 		}
 		wait(run1);
 
@@ -156,7 +158,7 @@ public class TestRunPermissions extends TestRunsBase {
 		try {
 			run1.start();
 		} catch (IOException e) {
-			fail("AccessForbiddenException not caught");
+			fail("Could not start run");
 		}
 		wait(run1);
 

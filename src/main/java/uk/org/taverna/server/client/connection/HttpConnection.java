@@ -54,11 +54,6 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
-import uk.org.taverna.server.client.AccessForbiddenException;
-import uk.org.taverna.server.client.AttributeNotFoundException;
-import uk.org.taverna.server.client.AuthorizationException;
-import uk.org.taverna.server.client.InternalServerException;
-import uk.org.taverna.server.client.UnexpectedResponseException;
 import uk.org.taverna.server.client.connection.params.ConnectionParams;
 
 /**
@@ -296,17 +291,17 @@ public class HttpConnection extends AbstractConnection {
 		case HttpURLConnection.HTTP_FORBIDDEN:
 			throw new AccessForbiddenException(requestURI);
 		case HttpURLConnection.HTTP_UNAUTHORIZED:
-			throw new AuthorizationException();
+			throw new AuthorizationException(requestURI);
 		case HttpURLConnection.HTTP_INTERNAL_ERROR:
-			String message = (content != null) ? content : "<not specified>";
-			throw new InternalServerException(message);
-		default:
-			String error = status + " ("
-					+ response.getStatusLine().getReasonPhrase()
-					+ ") while accessing '" + requestURI + "'";
-			error += (content != null) ? " - " + content : " - <not specified>";
+			if (content == null || content.isEmpty()) {
+				content = "<not specified>";
+			}
 
-			throw new UnexpectedResponseException(error);
+			throw new InternalServerException(requestURI, content);
+		default:
+			String reason = response.getStatusLine().getReasonPhrase();
+
+			throw new UnexpectedResponseException(requestURI, status, reason);
 		}
 	}
 
