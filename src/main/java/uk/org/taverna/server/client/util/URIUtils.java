@@ -43,6 +43,7 @@ import org.apache.http.client.utils.URIBuilder;
  * operations are required.
  * 
  * @author Robert Haines
+ * @since 0.9.0
  */
 public final class URIUtils {
 
@@ -50,11 +51,13 @@ public final class URIUtils {
 	}
 
 	/**
-	 * Strip any user info from a URI.
+	 * Strip any user info from a {@link URI}.
 	 * 
 	 * @param uri
-	 *            the URI to strip.
-	 * @return the stripped URI.
+	 *            the {@link URI} to strip.
+	 * @return the stripped {@link URI}.
+	 * @throws IllegalArgumentException
+	 *             if a mal-formed {@link URI} is passed in.
 	 */
 	public static URI stripUserInfo(final URI uri) {
 		try {
@@ -65,13 +68,15 @@ public final class URIUtils {
 	}
 
 	/**
-	 * Append a path to the end of an existing URI's path.
+	 * Append a path to the end of an existing {@link URI}'s path.
 	 * 
 	 * @param uri
-	 *            the URI on which to append the extra path.
+	 *            the {@link URI} on which to append the extra path.
 	 * @param extraPath
-	 *            the extra path to be appended to the URI.
-	 * @return the new URI with the extended path.
+	 *            the extra path to be appended to the {@link URI}.
+	 * @return the new {@link URI} with the extended path.
+	 * @throws IllegalArgumentException
+	 *             if a mal-formed {@link URI} or path is passed in.
 	 */
 	public static URI appendToPath(final URI uri, final String extraPath) {
 		try {
@@ -86,14 +91,22 @@ public final class URIUtils {
 	}
 
 	/**
-	 * Extract the final component of the URI's path. If there is no path, or
-	 * the path ends with '/' the empty string is returned. So
-	 * 'http://example.org/this/is/a/path' would yield 'path',
-	 * 'http://example.org' would yield '' and 'http://example.org/path/' would
-	 * also yield ''.
+	 * Extract the final component of the {@link URI}'s path.
+	 * 
+	 * If there is no path, or the path ends with <code>/</code> the empty
+	 * {@link String} is returned. So:
+	 * <ul>
+	 * <li><code>http://example.org/this/is/a/path</code> would yield
+	 * <code>path</code>,</li>
+	 * <li><code>http://example.org</code> would yield the empty {@link String}
+	 * and</li>
+	 * <li><code>http://example.org/path/</code> would also yield the empty
+	 * {@link String}.</li>
+	 * </ul>
 	 * 
 	 * @param uri
-	 * @return
+	 *            the {@link URI} to get the final path component of.
+	 * @return the final path component of the passed in {@link URI}.
 	 */
 	public static String extractFinalPathComponent(final URI uri) {
 		String path = uri.getPath();
@@ -101,13 +114,15 @@ public final class URIUtils {
 	}
 
 	/**
-	 * Set the query part of a URI.
+	 * Set the query part of a {@link URI}.
 	 * 
 	 * @param uri
-	 *            the URI to receive a new query part.
+	 *            the {@link URI} to receive a new query part.
 	 * @param query
 	 *            the query to set (with or without the leading ?).
-	 * @return the new URI with its query part set.
+	 * @return the new {@link URI} with its query part set.
+	 * @throws IllegalArgumentException
+	 *             if a mal-formed {@link URI} or query is passed in.
 	 */
 	public static URI setQuery(final URI uri, String query) {
 		String q = query;
@@ -120,7 +135,7 @@ public final class URIUtils {
 		} catch (URISyntaxException e) {
 			throw new IllegalArgumentException(
 					"Either a bad URI was passed in (" + uri
-							+ ") or a bad query was appended to it (" + q + ")");
+					+ ") or a bad query was appended to it (" + q + ")");
 		}
 	}
 }
