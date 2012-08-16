@@ -37,14 +37,14 @@ import java.util.Map;
 
 public abstract class AbstractResources implements Resources {
 
-	private final Map<Label, URI> links;
+	private final Map<ResourceLabel, URI> links;
 
-	AbstractResources(Map<Label, URI> links) {
+	AbstractResources(Map<ResourceLabel, URI> links) {
 		this.links = links;
 	}
 
 	@Override
-	public URI get(Label key) {
+	public URI get(ResourceLabel key) {
 		return links.get(key);
 	}
 }

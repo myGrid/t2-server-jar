@@ -32,60 +32,23 @@
 
 package uk.org.taverna.server.client.xml;
 
-import java.net.URI;
-import java.util.Map;
+/**
+ * An enumeration of all the names of the resource links used internally.
+ * 
+ * This class is intended for internal use only to ensure type safety.
+ * 
+ * @author Robert Haines
+ */
+public enum ResourceLabel {
+	// Server
+	RUNS, FEED, POLICY, RUNLIMIT, PERMITTED_WORKFLOWS, PERMITTED_LISTENERS, ENABLED_NOTIFICATIONS,
 
-public final class ServerResources extends AbstractResources {
+	// Run
+	WORKFLOW, CREATE_TIME, START_TIME, FINISH_TIME, STATUS, WDIR, INPUT, OUTPUT, EXPIRY, BACLAVA, EXPECTED_INPUTS, SECURITY_CTX,
 
-	private static final String SNAPSHOT = "-SNAPSHOT";
+	// Special Listeners
+	STDOUT, STDERR, EXITCODE,
 
-	private final String version;
-	private final String revision;
-	private final String timestamp;
-	private final int[] versionComponents;
-
-	ServerResources(Map<ResourceLabel, URI> links, String version,
-			String revision, String timestamp) {
-		super(links);
-
-		this.revision = revision;
-		this.timestamp = timestamp;
-
-		// Parse out and rebuild the version string into a normalized
-		// major.minor.patch format. This is so that all version strings have
-		// three components - 2.4 will be converted to 2.4.0.
-		versionComponents = new int[3];
-		if (version.endsWith(SNAPSHOT)) {
-			version = version.replaceAll(SNAPSHOT, "");
-		}
-		String[] vs = version.split("\\.", 3);
-		versionComponents[0] = Integer.parseInt(vs[0]);
-		versionComponents[1] = Integer.parseInt(vs[1]);
-
-		try {
-			// We might not have a third component!
-			versionComponents[2] = Integer.parseInt(vs[2]);
-		} catch (IndexOutOfBoundsException e) {
-			versionComponents[2] = 0;
-		}
-
-		this.version = String.format("%d.%d.%d", versionComponents[0],
-				versionComponents[1], versionComponents[2]);
-	}
-
-	public String getVersion() {
-		return version;
-	}
-
-	public String getRevision() {
-		return revision;
-	}
-
-	public String getTimestamp() {
-		return timestamp;
-	}
-
-	public int[] getVersionComponents() {
-		return versionComponents;
-	}
+	// Security context
+	PERMISSIONS, CREDENTIALS, TRUSTS;
 }

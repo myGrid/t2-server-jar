@@ -35,19 +35,5 @@ package uk.org.taverna.server.client.xml;
 import java.net.URI;
 
 public interface Resources {
-	public enum Label {
-		// Server
-		RUNS, FEED, POLICY, RUNLIMIT, PERMITTED_WORKFLOWS, PERMITTED_LISTENERS, ENABLED_NOTIFICATIONS,
-
-		// Run
-		WORKFLOW, CREATE_TIME, START_TIME, FINISH_TIME, STATUS, WDIR, INPUT, OUTPUT, EXPIRY, BACLAVA, EXPECTED_INPUTS, SECURITY_CTX,
-
-		// Special Listeners
-		STDOUT, STDERR, EXITCODE,
-
-		// Security context
-		PERMISSIONS, CREDENTIALS, TRUSTS;
-	}
-
-	public URI get(Label key);
+	public URI get(ResourceLabel key);
 }

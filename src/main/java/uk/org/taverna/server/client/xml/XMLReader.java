@@ -55,7 +55,6 @@ import uk.org.taverna.server.client.connection.Connection;
 import uk.org.taverna.server.client.connection.MimeType;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.util.URIUtils;
-import uk.org.taverna.server.client.xml.Resources.Label;
 import uk.org.taverna.server.client.xml.port.InputDescription;
 import uk.org.taverna.server.client.xml.port.OutputDescription;
 import uk.org.taverna.server.client.xml.rest.Credential;
@@ -110,25 +109,26 @@ public final class XMLReader {
 	}
 
 	public ServerResources readServerResources(URI uri) {
-		Map<Label, URI> links = new HashMap<Label, URI>();
+		Map<ResourceLabel, URI> links = new HashMap<ResourceLabel, URI>();
 
 		// Read server top-level description.
 		ServerDescription sd = (ServerDescription) read(uri);
 		String version = sd.getServerVersion();
 		String revision = sd.getServerRevision();
 		String timestamp = sd.getServerBuildTimestamp();
-		links.put(Label.RUNS, sd.getRuns().getHref());
-		links.put(Label.POLICY, sd.getPolicy().getHref());
-		links.put(Label.FEED, sd.getFeed().getHref());
+		links.put(ResourceLabel.RUNS, sd.getRuns().getHref());
+		links.put(ResourceLabel.POLICY, sd.getPolicy().getHref());
+		links.put(ResourceLabel.FEED, sd.getFeed().getHref());
 
 		// Read policy description and add links to server's set.
-		PolicyDescription pd = (PolicyDescription) read(links.get(Label.POLICY));
-		links.put(Label.RUNLIMIT, pd.getRunLimit().getHref());
-		links.put(Label.PERMITTED_WORKFLOWS, pd.getPermittedWorkflows()
+		PolicyDescription pd = (PolicyDescription) read(links
+				.get(ResourceLabel.POLICY));
+		links.put(ResourceLabel.RUNLIMIT, pd.getRunLimit().getHref());
+		links.put(ResourceLabel.PERMITTED_WORKFLOWS, pd.getPermittedWorkflows()
 				.getHref());
-		links.put(Label.PERMITTED_LISTENERS, pd.getPermittedListenerTypes()
-				.getHref());
-		links.put(Label.ENABLED_NOTIFICATIONS, pd
+		links.put(ResourceLabel.PERMITTED_LISTENERS, pd
+				.getPermittedListenerTypes().getHref());
+		links.put(ResourceLabel.ENABLED_NOTIFICATIONS, pd
 				.getEnabledNotificationFabrics().getHref());
 
 		return new ServerResources(links, version, revision, timestamp);
@@ -148,28 +148,28 @@ public final class XMLReader {
 	}
 
 	public RunResources readRunResources(URI uri, UserCredentials credentials) {
-		Map<Label, URI> links = new HashMap<Label, URI>();
+		Map<ResourceLabel, URI> links = new HashMap<ResourceLabel, URI>();
 
 		// Read run top-level description.
 		RunDescription rd = (RunDescription) read(uri, credentials);
 		String owner = rd.getOwner();
-		links.put(Label.WORKFLOW, rd.getCreationWorkflow().getHref());
-		links.put(Label.CREATE_TIME, rd.getCreateTime().getHref());
-		links.put(Label.START_TIME, rd.getStartTime().getHref());
-		links.put(Label.FINISH_TIME, rd.getFinishTime().getHref());
-		links.put(Label.STATUS, rd.getStatus().getHref());
-		links.put(Label.INPUT, rd.getInputs().getHref());
-		links.put(Label.OUTPUT, rd.getOutput().getHref());
-		links.put(Label.WDIR, rd.getWorkingDirectory().getHref());
-		links.put(Label.EXPIRY, rd.getExpiry().getHref());
-		links.put(Label.SECURITY_CTX, rd.getSecurityContext().getHref());
+		links.put(ResourceLabel.WORKFLOW, rd.getCreationWorkflow().getHref());
+		links.put(ResourceLabel.CREATE_TIME, rd.getCreateTime().getHref());
+		links.put(ResourceLabel.START_TIME, rd.getStartTime().getHref());
+		links.put(ResourceLabel.FINISH_TIME, rd.getFinishTime().getHref());
+		links.put(ResourceLabel.STATUS, rd.getStatus().getHref());
+		links.put(ResourceLabel.INPUT, rd.getInputs().getHref());
+		links.put(ResourceLabel.OUTPUT, rd.getOutput().getHref());
+		links.put(ResourceLabel.WDIR, rd.getWorkingDirectory().getHref());
+		links.put(ResourceLabel.EXPIRY, rd.getExpiry().getHref());
+		links.put(ResourceLabel.SECURITY_CTX, rd.getSecurityContext().getHref());
 
 		// Read the inputs description.
-		JAXBElement<?> root = (JAXBElement<?>) read(links.get(Label.INPUT),
-				credentials);
+		JAXBElement<?> root = (JAXBElement<?>) read(
+				links.get(ResourceLabel.INPUT), credentials);
 		TavernaRunInputs tri = (TavernaRunInputs) root.getValue();
-		links.put(Label.BACLAVA, tri.getBaclava().getHref());
-		links.put(Label.EXPECTED_INPUTS, tri.getExpected().getHref());
+		links.put(ResourceLabel.BACLAVA, tri.getBaclava().getHref());
+		links.put(ResourceLabel.EXPECTED_INPUTS, tri.getExpected().getHref());
 
 		// Read the special IO listeners - this is kind of hard-coded for now.
 		for (Location loc : rd.getListeners().getListener()) {
@@ -180,11 +180,11 @@ public final class XMLReader {
 
 				for (PropertyDescription pd : ld.getProperties().getProperty()) {
 					if (pd.getName().equalsIgnoreCase("stdout")) {
-						links.put(Label.STDOUT, pd.getHref());
+						links.put(ResourceLabel.STDOUT, pd.getHref());
 					} else if (pd.getName().equalsIgnoreCase("stderr")) {
-						links.put(Label.STDERR, pd.getHref());
+						links.put(ResourceLabel.STDERR, pd.getHref());
 					} else if (pd.getName().equalsIgnoreCase("exitcode")) {
-						links.put(Label.EXITCODE, pd.getHref());
+						links.put(ResourceLabel.EXITCODE, pd.getHref());
 					}
 				}
 			}
@@ -192,13 +192,13 @@ public final class XMLReader {
 
 		// Read the security context iff we are the owner of the run
 		if (credentials.getUsername().equals(owner)) {
-			root = (JAXBElement<?>) read(links.get(Label.SECURITY_CTX),
+			root = (JAXBElement<?>) read(links.get(ResourceLabel.SECURITY_CTX),
 					credentials);
 			SecurityDescriptor sd = (SecurityDescriptor) root.getValue();
 
-			links.put(Label.PERMISSIONS, sd.getPermissions().getHref());
-			links.put(Label.CREDENTIALS, sd.getCredentials().getHref());
-			links.put(Label.TRUSTS, sd.getTrusts().getHref());
+			links.put(ResourceLabel.PERMISSIONS, sd.getPermissions().getHref());
+			links.put(ResourceLabel.CREDENTIALS, sd.getCredentials().getHref());
+			links.put(ResourceLabel.TRUSTS, sd.getTrusts().getHref());
 		}
 
 		return new RunResources(links, owner);

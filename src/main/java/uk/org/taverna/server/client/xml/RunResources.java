@@ -7,7 +7,7 @@ public final class RunResources extends AbstractResources {
 
 	private final String owner;
 
-	RunResources(Map<Label, URI> links, String owner) {
+	RunResources(Map<ResourceLabel, URI> links, String owner) {
 		super(links);
 
 		this.owner = owner;

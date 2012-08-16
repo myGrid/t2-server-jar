@@ -54,7 +54,7 @@ import uk.org.taverna.server.client.connection.MimeType;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.util.IOUtils;
 import uk.org.taverna.server.client.util.URIUtils;
-import uk.org.taverna.server.client.xml.Resources.Label;
+import uk.org.taverna.server.client.xml.ResourceLabel;
 import uk.org.taverna.server.client.xml.RunResources;
 import uk.org.taverna.server.client.xml.XMLReader;
 import uk.org.taverna.server.client.xml.XMLWriter;
@@ -258,7 +258,7 @@ public final class Run {
 	 */
 	public URI uploadData(InputStream stream, String remoteName,
 			String remoteDirectory) {
-		URI uploadLocation = getLink(Label.WDIR);
+		URI uploadLocation = getLink(ResourceLabel.WDIR);
 		if (remoteDirectory != null) {
 			uploadLocation = URIUtils.appendToPath(uploadLocation,
 					remoteDirectory);
@@ -298,7 +298,7 @@ public final class Run {
 	public String uploadFile(File file, String remoteDirectory, String rename)
 			throws FileNotFoundException {
 
-		URI uploadLocation = getLink(Label.WDIR);
+		URI uploadLocation = getLink(ResourceLabel.WDIR);
 		if (remoteDirectory != null) {
 			uploadLocation = URIUtils.appendToPath(uploadLocation,
 					remoteDirectory);
@@ -344,8 +344,8 @@ public final class Run {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
 			uploadData(data, BACLAVA_IN_FILE);
-			server.updateResource(getLink(Label.BACLAVA), BACLAVA_IN_FILE,
-					credentials);
+			server.updateResource(getLink(ResourceLabel.BACLAVA),
+					BACLAVA_IN_FILE, credentials);
 
 			baclavaIn = true;
 		} else {
@@ -364,8 +364,8 @@ public final class Run {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
 			uploadFile(file, null, BACLAVA_IN_FILE);
-			server.updateResource(getLink(Label.BACLAVA), BACLAVA_IN_FILE,
-					credentials);
+			server.updateResource(getLink(ResourceLabel.BACLAVA),
+					BACLAVA_IN_FILE, credentials);
 
 			baclavaIn = true;
 		} else {
@@ -383,8 +383,8 @@ public final class Run {
 		if (baclavaIn) {
 			return true;
 		} else {
-			String test = server.readResourceAsString(getLink(Label.BACLAVA),
-					credentials);
+			String test = server.readResourceAsString(
+					getLink(ResourceLabel.BACLAVA), credentials);
 
 			// if we get back the baclava input file name we are using it.
 			if (test.equals(BACLAVA_IN_FILE)) {
@@ -405,8 +405,8 @@ public final class Run {
 		if (baclavaOut) {
 			return true;
 		} else {
-			String test = server.readResourceAsString(getLink(Label.OUTPUT),
-					credentials);
+			String test = server.readResourceAsString(
+					getLink(ResourceLabel.OUTPUT), credentials);
 
 			// if we get back the baclava output file name we are using it.
 			if (test.equals(BACLAVA_OUT_FILE)) {
@@ -429,8 +429,8 @@ public final class Run {
 
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.INITIALIZED) {
-			server.updateResource(getLink(Label.OUTPUT), BACLAVA_OUT_FILE,
-					credentials);
+			server.updateResource(getLink(ResourceLabel.OUTPUT),
+					BACLAVA_OUT_FILE, credentials);
 
 			baclavaOut = true;
 		} else {
@@ -450,8 +450,8 @@ public final class Run {
 	public byte[] getBaclavaOutput() {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.FINISHED) {
-			URI baclavaLink = URIUtils.appendToPath(getLink(Label.WDIR),
-					BACLAVA_OUT_FILE);
+			URI baclavaLink = URIUtils.appendToPath(
+					getLink(ResourceLabel.WDIR), BACLAVA_OUT_FILE);
 			if (!baclavaOut) {
 				throw new AttributeNotFoundException(baclavaLink);
 			}
@@ -480,8 +480,8 @@ public final class Run {
 	public InputStream getBaclavaOutputStream() {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.FINISHED) {
-			URI baclavaLink = URIUtils.appendToPath(getLink(Label.WDIR),
-					BACLAVA_OUT_FILE);
+			URI baclavaLink = URIUtils.appendToPath(
+					getLink(ResourceLabel.WDIR), BACLAVA_OUT_FILE);
 			if (!baclavaOut) {
 				throw new AttributeNotFoundException(baclavaLink);
 			}
@@ -560,7 +560,7 @@ public final class Run {
 			return RunStatus.DELETED;
 		} else {
 			return RunStatus.fromString(server.readResourceAsString(
-					getLink(Label.STATUS), credentials));
+					getLink(ResourceLabel.STATUS), credentials));
 		}
 	}
 
@@ -612,8 +612,8 @@ public final class Run {
 			setAllInputs();
 		}
 
-		server.updateResource(getLink(Label.STATUS), RunStatus.RUNNING.status,
-				credentials);
+		server.updateResource(getLink(ResourceLabel.STATUS),
+				RunStatus.RUNNING.status, credentials);
 	}
 
 	/**
@@ -623,8 +623,8 @@ public final class Run {
 	 */
 	public byte[] getWorkflow() {
 		if (workflow == null) {
-			workflow = server.readResourceAsBytes(getLink(Label.WORKFLOW),
-					MimeType.XML, credentials);
+			workflow = server.readResourceAsBytes(
+					getLink(ResourceLabel.WORKFLOW), MimeType.XML, credentials);
 		}
 
 		return workflow;
@@ -636,7 +636,7 @@ public final class Run {
 	 * @return the expiry time of this Run as a Date object.
 	 */
 	public Date getExpiry() {
-		return getTime(Label.EXPIRY);
+		return getTime(ResourceLabel.EXPIRY);
 	}
 
 	/**
@@ -649,7 +649,8 @@ public final class Run {
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(time);
 		String expiry = DatatypeConverter.printDateTime(cal);
-		server.updateResource(getLink(Label.EXPIRY), expiry, credentials);
+		server.updateResource(getLink(ResourceLabel.EXPIRY), expiry,
+				credentials);
 	}
 
 	/**
@@ -676,8 +677,8 @@ public final class Run {
 	 * @return the return code of the underlying Taverna Server process.
 	 */
 	public int getExitCode() {
-		return new Integer(server.readResourceAsString(getLink(Label.EXITCODE),
-				credentials));
+		return new Integer(server.readResourceAsString(
+				getLink(ResourceLabel.EXITCODE), credentials));
 	}
 
 	/**
@@ -686,7 +687,8 @@ public final class Run {
 	 * @return the console output of the underlying Taverna Server process.
 	 */
 	public String getConsoleOutput() {
-		return server.readResourceAsString(getLink(Label.STDOUT), credentials);
+		return server.readResourceAsString(getLink(ResourceLabel.STDOUT),
+				credentials);
 	}
 
 	/**
@@ -695,7 +697,8 @@ public final class Run {
 	 * @return the console errors of the underlying Taverna Server process.
 	 */
 	public String getConsoleError() {
-		return server.readResourceAsString(getLink(Label.STDERR), credentials);
+		return server.readResourceAsString(getLink(ResourceLabel.STDERR),
+				credentials);
 	}
 
 	/**
@@ -704,7 +707,7 @@ public final class Run {
 	 * @return the time that this Run was created.
 	 */
 	public Date getCreateTime() {
-		return getTime(Label.CREATE_TIME);
+		return getTime(ResourceLabel.CREATE_TIME);
 	}
 
 	/**
@@ -713,7 +716,7 @@ public final class Run {
 	 * @return the time that this Run was started.
 	 */
 	public Date getStartTime() {
-		return getTime(Label.START_TIME);
+		return getTime(ResourceLabel.START_TIME);
 	}
 
 	/**
@@ -722,10 +725,10 @@ public final class Run {
 	 * @return the time that this Run finished.
 	 */
 	public Date getFinishTime() {
-		return getTime(Label.FINISH_TIME);
+		return getTime(ResourceLabel.FINISH_TIME);
 	}
 
-	private Date getTime(Label time) {
+	private Date getTime(ResourceLabel time) {
 		String dateTime = server.readResourceAsString(getLink(time),
 				credentials);
 		Calendar cal = DatatypeConverter.parseDateTime(dateTime);
@@ -750,7 +753,7 @@ public final class Run {
 		XMLReader reader = server.getXMLReader();
 
 		Map<String, RunPermission> perms = reader.readRunPermissions(
-				getLink(Label.PERMISSIONS), credentials);
+				getLink(ResourceLabel.PERMISSIONS), credentials);
 
 		return perms;
 	}
@@ -802,8 +805,8 @@ public final class Run {
 
 		byte[] content = XMLWriter.runPermission(username, permission);
 
-		return server.createResource(getLink(Label.PERMISSIONS), content,
-				credentials);
+		return server.createResource(getLink(ResourceLabel.PERMISSIONS),
+				content, credentials);
 	}
 
 	/**
@@ -822,7 +825,7 @@ public final class Run {
 		XMLReader reader = server.getXMLReader();
 
 		Map<URI, URI> creds = reader.readRunServiceCredentials(
-				getLink(Label.CREDENTIALS), credentials);
+				getLink(ResourceLabel.CREDENTIALS), credentials);
 
 		return creds;
 	}
@@ -867,8 +870,8 @@ public final class Run {
 				username, password);
 
 		if (credURI == null) {
-			return server.createResource(getLink(Label.CREDENTIALS), content,
-					credentials);
+			return server.createResource(getLink(ResourceLabel.CREDENTIALS),
+					content, credentials);
 		} else {
 			return server.updateResource(credURI, content, credentials);
 		}
@@ -938,8 +941,8 @@ public final class Run {
 				remoteFile, DEFAULT_KEYPAIR_TYPE, alias, password);
 
 		if (credURI == null) {
-			return server.createResource(getLink(Label.CREDENTIALS), content,
-					credentials);
+			return server.createResource(getLink(ResourceLabel.CREDENTIALS),
+					content, credentials);
 		} else {
 			return server.updateResource(credURI, content, credentials);
 		}
@@ -975,7 +978,8 @@ public final class Run {
 			throw new AuthorizationException(credentials.getUsername());
 		}
 
-		return server.deleteResource(getLink(Label.CREDENTIALS), credentials);
+		return server.deleteResource(getLink(ResourceLabel.CREDENTIALS),
+				credentials);
 	}
 
 	/**
@@ -996,7 +1000,7 @@ public final class Run {
 		XMLReader reader = server.getXMLReader();
 
 		List<URI> trusts = reader.readRunTrustedIdentities(
-				getLink(Label.TRUSTS), credentials);
+				getLink(ResourceLabel.TRUSTS), credentials);
 
 		return trusts;
 	}
@@ -1051,7 +1055,7 @@ public final class Run {
 		byte[] content = XMLWriter.runTrustedIdentity(remoteFile,
 				DEFAULT_CERTIFICATE_TYPE);
 
-		return server.createResource(getLink(Label.TRUSTS), content,
+		return server.createResource(getLink(ResourceLabel.TRUSTS), content,
 				credentials);
 	}
 
@@ -1086,7 +1090,8 @@ public final class Run {
 			throw new AuthorizationException(credentials.getUsername());
 		}
 
-		return server.deleteResource(getLink(Label.TRUSTS), credentials);
+		return server
+				.deleteResource(getLink(ResourceLabel.TRUSTS), credentials);
 	}
 
 	/**
@@ -1103,7 +1108,7 @@ public final class Run {
 	public InputStream getOutputZipStream() {
 		RunStatus rs = getStatus();
 		if (rs == RunStatus.FINISHED) {
-			URI uri = URIUtils.appendToPath(getLink(Label.WDIR), "out");
+			URI uri = URIUtils.appendToPath(getLink(ResourceLabel.WDIR), "out");
 
 			return server.readResourceAsStream(uri, MimeType.ZIP, null,
 					credentials);
@@ -1149,7 +1154,7 @@ public final class Run {
 					"Directories can only be created one level deep.");
 		}
 
-		return server.mkdir(getLink(Label.WDIR), dir, credentials);
+		return server.mkdir(getLink(ResourceLabel.WDIR), dir, credentials);
 	}
 
 	/*
@@ -1182,7 +1187,7 @@ public final class Run {
 	}
 
 	private void setInputPort(InputPort port) {
-		URI path = URIUtils.appendToPath(getLink(Label.INPUT),
+		URI path = URIUtils.appendToPath(getLink(ResourceLabel.INPUT),
 				"/input/" + port.getName());
 		byte[] value;
 
@@ -1208,14 +1213,14 @@ public final class Run {
 		XMLReader reader = server.getXMLReader();
 
 		return reader.readInputPortDescription(this,
-				getLink(Label.EXPECTED_INPUTS), credentials);
+				getLink(ResourceLabel.EXPECTED_INPUTS), credentials);
 	}
 
 	private Map<String, OutputPort> getOutputPortInfo() {
 		XMLReader reader = server.getXMLReader();
 
-		return reader.readOutputPortDescription(this, getLink(Label.OUTPUT),
-				credentials);
+		return reader.readOutputPortDescription(this,
+				getLink(ResourceLabel.OUTPUT), credentials);
 	}
 
 	byte[] getOutputData(URI uri, LongRange range) {
@@ -1228,7 +1233,7 @@ public final class Run {
 				credentials);
 	}
 
-	private URI getLink(Label key) {
+	private URI getLink(ResourceLabel key) {
 		return getRunResources().get(key);
 	}
 }

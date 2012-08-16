@@ -54,7 +54,7 @@ import uk.org.taverna.server.client.connection.MimeType;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.connection.params.ConnectionParams;
 import uk.org.taverna.server.client.util.URIUtils;
-import uk.org.taverna.server.client.xml.Resources.Label;
+import uk.org.taverna.server.client.xml.ResourceLabel;
 import uk.org.taverna.server.client.xml.ServerResources;
 import uk.org.taverna.server.client.xml.XMLReader;
 import uk.org.taverna.server.client.xml.XMLWriter;
@@ -174,7 +174,7 @@ public final class Server {
 
 	private Map<String, Run> getRunsFromServer(UserCredentials credentials) {
 		// Get this user's run list.
-		URI uri = getLink(Label.RUNS);
+		URI uri = getLink(ResourceLabel.RUNS);
 		Map<String, URI> runList = reader.readRunList(uri, credentials);
 
 		// Get this user's run cache.
@@ -268,8 +268,8 @@ public final class Server {
 	 * @return the maximum number of run that this server can host concurrently.
 	 */
 	public int getRunLimit(UserCredentials credentials) {
-		byte[] limit = connection.read(getLink(Label.RUNLIMIT), MimeType.TEXT,
-				credentials);
+		byte[] limit = connection.read(getLink(ResourceLabel.RUNLIMIT),
+				MimeType.TEXT, credentials);
 
 		return Integer.parseInt(new String(limit).trim());
 	}
@@ -282,7 +282,7 @@ public final class Server {
 	 * @return the id of the new run as returned by the server.
 	 */
 	URI initializeRun(byte[] workflow, UserCredentials credentials) {
-		URI location = connection.create(getLink(Label.RUNS), workflow,
+		URI location = connection.create(getLink(ResourceLabel.RUNS), workflow,
 				MimeType.T2FLOW, credentials);
 
 		return location;
@@ -299,7 +299,7 @@ public final class Server {
 		Run run = Run.create(this, workflow, credentials);
 
 		getUserRunCache(credentials.getUsername())
-				.put(run.getIdentifier(), run);
+		.put(run.getIdentifier(), run);
 
 		return run;
 	}
@@ -399,7 +399,7 @@ public final class Server {
 		return reader;
 	}
 
-	private URI getLink(Label key) {
+	private URI getLink(ResourceLabel key) {
 		return getServerResources().get(key);
 	}
 }
