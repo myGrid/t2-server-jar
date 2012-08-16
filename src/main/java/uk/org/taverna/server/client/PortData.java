@@ -57,8 +57,8 @@ public class PortData extends PortValue {
 	private SoftReference<byte[]> cache;
 	private LongRange dataGot;
 
-	PortData(Port parent, URI reference, String type, long size) {
-		super(parent, reference, type, size);
+	PortData(Run run, URI reference, String type, long size) {
+		super(run, reference, type, size);
 
 		cache = new SoftReference<byte[]>(null);
 		dataGot = null;

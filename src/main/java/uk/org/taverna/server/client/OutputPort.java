@@ -33,15 +33,8 @@
 package uk.org.taverna.server.client;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.lang.text.StrBuilder;
-
-import uk.org.taverna.server.client.xml.port.ErrorValue;
-import uk.org.taverna.server.client.xml.port.LeafValue;
-import uk.org.taverna.server.client.xml.port.ListValue;
-import uk.org.taverna.server.client.xml.port.Value;
 
 /**
  * 
@@ -51,22 +44,8 @@ public final class OutputPort extends Port {
 
 	private final PortValue value;
 
-	OutputPort(Run run, uk.org.taverna.server.client.xml.port.OutputPort port) {
-		super(run, port.getName(), port.getDepth());
-
-		LeafValue v = port.getValue();
-		ListValue lv = port.getList();
-		ErrorValue ev = port.getError();
-
-		PortValue value = null;
-		if (v != null) {
-			value = new PortData(this, v.getHref(), v.getContentType(),
-					v.getContentByteLength());
-		} else if (lv != null) {
-			value = parse(lv);
-		} else if (ev != null) {
-			value = new PortError(this, ev.getHref());
-		}
+	OutputPort(Run run, String name, int depth, PortValue value) {
+		super(run, name, depth);
 
 		this.value = value;
 	}
@@ -135,47 +114,5 @@ public final class OutputPort extends Port {
 		message.append("}");
 
 		return message.toString();
-	}
-
-	/*
-	 * This method has to parse the OutputPort structure by trying to cast to
-	 * each type that a port can be. Not pretty.
-	 * 
-	 * Even though we know that first time through this method we must have a
-	 * list we try to cast to a value first as this is what we will most often
-	 * have.
-	 */
-	private PortValue parse(Value value) {
-		try {
-			LeafValue lv = (LeafValue) value;
-
-			return new PortData(this, lv.getHref(), lv.getContentType(), lv.getContentByteLength());
-		} catch (ClassCastException e) {
-			// Ignore this error and try the next cast!
-		}
-
-		try {
-			ListValue lv = (ListValue) value;
-
-			List<PortValue> list = new ArrayList<PortValue>();
-			for (Value v : lv.getValueOrListOrError()) {
-				list.add(parse(v));
-			}
-
-			return new PortList(this, lv.getHref(), list);
-		} catch (ClassCastException e) {
-			// Ignore this error and try the next cast!
-		}
-
-		try {
-			ErrorValue ev = (ErrorValue) value;
-
-			return new PortError(this, ev.getHref());
-		} catch (ClassCastException e) {
-			// Hmmm...
-		}
-
-		// We should NOT get here!
-		return null;
 	}
 }

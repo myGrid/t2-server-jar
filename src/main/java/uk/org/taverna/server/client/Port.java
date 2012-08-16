@@ -52,9 +52,9 @@ public abstract class Port {
 		return new InputPort(run, name, depth);
 	}
 
-	public static OutputPort newOutputPort(Run run,
-			uk.org.taverna.server.client.xml.port.OutputPort port) {
-		return new OutputPort(run, port);
+	public static OutputPort newOutputPort(Run run, String name, int depth,
+			PortValue value) {
+		return new OutputPort(run, name, depth, value);
 	}
 
 	public Run getRun() {

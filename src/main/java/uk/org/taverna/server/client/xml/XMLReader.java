@@ -49,14 +49,19 @@ import org.apache.commons.io.IOUtils;
 import uk.org.taverna.server.client.InputPort;
 import uk.org.taverna.server.client.OutputPort;
 import uk.org.taverna.server.client.Port;
+import uk.org.taverna.server.client.PortValue;
 import uk.org.taverna.server.client.Run;
 import uk.org.taverna.server.client.RunPermission;
 import uk.org.taverna.server.client.connection.Connection;
 import uk.org.taverna.server.client.connection.MimeType;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.util.URIUtils;
+import uk.org.taverna.server.client.xml.port.ErrorValue;
 import uk.org.taverna.server.client.xml.port.InputDescription;
+import uk.org.taverna.server.client.xml.port.LeafValue;
+import uk.org.taverna.server.client.xml.port.ListValue;
 import uk.org.taverna.server.client.xml.port.OutputDescription;
+import uk.org.taverna.server.client.xml.port.Value;
 import uk.org.taverna.server.client.xml.rest.Credential;
 import uk.org.taverna.server.client.xml.rest.CredentialDescriptor;
 import uk.org.taverna.server.client.xml.rest.CredentialList;
@@ -222,16 +227,68 @@ public final class XMLReader {
 	public Map<String, OutputPort> readOutputPortDescription(Run run, URI uri,
 			UserCredentials credentials) {
 		JAXBElement<?> root = (JAXBElement<?>) read(uri, credentials);
-		OutputDescription id = (OutputDescription) root.getValue();
+		OutputDescription od = (OutputDescription) root.getValue();
 
 		Map<String, OutputPort> ports = new HashMap<String, OutputPort>();
-		for (uk.org.taverna.server.client.xml.port.OutputPort ip : id
+		for (uk.org.taverna.server.client.xml.port.OutputPort op : od
 				.getOutput()) {
-			OutputPort port = Port.newOutputPort(run, ip);
+
+			LeafValue v = op.getValue();
+			ListValue lv = op.getList();
+			ErrorValue ev = op.getError();
+
+			PortValue value = null;
+			if (v != null) {
+				value = PortValue.newPortData(run, v.getHref(),
+						v.getContentType(), v.getContentByteLength());
+			} else if (lv != null) {
+				value = parseOutputPortValueStructure(run, lv);
+			} else if (ev != null) {
+				value = PortValue.newPortError(run, ev.getHref(),
+						ev.getErrorByteLength());
+			}
+
+			OutputPort port = Port.newOutputPort(run, op.getName(),
+					op.getDepth(), value);
 			ports.put(port.getName(), port);
 		}
 
 		return ports;
+	}
+
+	/*
+	 * This method has to parse the OutputPort structure by trying to cast to
+	 * each type that a port can be. Not pretty.
+	 * 
+	 * Even though we know that first time through this method we must have a
+	 * list we try to cast to a value first as this is what we will most often
+	 * have.
+	 */
+	private PortValue parseOutputPortValueStructure(Run run, Value value) {
+		if (LeafValue.class.isInstance(value)) {
+			LeafValue lv = (LeafValue) value;
+
+			return PortValue.newPortData(run, lv.getHref(),
+					lv.getContentType(),
+					lv.getContentByteLength());
+		} else if (ListValue.class.isInstance(value)) {
+			ListValue lv = (ListValue) value;
+
+			List<PortValue> list = new ArrayList<PortValue>();
+			for (Value v : lv.getValueOrListOrError()) {
+				list.add(parseOutputPortValueStructure(run, v));
+			}
+
+			return PortValue.newPortList(run, lv.getHref(), list);
+		} else if (ErrorValue.class.isInstance(value)) {
+			ErrorValue ev = (ErrorValue) value;
+
+			return PortValue.newPortError(run, ev.getHref(),
+					ev.getErrorByteLength());
+		}
+
+		// We should NOT get here!
+		return null;
 	}
 
 	public Map<String, RunPermission> readRunPermissions(URI uri,

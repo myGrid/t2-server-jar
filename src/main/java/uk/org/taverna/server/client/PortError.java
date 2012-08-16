@@ -40,8 +40,8 @@ import java.net.URI;
  */
 public final class PortError extends PortData {
 
-	PortError(Port parent, URI reference) {
-		super(parent, reference, PORT_ERROR_TYPE, 0);
+	PortError(Run run, URI reference, long size) {
+		super(run, reference, PORT_ERROR_TYPE, size);
 	}
 
 	@Override

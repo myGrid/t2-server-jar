@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.AbstractList;
+import java.util.List;
 
 import org.apache.commons.lang.text.StrBuilder;
 
@@ -54,11 +55,25 @@ public abstract class PortValue extends AbstractList<PortValue> {
 	protected final String contentType;
 	protected final long size;
 
-	PortValue(Port parent, URI reference, String type, long size) {
-		this.run = parent.getRun();
+	PortValue(Run run, URI reference, String type, long size) {
+		this.run = run;
 		this.reference = reference;
 		this.contentType = type;
 		this.size = size;
+	}
+
+	public static PortData newPortData(Run run, URI reference, String type,
+			long size) {
+		return new PortData(run, reference, type, size);
+	}
+
+	public static PortList newPortList(Run run, URI reference,
+			List<PortValue> list) {
+		return new PortList(run, reference, list);
+	}
+
+	public static PortError newPortError(Run run, URI reference, long size) {
+		return new PortError(run, reference, size);
 	}
 
 	public String getContentType() {

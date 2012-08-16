@@ -48,8 +48,9 @@ public final class PortList extends PortValue {
 	private final List<PortValue> list;
 	private long dataSize;
 
-	PortList(Port parent, URI reference, List<PortValue> list) {
-		super(parent, reference, PORT_LIST_TYPE, 0);
+	PortList(Run run, URI reference, List<PortValue> list) {
+		super(run, reference, PORT_LIST_TYPE, 0);
+
 		this.list = list;
 		this.dataSize = -1;
 	}
