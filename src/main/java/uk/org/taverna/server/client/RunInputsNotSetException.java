@@ -35,10 +35,11 @@ package uk.org.taverna.server.client;
 import java.util.List;
 
 /**
- * This exception is used to indicate that a run input was not set before an
- * attempt to start the run.
+ * This exception is used to indicate that one or more inputs to a {@link Run}
+ * were not set before attempting to start it running.
  * 
  * @author Robert Haines
+ * @since 0.9.0
  */
 public class RunInputsNotSetException extends ServerException {
 	private static final long serialVersionUID = 1L;
@@ -48,12 +49,12 @@ public class RunInputsNotSetException extends ServerException {
 
 	/**
 	 * Construct a new input not set exception specifying the identifier of the
-	 * run and the missing input.
+	 * run and the missing inputs.
 	 * 
 	 * @param id
 	 *            the identifier of the run with the missing input.
-	 * @param input
-	 *            the name of the missing input.
+	 * @param missingInputs
+	 *            a list of the names of the missing inputs.
 	 */
 	public RunInputsNotSetException(String id, List<String> missingInputs) {
 		super("One or more inputs of the run with id '" + id + "' are not set.");
