@@ -33,6 +33,7 @@
 package uk.org.taverna.server.client;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -93,8 +94,7 @@ public class TestSecureWorkflows extends TestRunsBase {
 		wait(run);
 		assertTrue("Run has finished", run.isFinished());
 
-		assertEquals("Run has no output", 0, run.getOutputPort("out")
-				.getDataSize());
+		assertTrue("Run output is an error", run.getOutputPort("out").isError());
 	}
 
 	@Test
@@ -152,6 +152,8 @@ public class TestSecureWorkflows extends TestRunsBase {
 		wait(run);
 		assertTrue("Run has finished", run.isFinished());
 
+		assertFalse("Run output is not an error", run.getOutputPort("out")
+				.isError());
 		assertTrue("Run has an output",
 				run.getOutputPort("out").getDataSize() > 0);
 	}
@@ -184,6 +186,8 @@ public class TestSecureWorkflows extends TestRunsBase {
 		wait(run);
 		assertTrue("Run has finished", run.isFinished());
 
+		assertFalse("Run output is not an error", run.getOutputPort("out")
+				.isError());
 		assertTrue("Run has an output",
 				run.getOutputPort("out").getDataSize() > 0);
 	}
