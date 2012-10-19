@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -33,21 +33,80 @@
 package uk.org.taverna.server.client.connection.params;
 
 /**
+ * This interface defines the API for connection parameter objects.
  * 
  * @author Robert Haines
  */
 public interface ConnectionParams extends ConnectionPNames {
+
+	/**
+	 * Get the value of a parameter stored in this parameter set.
+	 * 
+	 * @param id
+	 *            the parameter to get.
+	 * @return the value of the requested parameter.
+	 */
 	public Object getParameter(String id);
 
+	/**
+	 * Remove and return a parameter from this parameter set.
+	 * 
+	 * @param id
+	 *            the parameter to remove.
+	 * @return the value of the removed parameter.
+	 */
 	public Object removeParameter(String id);
 
+	/**
+	 * Set a parameter value in this parameter set.
+	 * 
+	 * @param id
+	 *            the parameter to set.
+	 * @param value
+	 *            the value of the parameter.
+	 * @return the modified parameter set.
+	 */
 	public ConnectionParams setParameter(String id, Object value);
 
+	/**
+	 * Get the value of a boolean parameter stored in this parameter set. If the
+	 * parameter is not present in this set then the default value is returned
+	 * instead.
+	 * 
+	 * @param id
+	 *            the parameter to get.
+	 * @param defaultValue
+	 *            the default value of the parameter if it not set.
+	 * @return the value of the parameter.
+	 */
 	public boolean getBooleanParameter(String id, boolean defaultValue);
 
+	/**
+	 * Set a boolean parameter value in this parameter set.
+	 * 
+	 * @param id
+	 *            the parameter to set.
+	 * @param value
+	 *            the value of the parameter.
+	 * @return the modified parameter set.
+	 */
 	public ConnectionParams setBooleanParameter(String id, boolean value);
 
+	/**
+	 * Is the named parameter true?
+	 * 
+	 * @param id
+	 *            the parameter to test.
+	 * @return true if true, false if not or absent.
+	 */
 	public boolean isParameterTrue(String id);
 
+	/**
+	 * Is the named parameter false?
+	 * 
+	 * @param id
+	 *            the parameter to test.
+	 * @return true if false, false if not or absent.
+	 */
 	public boolean isParameterFalse(String id);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -33,13 +33,19 @@
 package uk.org.taverna.server.client.connection.params;
 
 /**
+ * This class provides an easy way to short circuit security checks on SSL
+ * connections by turning off peer verification and authentication.
+ * 
+ * In general this class should not be used in production code. It is provided
+ * primarily as a convenience while testing.
  * 
  * @author Robert Haines
  */
 public final class InsecureSSLConnectionParams extends AbstractConnectionParams {
 
 	/**
-	 * 
+	 * Create an insecure SSL configuration. No peer verification or
+	 * authentication will be performed.
 	 */
 	public InsecureSSLConnectionParams() {
 		super();

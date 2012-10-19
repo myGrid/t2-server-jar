@@ -30,16 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package uk.org.taverna.server.client.connection.params;
-
 /**
- * The set of parameter names used in connection parameter classes.
+ * Provides classes for passing configuration parameters to the network
+ * connection.
  * 
  * @author Robert Haines
+ * @since 0.0.5
  */
-public interface ConnectionPNames {
-	static String NULL_CONNECTION = "t2.conn.null";
-	static String SSL_NO_VERIFY_HOST = "t2.conn.ssl.no-verify";
-	static String SSL_CLIENT_CERT = "t2.conn.ssl.client-cert";
-	static String SSL_NO_AUTH = "t2.conn.ssl.no-auth";
-}
+package uk.org.taverna.server.client.connection.params;

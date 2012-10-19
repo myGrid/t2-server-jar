@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2012 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -35,12 +35,20 @@ package uk.org.taverna.server.client.connection.params;
 import java.util.HashMap;
 
 /**
+ * The superclass of all concrete connection parameter classes.
  * 
  * @author Robert Haines
  */
 public abstract class AbstractConnectionParams implements ConnectionParams {
+
+	/**
+	 * The underlying parameter store.
+	 */
 	protected final HashMap<String, Object> params;
 
+	/**
+	 * Initialize the connection parameter store.
+	 */
 	public AbstractConnectionParams() {
 		this.params = new HashMap<String, Object>();
 		params.put(NULL_CONNECTION, false);
