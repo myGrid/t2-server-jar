@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012 The University of Manchester, UK.
+ * Copyright (c) 2010-2013 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -47,8 +47,13 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.HttpClientUtils;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
@@ -72,7 +77,14 @@ public class HttpConnection extends AbstractConnection {
 	HttpConnection(URI uri, ConnectionParams params) {
 		this.uri = uri;
 		this.params = params;
-		httpClient = new DefaultHttpClient(new BasicHttpParams());
+
+		SchemeRegistry registry = new SchemeRegistry();
+		Scheme httpScheme = new Scheme("http", 80, new PlainSocketFactory());
+		registry.register(httpScheme);
+		ClientConnectionManager cm = new PoolingClientConnectionManager(
+				registry);
+
+		httpClient = new DefaultHttpClient(cm, new BasicHttpParams());
 		httpContext = new BasicHttpContext();
 	}
 
@@ -181,6 +193,8 @@ public class HttpConnection extends AbstractConnection {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			EntityUtils.consumeQuietly(entity);
 		}
 
 		return null;
