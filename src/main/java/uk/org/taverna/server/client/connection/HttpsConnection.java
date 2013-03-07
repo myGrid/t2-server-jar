@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011 The University of Manchester, UK.
+ * Copyright (c) 2010-2013 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -15,7 +15,7 @@
  *
  * * Neither the names of The University of Manchester nor the names of its
  *   contributors may be used to endorse or promote products derived from this
- *   software without specific prior written permission. 
+ *   software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -64,73 +64,68 @@ public class HttpsConnection extends HttpConnection implements ConnectionPNames 
 	HttpsConnection(URI uri, ConnectionParams params) {
 		super(uri, params);
 
-		// if connection params are provided, use them
-		if (params.isParameterFalse(NULL_CONNECTION)) {
-			// get the remote port and default to 443 for https
-			int remotePort = uri.getPort();
-			remotePort = (remotePort != -1) ? remotePort : 443;
+		// get the remote port and default to 443 for https
+		int remotePort = uri.getPort();
+		remotePort = (remotePort != -1) ? remotePort : 443;
 
-			try {
-				TrustManager[] trustManagers = null;
+		try {
+			TrustManager[] trustManagers = null;
 
-				Certificate cert = (Certificate) params
-						.getParameter(SSL_CLIENT_CERT);
+			Certificate cert = (Certificate) params
+					.getParameter(SSL_CLIENT_CERT);
 
-				if (cert != null) {
-					KeyStore ks = KeyStore.getInstance(KeyStore
-							.getDefaultType());
-					ks.load(null, null);
+			if (cert != null) {
+				KeyStore ks = KeyStore.getInstance(KeyStore
+						.getDefaultType());
+				ks.load(null, null);
 
-					ks.setCertificateEntry("peer", cert);
+				ks.setCertificateEntry("peer", cert);
 
-					TrustManagerFactory tmf = TrustManagerFactory
-							.getInstance(TrustManagerFactory
-									.getDefaultAlgorithm());
-					tmf.init(ks);
-					trustManagers = tmf.getTrustManagers();
-				}
-
-				if (params.getBooleanParameter(SSL_NO_AUTH, false)) {
-					trustManagers = new TrustManager[] { new OpenTrustManager() };
-				}
-
-				if (trustManagers == null) {
-					trustManagers = new TrustManager[] { getDefaultTrustManager() };
-				}
-
-				SSLContext sslcontext = SSLContext.getInstance("TLS");
-				sslcontext.init(null, trustManagers, null);
-
-				SSLSocketFactory sf;
-				if (params.getBooleanParameter(SSL_NO_VERIFY_HOST, false)) {
-					sf = new SSLSocketFactory(sslcontext,
-							new AllowAllHostnameVerifier());
-				} else {
-					sf = new SSLSocketFactory(sslcontext);
-				}
-
-				Scheme httpsScheme = new Scheme("https", remotePort, sf);
-				SchemeRegistry schemeRegistry = new SchemeRegistry();
-				schemeRegistry.register(httpsScheme);
-
-				httpClient.getConnectionManager().getSchemeRegistry()
-						.register(httpsScheme);
-			} catch (KeyManagementException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (NoSuchAlgorithmException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (KeyStoreException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (CertificateException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				TrustManagerFactory tmf = TrustManagerFactory
+						.getInstance(TrustManagerFactory
+								.getDefaultAlgorithm());
+				tmf.init(ks);
+				trustManagers = tmf.getTrustManagers();
 			}
+
+			if (params.getBooleanParameter(SSL_NO_AUTH, false)) {
+				trustManagers = new TrustManager[] { new OpenTrustManager() };
+			}
+
+			if (trustManagers == null) {
+				trustManagers = new TrustManager[] { getDefaultTrustManager() };
+			}
+
+			SSLContext sslcontext = SSLContext.getInstance("TLS");
+			sslcontext.init(null, trustManagers, null);
+
+			SSLSocketFactory sf;
+			if (params.getBooleanParameter(SSL_NO_VERIFY_HOST, false)) {
+				sf = new SSLSocketFactory(sslcontext,
+						new AllowAllHostnameVerifier());
+			} else {
+				sf = new SSLSocketFactory(sslcontext);
+			}
+
+			Scheme httpsScheme = new Scheme("https", remotePort, sf);
+			SchemeRegistry schemeRegistry = httpClient.getConnectionManager()
+					.getSchemeRegistry();
+			schemeRegistry.register(httpsScheme);
+		} catch (KeyManagementException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CertificateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
