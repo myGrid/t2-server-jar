@@ -59,6 +59,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
+import uk.org.taverna.server.client.ServerAtCapacityException;
 import uk.org.taverna.server.client.connection.params.ConnectionParams;
 
 /**
@@ -306,6 +307,8 @@ public class HttpConnection extends AbstractConnection {
 			throw new AccessForbiddenException(requestURI);
 		case HttpURLConnection.HTTP_UNAUTHORIZED:
 			throw new AuthorizationException(requestURI);
+		case HttpURLConnection.HTTP_UNAVAILABLE:
+			throw new ServerAtCapacityException();
 		case HttpURLConnection.HTTP_INTERNAL_ERROR:
 			if (content == null || content.isEmpty()) {
 				content = "<not specified>";

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012 The University of Manchester, UK.
+ * Copyright (c) 2010-2013 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -43,8 +43,6 @@ import java.util.Collection;
 import org.junit.AfterClass;
 import org.junit.Test;
 
-import uk.org.taverna.server.client.connection.AccessForbiddenException;
-
 public class TestServer extends TestBase {
 
 	@Test
@@ -79,7 +77,7 @@ public class TestServer extends TestBase {
 		assertTrue("One less run", number == runs.size());
 	}
 
-	@Test(expected = AccessForbiddenException.class)
+	@Test(expected = ServerAtCapacityException.class)
 	public void testServerLimits() {
 		Server server = new Server(serverURI);
 		int limit = server.getRunLimit(user1);
