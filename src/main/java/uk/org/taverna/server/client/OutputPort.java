@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 The University of Manchester, UK.
+ * Copyright (c) 2012, 2013 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -32,6 +32,7 @@
 
 package uk.org.taverna.server.client;
 
+import java.io.InputStream;
 import java.net.URI;
 
 import org.apache.commons.lang.text.StrBuilder;
@@ -93,6 +94,10 @@ public final class OutputPort extends Port {
 
 	public String getDataAsString() {
 		return value.getDataAsString();
+	}
+
+	public InputStream getDataStream() {
+		return value.getDataStream();
 	}
 
 	public URI getReference() {

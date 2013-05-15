@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 The University of Manchester, UK.
+ * Copyright (c) 2012, 2013 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -39,8 +39,10 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 public class TestRun extends TestRunsBase {
@@ -51,6 +53,7 @@ public class TestRun extends TestRunsBase {
 
 	// Some input files.
 	private final static String INPUT_IN_FILE = "/inputs/in.txt";
+	private final static String INPUT_STRINGS_FILE = "/inputs/strings.txt";
 	private final static String INPUT_BACLAVA_FILE = "/inputs/empty_list_input.baclava";
 
 	@Test
@@ -168,6 +171,30 @@ public class TestRun extends TestRunsBase {
 		assertEquals("Total length of MANY data", 12, many.getDataSize());
 		String data = many.getValue().get(1).get(0).get(1).getDataAsString();
 		assertEquals("MANY[1][0][1]", "Hello", data);
+
+		// Check that trying to stream at the OutputPort level fails.
+		boolean caught = false;
+		try {
+			many.getDataStream();
+		} catch (UnsupportedOperationException e) {
+			caught = true;
+		}
+		if (!caught) {
+			fail("UnsupportedOperationException not caught when trying to stream from a list output.");
+		}
+
+		// Check that we can stream from one of the leaves.
+		byte[] buffer = new byte[5];
+		int length = 0;
+		InputStream is = many.getValue().get(1).get(0).get(1).getDataStream();
+		try {
+			length = is.read(buffer);
+		} catch (IOException e) {
+			fail("Could not read from output port data stream.");
+		}
+
+		assertEquals("5 bytes streamed", 5, length);
+		assertEquals("Data is correct", "Hello", new String(buffer));
 	}
 
 	@Test
@@ -190,6 +217,61 @@ public class TestRun extends TestRunsBase {
 
 		// Nothing raised here we hope.
 		run.getBaclavaOutput();
+	}
+
+	@Test
+	public void testResultStreaming() {
+		byte[] workflow = loadResource(WKF_PASS_FILE);
+		File inputFile = getResourceFile(INPUT_STRINGS_FILE);
+		Run run = Run.create(server, workflow, user1);
+
+		try {
+			run.getInputPort("IN").setFile(inputFile);
+		} catch (FileNotFoundException e) {
+			fail("Could not find input file: " + INPUT_IN_FILE);
+		}
+
+		try {
+			run.start();
+		} catch (Exception e) {
+			fail("Failed to start run.");
+		}
+
+		assertTrue("Run is running", run.isRunning());
+		wait(run);
+
+		// Check data size is correct.
+		assertEquals("Data is 100 bytes", 100, run.getOutputPort("OUT")
+				.getDataSize());
+
+		// Stream just the first 10 bytes.
+		byte[] buffer = new byte[100];
+		int length = 0;
+		InputStream is = run.getOutputPort("OUT").getDataStream();
+		try {
+			length = is.read(buffer, 0, 10);
+		} catch (IOException e) {
+			fail("Could not read from output port data stream.");
+		} finally {
+			IOUtils.closeQuietly(is);
+		}
+
+		assertEquals("10 bytes read", 10, length);
+		assertEquals("Data is equal", "123456789\n", new String(buffer, 0, 10));
+
+		// Stream the whole lot (also prove we can re-open streams).
+		is = run.getOutputPort("OUT").getDataStream();
+		try {
+			length = is.read(buffer);
+		} catch (IOException e) {
+			fail("Could not read from output port data stream.");
+		} finally {
+			IOUtils.closeQuietly(is);
+		}
+
+		assertEquals("100 bytes read", 100, length);
+		assertEquals("Last 10 chars are correct", "A23456789\n", new String(
+				buffer, 90, 10));
 	}
 
 	@Test
