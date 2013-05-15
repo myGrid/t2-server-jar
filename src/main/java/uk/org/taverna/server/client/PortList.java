@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 The University of Manchester, UK.
+ * Copyright (c) 2012, 2013 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -78,7 +78,8 @@ public final class PortList extends PortValue {
 
 	@Override
 	public byte[] getData() {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException(
+				"This operation is not supported for list output ports.");
 	}
 
 	@Override
@@ -88,12 +89,14 @@ public final class PortList extends PortValue {
 
 	@Override
 	public InputStream getDataStream() {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException(
+				"This operation is not supported for list output ports.");
 	}
 
 	@Override
 	public void writeDataToFile(File file) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException(
+				"This operation is not supported for list output ports.");
 	}
 
 	@Override

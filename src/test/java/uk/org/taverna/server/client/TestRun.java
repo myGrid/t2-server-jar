@@ -172,8 +172,19 @@ public class TestRun extends TestRunsBase {
 		String data = many.getValue().get(1).get(0).get(1).getDataAsString();
 		assertEquals("MANY[1][0][1]", "Hello", data);
 
-		// Check that trying to stream at the OutputPort level fails.
+		// Check that trying to get data at the OutputPort level fails.
 		boolean caught = false;
+		try {
+			run.getOutputPort("SINGLE").getData();
+		} catch (UnsupportedOperationException e) {
+			caught = true;
+		}
+		if (!caught) {
+			fail("UnsupportedOperationException not caught when trying to get data from the root of a list output.");
+		}
+
+		// Check that trying to stream at the OutputPort level fails.
+		caught = false;
 		try {
 			many.getDataStream();
 		} catch (UnsupportedOperationException e) {
