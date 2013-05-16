@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 The University of Manchester, UK.
+ * Copyright (c) 2012, 2013 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -48,7 +48,7 @@ import org.apache.commons.io.IOUtils;
 
 import uk.org.taverna.server.client.InputPort;
 import uk.org.taverna.server.client.OutputPort;
-import uk.org.taverna.server.client.Port;
+import uk.org.taverna.server.client.PortFactory;
 import uk.org.taverna.server.client.PortValue;
 import uk.org.taverna.server.client.Run;
 import uk.org.taverna.server.client.RunPermission;
@@ -216,7 +216,7 @@ public final class XMLReader {
 
 		Map<String, InputPort> ports = new HashMap<String, InputPort>();
 		for (uk.org.taverna.server.client.xml.port.InputPort ip : id.getInput()) {
-			InputPort port = Port
+			InputPort port = PortFactory
 					.newInputPort(run, ip.getName(), ip.getDepth());
 			ports.put(port.getName(), port);
 		}
@@ -239,16 +239,16 @@ public final class XMLReader {
 
 			PortValue value = null;
 			if (v != null) {
-				value = PortValue.newPortData(run, v.getHref(),
+				value = PortFactory.newPortData(run, v.getHref(),
 						v.getContentType(), v.getContentByteLength());
 			} else if (lv != null) {
 				value = parseOutputPortValueStructure(run, lv);
 			} else if (ev != null) {
-				value = PortValue.newPortError(run, ev.getHref(),
+				value = PortFactory.newPortError(run, ev.getHref(),
 						ev.getErrorByteLength());
 			}
 
-			OutputPort port = Port.newOutputPort(run, op.getName(),
+			OutputPort port = PortFactory.newOutputPort(run, op.getName(),
 					op.getDepth(), value);
 			ports.put(port.getName(), port);
 		}
@@ -268,7 +268,7 @@ public final class XMLReader {
 		if (LeafValue.class.isInstance(value)) {
 			LeafValue lv = (LeafValue) value;
 
-			return PortValue.newPortData(run, lv.getHref(),
+			return PortFactory.newPortData(run, lv.getHref(),
 					lv.getContentType(),
 					lv.getContentByteLength());
 		} else if (ListValue.class.isInstance(value)) {
@@ -279,11 +279,11 @@ public final class XMLReader {
 				list.add(parseOutputPortValueStructure(run, v));
 			}
 
-			return PortValue.newPortList(run, lv.getHref(), list);
+			return PortFactory.newPortList(run, lv.getHref(), list);
 		} else if (ErrorValue.class.isInstance(value)) {
 			ErrorValue ev = (ErrorValue) value;
 
-			return PortValue.newPortError(run, ev.getHref(),
+			return PortFactory.newPortError(run, ev.getHref(),
 					ev.getErrorByteLength());
 		}
 

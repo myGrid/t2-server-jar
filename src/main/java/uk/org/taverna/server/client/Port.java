@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 The University of Manchester, UK.
+ * Copyright (c) 2012, 2013 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -46,15 +46,6 @@ public abstract class Port {
 		this.run = run;
 		this.name = name;
 		this.depth = depth;
-	}
-
-	public static InputPort newInputPort(Run run, String name, int depth) {
-		return new InputPort(run, name, depth);
-	}
-
-	public static OutputPort newOutputPort(Run run, String name, int depth,
-			PortValue value) {
-		return new OutputPort(run, name, depth, value);
 	}
 
 	public Run getRun() {

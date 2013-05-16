@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.AbstractList;
-import java.util.List;
 
 import org.apache.commons.lang.text.StrBuilder;
 
@@ -87,61 +86,6 @@ public abstract class PortValue extends AbstractList<PortValue> {
 		this.reference = reference;
 		this.contentType = type;
 		this.size = size;
-	}
-
-	/**
-	 * Create a new instance of PortData.
-	 * 
-	 * <b>Note:</b> This method is not intended for use outside of this library.
-	 * 
-	 * @param run
-	 *            the run that the data belongs to.
-	 * @param reference
-	 *            the URI reference to the data on the remote server.
-	 * @param type
-	 *            the mime type of the data.
-	 * @param size
-	 *            the size of the data in bytes.
-	 * @return a new PortData instance.
-	 */
-	public static PortData newPortData(Run run, URI reference, String type,
-			long size) {
-		return new PortData(run, reference, type, size);
-	}
-
-	/**
-	 * Create a new instance of PortList.
-	 * 
-	 * <b>Note:</b> This method is not intended for use outside of this library.
-	 * 
-	 * @param run
-	 *            the run that the list belongs to.
-	 * @param reference
-	 *            the URI reference to the list on the remote server.
-	 * @param list
-	 *            the list of values that makes up this list.
-	 * @return a new PortList instance.
-	 */
-	public static PortList newPortList(Run run, URI reference,
-			List<PortValue> list) {
-		return new PortList(run, reference, list);
-	}
-
-	/**
-	 * Create a new instance of PortError.
-	 * 
-	 * <b>Note:</b> This method is not intended for use outside of this library.
-	 * 
-	 * @param run
-	 *            the run that the error belongs to.
-	 * @param reference
-	 *            the URI reference to the error on the remote server.
-	 * @param size
-	 *            the size of the error data in bytes.
-	 * @return a new PortError instance.
-	 */
-	public static PortError newPortError(Run run, URI reference, long size) {
-		return new PortError(run, reference, size);
 	}
 
 	/**
