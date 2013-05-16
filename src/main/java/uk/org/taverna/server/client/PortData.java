@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 The University of Manchester, UK.
+ * Copyright (c) 2012, 2013 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -69,8 +69,20 @@ public class PortData extends PortValue {
 		return false;
 	}
 
+	/**
+	 * Get the data value at the specified index. As PortData only ever holds a
+	 * single data point specifying an index greater than zero makes no sense.
+	 * This method is included for completeness and to satisfy the List
+	 * interface.
+	 * 
+	 * @param index
+	 *            the index of the data value to return.
+	 * @return the data value at the specified index.
+	 * @throws IndexOutOfBoundsException
+	 *             if anything other than zero is given as the value for index.
+	 */
 	@Override
-	public PortValue get(int index) throws IndexOutOfBoundsException {
+	public PortValue get(int index) {
 		if (index != 0) {
 			throw new IndexOutOfBoundsException();
 		}
@@ -78,6 +90,13 @@ public class PortData extends PortValue {
 		return this;
 	}
 
+	/**
+	 * Get the number of data values in this list. This method just returns 1 as
+	 * PortData only ever holds a single data item. This method is included for
+	 * completeness and to satisfy the List interface.
+	 * 
+	 * @return 1.
+	 */
 	@Override
 	public int size() {
 		return 1;

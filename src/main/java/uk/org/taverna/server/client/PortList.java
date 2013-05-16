@@ -55,11 +55,23 @@ public final class PortList extends PortValue {
 		this.dataSize = -1;
 	}
 
+	/**
+	 * Get the data value at the specified index.
+	 * 
+	 * @param index
+	 *            the index of the data value to return.
+	 * @return the data value at the specified index.
+	 */
 	@Override
 	public PortValue get(int index) {
 		return list.get(index);
 	}
 
+	/**
+	 * Get the number of data values in this list.
+	 * 
+	 * @return the number of data values in this list.
+	 */
 	@Override
 	public int size() {
 		return list.size();
