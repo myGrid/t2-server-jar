@@ -82,7 +82,7 @@ public final class PortFactory {
 	 * @return a new OutputPort instance.
 	 */
 	public static OutputPort newOutputPort(Run run, String name, int depth,
-			PortValue value) {
+			AbstractPortValue value) {
 		return new OutputPort(run, name, depth, value);
 	}
 
@@ -101,9 +101,9 @@ public final class PortFactory {
 	 *            the size of the data in bytes.
 	 * @return a new PortData instance.
 	 */
-	public static PortData newPortData(Run run, URI reference, String type,
+	public static PortDataValue newPortData(Run run, URI reference, String type,
 			long size) {
-		return new PortData(run, reference, type, size);
+		return new PortDataValue(run, reference, type, size);
 	}
 
 	/**
@@ -119,9 +119,9 @@ public final class PortFactory {
 	 *            the list of values that makes up this list.
 	 * @return a new PortList instance.
 	 */
-	public static PortList newPortList(Run run, URI reference,
-			List<PortValue> list) {
-		return new PortList(run, reference, list);
+	public static PortListValue newPortList(Run run, URI reference,
+			List<AbstractPortValue> list) {
+		return new PortListValue(run, reference, list);
 	}
 
 	/**
@@ -137,7 +137,7 @@ public final class PortFactory {
 	 *            the size of the error data in bytes.
 	 * @return a new PortError instance.
 	 */
-	public static PortError newPortError(Run run, URI reference, long size) {
-		return new PortError(run, reference, size);
+	public static PortErrorValue newPortError(Run run, URI reference, long size) {
+		return new PortErrorValue(run, reference, size);
 	}
 }

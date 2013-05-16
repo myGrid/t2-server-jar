@@ -49,7 +49,7 @@ import org.apache.commons.io.IOUtils;
 import uk.org.taverna.server.client.InputPort;
 import uk.org.taverna.server.client.OutputPort;
 import uk.org.taverna.server.client.PortFactory;
-import uk.org.taverna.server.client.PortValue;
+import uk.org.taverna.server.client.AbstractPortValue;
 import uk.org.taverna.server.client.Run;
 import uk.org.taverna.server.client.RunPermission;
 import uk.org.taverna.server.client.connection.Connection;
@@ -237,7 +237,7 @@ public final class XMLReader {
 			ListValue lv = op.getList();
 			ErrorValue ev = op.getError();
 
-			PortValue value = null;
+			AbstractPortValue value = null;
 			if (v != null) {
 				value = PortFactory.newPortData(run, v.getHref(),
 						v.getContentType(), v.getContentByteLength());
@@ -264,7 +264,7 @@ public final class XMLReader {
 	 * list we try to cast to a value first as this is what we will most often
 	 * have.
 	 */
-	private PortValue parseOutputPortValueStructure(Run run, Value value) {
+	private AbstractPortValue parseOutputPortValueStructure(Run run, Value value) {
 		if (LeafValue.class.isInstance(value)) {
 			LeafValue lv = (LeafValue) value;
 
@@ -274,7 +274,7 @@ public final class XMLReader {
 		} else if (ListValue.class.isInstance(value)) {
 			ListValue lv = (ListValue) value;
 
-			List<PortValue> list = new ArrayList<PortValue>();
+			List<AbstractPortValue> list = new ArrayList<AbstractPortValue>();
 			for (Value v : lv.getValueOrListOrError()) {
 				list.add(parseOutputPortValueStructure(run, v));
 			}

@@ -43,20 +43,20 @@ import org.apache.commons.lang.text.StrBuilder;
 /**
  * This serves as the abstract superclass of the output port data classes:
  * <ul>
- * <li>{@link PortData} holds a single data value. For output ports of depth
+ * <li>{@link PortDataValue} holds a single data value. For output ports of depth
  * zero it holds the entirety of the data in the port. For ports holding lists
  * it holds the data of each list entry.</li>
- * <li>{@link PortList} holds a list of items that make up the data of an output
+ * <li>{@link PortListValue} holds a list of items that make up the data of an output
  * port. These list items will be further instances of PortList until the depth
  * of the port is reached, when they will be instances of PortData (or
  * PortError) that hold the actual data values.</li>
- * <li>{@link PortError} holds error data if an error was returned from the
+ * <li>{@link PortErrorValue} holds error data if an error was returned from the
  * server for a particular data point.</li>
  * </ul>
  * 
  * @author Robert Haines
  */
-public abstract class PortValue extends AbstractList<PortValue> {
+public abstract class AbstractPortValue extends AbstractList<AbstractPortValue> {
 
 	public static final String PORT_ERROR_TYPE = "application/x-error";
 	public static final String PORT_LIST_TYPE = "application/x-list";
@@ -81,7 +81,7 @@ public abstract class PortValue extends AbstractList<PortValue> {
 	 */
 	protected final long size;
 
-	PortValue(Run run, URI reference, String type, long size) {
+	AbstractPortValue(Run run, URI reference, String type, long size) {
 		this.run = run;
 		this.reference = reference;
 		this.contentType = type;
@@ -101,11 +101,11 @@ public abstract class PortValue extends AbstractList<PortValue> {
 	 * Get all the data held in this port value.
 	 * 
 	 * This method can only be used on subclasses that actually hold data, such
-	 * as {@link PortData} or {@link PortError}.
+	 * as {@link PortDataValue} or {@link PortErrorValue}.
 	 * 
 	 * @return all the data held in this port value.
 	 * @throws UnsupportedOperationException
-	 *             if called on an instance of {@link PortList}.
+	 *             if called on an instance of {@link PortListValue}.
 	 * @see #getData(int)
 	 * @see #getDataStream()
 	 * @see #getDataAsString()
@@ -114,8 +114,8 @@ public abstract class PortValue extends AbstractList<PortValue> {
 
 	/**
 	 * Get all the data held at the specified index of this output value. If
-	 * this value is a {@link PortList} then the value at the specified index is
-	 * returned. If this value is a {@link PortData} then only index 0 will
+	 * this value is a {@link PortListValue} then the value at the specified index is
+	 * returned. If this value is a {@link PortDataValue} then only index 0 will
 	 * return any data.
 	 * 
 	 * @param index
@@ -140,7 +140,7 @@ public abstract class PortValue extends AbstractList<PortValue> {
 	 * 
 	 * @return the stream to read the data from.
 	 * @throws UnsupportedOperationException
-	 *             if called on an instance of {@link PortList}.
+	 *             if called on an instance of {@link PortListValue}.
 	 * @see #getData()
 	 * @see #getData(int)
 	 * @see #getDataAsString()
@@ -153,7 +153,7 @@ public abstract class PortValue extends AbstractList<PortValue> {
 	 * @param file
 	 *            the file to write the data to.
 	 * @throws UnsupportedOperationException
-	 *             if called on an instance of {@link PortList}.
+	 *             if called on an instance of {@link PortListValue}.
 	 * @throws IOException
 	 *             if the specified file cannot be found, opened or written to
 	 *             for any reason.
@@ -165,7 +165,7 @@ public abstract class PortValue extends AbstractList<PortValue> {
 	 * 
 	 * @return all the data held in this port value as a String.
 	 * @throws UnsupportedOperationException
-	 *             if called on an instance of {@link PortList}.
+	 *             if called on an instance of {@link PortListValue}.
 	 * @see #getData()
 	 * @see #getData(int)
 	 * @see #getDataStream()

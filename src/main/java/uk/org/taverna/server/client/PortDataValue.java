@@ -48,7 +48,7 @@ import uk.org.taverna.server.client.util.IOUtils;
  * 
  * @author Robert Haines
  */
-public class PortData extends PortValue {
+public class PortDataValue extends AbstractPortValue {
 
 	// If there is no data...
 	private static final byte[] EMPTY_DATA = new byte[0];
@@ -57,7 +57,7 @@ public class PortData extends PortValue {
 	private SoftReference<byte[]> cache;
 	private LongRange dataGot;
 
-	PortData(Run run, URI reference, String type, long size) {
+	PortDataValue(Run run, URI reference, String type, long size) {
 		super(run, reference, type, size);
 
 		cache = new SoftReference<byte[]>(null);
@@ -82,7 +82,7 @@ public class PortData extends PortValue {
 	 *             if anything other than zero is given as the value for index.
 	 */
 	@Override
-	public PortValue get(int index) {
+	public AbstractPortValue get(int index) {
 		if (index != 0) {
 			throw new IndexOutOfBoundsException();
 		}

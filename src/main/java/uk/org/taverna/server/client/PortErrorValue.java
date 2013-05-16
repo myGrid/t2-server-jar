@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 The University of Manchester, UK.
+ * Copyright (c) 2012, 2013 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -38,9 +38,9 @@ import java.net.URI;
  * 
  * @author Robert Haines
  */
-public final class PortError extends PortData {
+public final class PortErrorValue extends PortDataValue {
 
-	PortError(Run run, URI reference, long size) {
+	PortErrorValue(Run run, URI reference, long size) {
 		super(run, reference, PORT_ERROR_TYPE, size);
 	}
 

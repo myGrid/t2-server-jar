@@ -43,9 +43,9 @@ import org.apache.commons.lang.text.StrBuilder;
  */
 public final class OutputPort extends Port {
 
-	private final PortValue value;
+	private final AbstractPortValue value;
 
-	OutputPort(Run run, String name, int depth, PortValue value) {
+	OutputPort(Run run, String name, int depth, AbstractPortValue value) {
 		super(run, name, depth);
 
 		this.value = value;
@@ -55,7 +55,7 @@ public final class OutputPort extends Port {
 	 * 
 	 * @return
 	 */
-	public PortValue getValue() {
+	public AbstractPortValue getValue() {
 		return value;
 	}
 

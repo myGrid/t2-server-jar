@@ -43,12 +43,12 @@ import org.apache.commons.lang.text.StrBuilder;
  * 
  * @author Robert Haines
  */
-public final class PortList extends PortValue {
+public final class PortListValue extends AbstractPortValue {
 
-	private final List<PortValue> list;
+	private final List<AbstractPortValue> list;
 	private long dataSize;
 
-	PortList(Run run, URI reference, List<PortValue> list) {
+	PortListValue(Run run, URI reference, List<AbstractPortValue> list) {
 		super(run, reference, PORT_LIST_TYPE, 0);
 
 		this.list = list;
@@ -63,7 +63,7 @@ public final class PortList extends PortValue {
 	 * @return the data value at the specified index.
 	 */
 	@Override
-	public PortValue get(int index) {
+	public AbstractPortValue get(int index) {
 		return list.get(index);
 	}
 
@@ -79,7 +79,7 @@ public final class PortList extends PortValue {
 
 	@Override
 	public boolean isError() {
-		for (PortValue p : list) {
+		for (AbstractPortValue p : list) {
 			if (p.isError()) {
 				return true;
 			}
@@ -116,7 +116,7 @@ public final class PortList extends PortValue {
 		if (dataSize == -1) {
 			dataSize = 0;
 
-			for (PortValue p : list) {
+			for (AbstractPortValue p : list) {
 				dataSize += p.getDataSize();
 			}
 		}
@@ -132,7 +132,7 @@ public final class PortList extends PortValue {
 		message.appendln(reference.toASCIIString());
 		message.appendPadding(indent, ' ');
 		message.appendln("[");
-		for (PortValue p : list) {
+		for (AbstractPortValue p : list) {
 			message.appendln(p.toString(indent + 1));
 		}
 		message.appendPadding(indent, ' ');
