@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 The University of Manchester, UK.
+ * Copyright (c) 2012, 2013 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -54,6 +54,7 @@ public abstract class TestBase {
 	protected final static String WKF_LISTS_FILE = "/workflows/empty_list.t2flow";
 	protected final static String WKF_FAIL_FILE = "/workflows/always_fail.t2flow";
 	protected final static String WKF_ERRORS_FILE = "/workflows/list_with_errors.t2flow";
+	protected final static String WKF_MISS_OUT_FILE = "/workflows/missing_outputs.t2flow";
 
 	// Common resources.
 	protected static URI serverURI;

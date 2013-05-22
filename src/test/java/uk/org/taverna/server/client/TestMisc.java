@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2013 The University of Manchester, UK.
+ * Copyright (c) 2013 The University of Manchester, UK.
  *
  * All rights reserved.
  *
@@ -32,14 +32,35 @@
 
 package uk.org.taverna.server.client;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-@RunWith(Suite.class)
-@SuiteClasses({ uk.org.taverna.server.client.util.TestURIUtils.class,
-	TestServer.class, TestRun.class, TestRunPermissions.class,
-	TestSecureWorkflows.class, TestMisc.class })
-public class TestAll {
+import org.junit.Test;
 
+public final class TestMisc extends TestRunsBase {
+
+	@Test
+	public void testMissingOutputs() {
+		byte[] workflow = loadResource(WKF_MISS_OUT_FILE);
+		Run run = Run.create(server, workflow, user1);
+
+		try {
+			run.start();
+		} catch (Exception e) {
+			fail("Failed to start run.");
+		}
+
+		assertTrue("Run is running", run.isRunning());
+		wait(run);
+
+		for (OutputPort op : run.getOutputPorts().values()) {
+			assertEquals("Port depth is 2", 2, op.getDepth());
+			assertEquals("List has length 3", 3, op.getValue().size());
+			assertEquals("Present value has length 10", 10, op.getValue()
+					.get(0).size());
+			assertEquals("Absent value has length 0", 0, op.getValue().get(1)
+					.size());
+		}
+	}
 }

@@ -46,16 +46,17 @@ import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.io.IOUtils;
 
+import uk.org.taverna.server.client.AbstractPortValue;
 import uk.org.taverna.server.client.InputPort;
 import uk.org.taverna.server.client.OutputPort;
 import uk.org.taverna.server.client.PortFactory;
-import uk.org.taverna.server.client.AbstractPortValue;
 import uk.org.taverna.server.client.Run;
 import uk.org.taverna.server.client.RunPermission;
 import uk.org.taverna.server.client.connection.Connection;
 import uk.org.taverna.server.client.connection.MimeType;
 import uk.org.taverna.server.client.connection.UserCredentials;
 import uk.org.taverna.server.client.util.URIUtils;
+import uk.org.taverna.server.client.xml.port.AbsentValue;
 import uk.org.taverna.server.client.xml.port.ErrorValue;
 import uk.org.taverna.server.client.xml.port.InputDescription;
 import uk.org.taverna.server.client.xml.port.LeafValue;
@@ -84,6 +85,7 @@ import uk.org.taverna.server.client.xml.rest.TrustList;
 public final class XMLReader {
 
 	private final static String CTX_PATH = "uk.org.taverna.server.client.xml.rest:uk.org.taverna.server.client.xml.port";
+	private final static URI NULL_URI = URI.create("");
 
 	private final Connection connection;
 
@@ -236,6 +238,7 @@ public final class XMLReader {
 			LeafValue v = op.getValue();
 			ListValue lv = op.getList();
 			ErrorValue ev = op.getError();
+			AbsentValue av = op.getAbsent();
 
 			AbstractPortValue value = null;
 			if (v != null) {
@@ -246,7 +249,13 @@ public final class XMLReader {
 			} else if (ev != null) {
 				value = PortFactory.newPortError(run, ev.getHref(),
 						ev.getErrorByteLength());
+			} else if (av != null) {
+				value = PortFactory.newPortData(run, NULL_URI,
+						AbstractPortValue.PORT_EMPTY_TYPE, 0);
 			}
+
+			// value should never still be null here
+			assert (value != null);
 
 			OutputPort port = PortFactory.newOutputPort(run, op.getName(),
 					op.getDepth(), value);
@@ -285,9 +294,13 @@ public final class XMLReader {
 
 			return PortFactory.newPortError(run, ev.getHref(),
 					ev.getErrorByteLength());
+		} else if (AbsentValue.class.isInstance(value)) {
+			return PortFactory.newPortList(run, NULL_URI,
+					new ArrayList<AbstractPortValue>());
 		}
 
 		// We should NOT get here!
+		assert (false);
 		return null;
 	}
 

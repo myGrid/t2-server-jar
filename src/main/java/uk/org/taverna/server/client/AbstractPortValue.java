@@ -58,6 +58,7 @@ import org.apache.commons.lang.text.StrBuilder;
  */
 public abstract class AbstractPortValue extends AbstractList<AbstractPortValue> {
 
+	public static final String PORT_EMPTY_TYPE = "application/x-empty";
 	public static final String PORT_ERROR_TYPE = "application/x-error";
 	public static final String PORT_LIST_TYPE = "application/x-list";
 
