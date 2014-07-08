@@ -63,7 +63,7 @@ public abstract class TestBase {
 
 	@BeforeClass
 	public static void getConfiguration() {
-		String address = System.getProperty("SERVER");
+		String address = System.getProperty("SERVER", "http://localhost:8080/tavernaserver");
 		String creds1 = System.getProperty("USER1", "taverna:taverna");
 		String creds2 = System.getProperty("USER2");
 

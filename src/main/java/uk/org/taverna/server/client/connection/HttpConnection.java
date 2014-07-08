@@ -234,7 +234,9 @@ public class HttpConnection extends AbstractConnection {
 						.create(response.getHeaders("location")[0].getValue());
 			} else if (isSuccess(response, HttpURLConnection.HTTP_NO_CONTENT)) {
 				return uri;
-			} else {
+			} else if (isSuccess(response, HttpURLConnection.HTTP_ACCEPTED)) {
+                            return uri;
+                        } else {
 				error(response, uri);
 			}
 		} catch (ClientProtocolException e) {
