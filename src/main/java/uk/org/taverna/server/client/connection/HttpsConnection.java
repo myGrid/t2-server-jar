@@ -41,17 +41,19 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
-
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+//import org.apache.http.conn.scheme.Scheme;
+//import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+//import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+//import org.apache.http.conn.ssl.SSLSocketFactory;
+//import org.apache.http.conn.ssl.X509HostnameVerifier;
 import uk.org.taverna.server.client.connection.params.ConnectionPNames;
 import uk.org.taverna.server.client.connection.params.ConnectionParams;
 
@@ -99,18 +101,24 @@ public class HttpsConnection extends HttpConnection implements ConnectionPNames 
 			SSLContext sslcontext = SSLContext.getInstance("TLS");
 			sslcontext.init(null, trustManagers, null);
 
-			SSLSocketFactory sf;
+			//SSLSocketFactory sf;
+			//if (params.getBooleanParameter(SSL_NO_VERIFY_HOST, false)) {
+			//	sf = new SSLSocketFactory(sslcontext,
+			//			new AllowAllHostnameVerifier());
+			//} else {
+			//	sf = new SSLSocketFactory(sslcontext);
+			//}
+                        SSLConnectionSocketFactory csf;
 			if (params.getBooleanParameter(SSL_NO_VERIFY_HOST, false)) {
-				sf = new SSLSocketFactory(sslcontext,
-						new AllowAllHostnameVerifier());
+                             csf = new SSLConnectionSocketFactory(sslcontext, SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 			} else {
-				sf = new SSLSocketFactory(sslcontext);
+				csf = new SSLConnectionSocketFactory(sslcontext);
 			}
-
-			Scheme httpsScheme = new Scheme("https", remotePort, sf);
-			SchemeRegistry schemeRegistry = httpClient.getConnectionManager()
-					.getSchemeRegistry();
-			schemeRegistry.register(httpsScheme);
+                        RegistryBuilder.<ConnectionSocketFactory>create().register("https", csf).build();
+                        //Scheme httpsScheme = new Scheme("https", remotePort, sf);
+			//SchemeRegistry schemeRegistry = httpClient.getConnectionManager()
+			//		.getSchemeRegistry();
+			//schemeRegistry.register(httpsScheme);
 		} catch (KeyManagementException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
